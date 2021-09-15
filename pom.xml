@@ -8,6 +8,12 @@
   <packaging>jar</packaging>
 
   <dependencies>
+    <dependency>
+      <groupId>org.commonlib5</groupId>
+      <artifactId>commonlib5</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+
     <!-- https://mvnrepository.com/artifact/org.apache.torque/torque -->
     <dependency>
       <groupId>org.apache.torque</groupId>
@@ -44,11 +50,6 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-csv</artifactId>
       <version>1.8</version>
-    </dependency>
-    <dependency>
-      <groupId>org.commonlib5</groupId>
-      <artifactId>commonlib5</artifactId>
-      <version>1.0-SNAPSHOT</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/org.apache.derby/derby -->
     <dependency>
