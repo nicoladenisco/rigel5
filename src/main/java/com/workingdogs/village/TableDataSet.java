@@ -20,7 +20,7 @@ package com.workingdogs.village;
  */
 import java.sql.Connection;
 import java.sql.SQLException;
-import org.commonlib.lambda.ConsumerThrowException;
+import org.commonlib5.lambda.ConsumerThrowException;
 
 /**
  * This class is used for doing select/insert/delete/update on the database. A TableDataSet cannot be used to join

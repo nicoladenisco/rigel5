@@ -17,9 +17,9 @@
  */
 package org.rigel2.test;
 
-import org.commonlib.utils.ArrayMap;
+import org.commonlib5.utils.ArrayMap;
 import org.junit.*;
-import org.rigel2.HtmlUtils;
+import org.rigel5.HtmlUtils;
 
 /**
  * Test componenti di base.

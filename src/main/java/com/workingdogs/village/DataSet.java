@@ -27,7 +27,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.commonlib.lambda.ConsumerThrowException;
+import org.commonlib5.lambda.ConsumerThrowException;
 
 /**
  * The DataSet represents a table in the database. It is extended by <a href="QueryDataSet.html">QueryDataSet</a> and <a
