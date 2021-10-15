@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -37,7 +37,8 @@ public interface MascheraRicercaGenerica
    * @return
    * @throws Exception
    */
-  public Object buildCriteriaSafe(Map params) throws Exception;
+  public Object buildCriteriaSafe(Map params)
+     throws Exception;
 
   /**
    * Ritorna l'HTML completo della maschera per l'impostazione
@@ -46,7 +47,8 @@ public interface MascheraRicercaGenerica
    * @param page the value of page
    * @throws Exception
    */
-  public void buildHtmlRicerca(String nomeForm, RigelHtmlPage page) throws Exception;
+  public void buildHtmlRicerca(String nomeForm, RigelHtmlPage page)
+     throws Exception;
 
   /**
    * Ritorna l'HTML completo della maschera di ricerca semplice
@@ -54,10 +56,10 @@ public interface MascheraRicercaGenerica
    * alla lista.
    * @param nomeForm the value of nomeForm
    * @param sizeFld dimensioni dei campi per l'input
+   * @param haveFilter vero se il filtro è attivo
    * @param page the value of page
    * @throws Exception
    */
-  public void buildHtmlRicercaSemplice(String nomeForm, int sizeFld, RigelHtmlPage page) throws Exception;
+  public void buildHtmlRicercaSemplice(String nomeForm, int sizeFld, boolean haveFilter, RigelHtmlPage page)
+     throws Exception;
 }
-
-

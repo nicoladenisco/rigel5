@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -217,7 +217,7 @@ public class SwingMascheraRicercaGenerica extends JPanel implements MascheraRice
   }
 
   @Override
-  public void buildHtmlRicercaSemplice(String nomeForm, int sizeFld, RigelHtmlPage page)
+  public void buildHtmlRicercaSemplice(String nomeForm, int sizeFld, boolean haveFilter, RigelHtmlPage page)
      throws Exception
   {
   }

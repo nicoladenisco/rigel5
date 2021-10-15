@@ -401,10 +401,10 @@ public class HtmlMascheraRicercaGenerica implements MascheraRicercaGenerica
    * @throws Exception
    */
   @Override
-  public void buildHtmlRicercaSemplice(String nomeForm, int sizeFld, RigelHtmlPage page)
+  public void buildHtmlRicercaSemplice(String nomeForm, int sizeFld, boolean haveFilter, RigelHtmlPage page)
      throws Exception
   {
-    buildHtmlRicercaSemplice(nomeForm, sizeFld, page, SetupHolder.getMaxSiSeColumn());
+    buildHtmlRicercaSemplice(nomeForm, sizeFld, haveFilter, page, SetupHolder.getMaxSiSeColumn());
   }
 
   /**
@@ -415,7 +415,7 @@ public class HtmlMascheraRicercaGenerica implements MascheraRicercaGenerica
    * @param maxFields numero massimo campi ammessi in ricerca semplice
    * @throws Exception
    */
-  protected void buildHtmlRicercaSemplice(String nomeForm, int sizeFld, RigelHtmlPage page, int maxFields)
+  protected void buildHtmlRicercaSemplice(String nomeForm, int sizeFld, boolean haveFilter, RigelHtmlPage page, int maxFields)
      throws Exception
   {
     this.formName = nomeForm;

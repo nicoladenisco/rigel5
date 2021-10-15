@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -356,13 +356,14 @@ abstract public class AbstractHtmlTablePagerFilter extends AbstractHtmlTablePage
   public synchronized void getSimpleSearch(HttpSession sessione, int size, RigelHtmlPage page)
      throws Exception
   {
-    if(!getTableModel().isInitalized())
-      throw new Exception(i18n.msg("Oggetto table model non inizializzato"));
-
     if(mgr == null)
-      mgr = getTableModel().getMascheraRG(i18n);
+    {
+      if(getTableModel().isInitalized())
+        mgr = getTableModel().getMascheraRG(i18n);
+    }
 
-    mgr.buildHtmlRicercaSemplice(formName, size, page);
+    if(mgr != null)
+      mgr.buildHtmlRicercaSemplice(formName, size, isFiltro(), page);
   }
 
   /**
