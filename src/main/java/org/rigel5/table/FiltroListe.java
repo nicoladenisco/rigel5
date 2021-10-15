@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -18,6 +18,7 @@
 package org.rigel5.table;
 
 import java.util.Vector;
+import org.rigel5.db.sql.FiltroData;
 
 /**
  * Un oggetto per mantenere il filtro applicato a una lista.
@@ -84,7 +85,13 @@ public class FiltroListe
 
   public boolean isEmpty()
   {
-    return oggFiltro == null;
+    if(oggFiltro == null)
+      return true;
+
+    if((oggFiltro instanceof FiltroData) && (((FiltroData) oggFiltro).haveWhere() == false))
+      return true;
+
+    return false;
   }
 
   @Override
