@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Nicola De Nisco
+ * Copyright (C) 2021 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,59 +20,32 @@ package org.rigel5.db.torque;
 import java.io.Closeable;
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import org.apache.torque.Torque;
 
 /**
- * Utilità per eseguire operazioni readonly senza usare lambda (PeerTransactAgent).
+ * Utilità per eseguire operazioni read/write senza usare lambda (PeerTransactAgent).
  * Pensata per essere usata in posti particolari (JSP per esempio).
  *
  * @author Nicola De Nisco
  */
-public class PeerReadOnlyHelper implements Closeable
+public class PeerReadWriteHelper implements Closeable
 {
   Connection dbCon = null;
-  DatabaseMetaData md = null;
-  int readOnlyState = -1, isolationLevelState = -1;
 
-  public Connection getReadOnlyConnection()
+  public Connection getConnection()
      throws Exception
   {
     if(dbCon == null)
-    {
       dbCon = Torque.getConnection();
-      md = dbCon.getMetaData();
-
-      // memorizza stato e imposta connesione a read only
-      readOnlyState = dbCon.isReadOnly() ? 1 : 0;
-      dbCon.setReadOnly(true);
-
-      // se supportato imposta letture senza transazione
-      if(md.supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_UNCOMMITTED))
-      {
-        isolationLevelState = dbCon.getTransactionIsolation();
-        dbCon.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
-      }
-    }
 
     return dbCon;
   }
 
-  public void putReadOnlyConnection()
+  public void putConnection()
      throws Exception
   {
     if(dbCon != null)
-    {
-      // riporta stato read only a valore precedente
-      if(readOnlyState != -1)
-        dbCon.setReadOnly(readOnlyState == 1);
-
-      // se supportato riporta isolamento come precedente
-      if(isolationLevelState != -1)
-        dbCon.setTransactionIsolation(isolationLevelState);
-
       Torque.closeConnection(dbCon);
-    }
   }
 
   @Override
@@ -81,7 +54,7 @@ public class PeerReadOnlyHelper implements Closeable
   {
     try
     {
-      putReadOnlyConnection();
+      putConnection();
     }
     catch(IOException e)
     {

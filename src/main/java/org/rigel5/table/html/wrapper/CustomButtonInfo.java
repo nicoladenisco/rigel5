@@ -35,14 +35,15 @@ public class CustomButtonInfo implements Cloneable
   private String javascript;
   private String className;
   private String icon;
-  private Hashtable htparam = new Hashtable();
+  private final Hashtable htparam = new Hashtable();
+  private final Hashtable runtimeParameters = new Hashtable();
   private int popup;
   private String text;
   private String confirm;
   private String html;
   private boolean lineEdit;
   private CustomButtonRuntimeInterface cbri = null;
-  private ArrayList<CustomButtonInfo> innerButtons = new ArrayList<CustomButtonInfo>();
+  private final List<CustomButtonInfo> innerButtons = new ArrayList<CustomButtonInfo>();
 
   public CustomButtonInfo()
   {
@@ -59,7 +60,7 @@ public class CustomButtonInfo implements Cloneable
      throws CloneNotSupportedException
   {
     CustomButtonInfo cb = (CustomButtonInfo) super.clone();
-    cb.innerButtons = new ArrayList<CustomButtonInfo>();
+    cb.innerButtons.clear();
     cb.innerButtons.addAll(innerButtons);
     return cb;
   }
@@ -67,6 +68,16 @@ public class CustomButtonInfo implements Cloneable
   public void addParam(String paramName, String paramValue)
   {
     htparam.put(paramName, paramValue);
+  }
+
+  public void addRuntimeParam(String paramName, Object paramValue)
+  {
+    runtimeParameters.put(paramName, paramValue);
+  }
+
+  public Map getRuntimeParameters()
+  {
+    return runtimeParameters;
   }
 
   /**

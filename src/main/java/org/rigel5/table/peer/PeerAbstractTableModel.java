@@ -24,7 +24,6 @@ import java.sql.*;
 import java.util.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.*;
-import org.apache.torque.Torque;
 import org.apache.torque.criteria.Criteria;
 import org.apache.torque.map.ColumnMap;
 import org.apache.torque.map.ForeignKeyMap;
@@ -712,24 +711,9 @@ abstract public class PeerAbstractTableModel extends RigelObjectTableModel
       if(nomeTabella == null)
         throw new Exception("Oggetto map builder non conforme!");
 
-      Connection db = null;
-      try
-      {
-        db = Torque.getConnection();
-
-        PreparedStatement ps = db.prepareStatement("SELECT COUNT(*) AS NUMRECORDS FROM " + nomeTabella);
-        ResultSet rs = ps.executeQuery();
-        if(rs.next())
-          totalRecords = rs.getInt(1);
-
-        rs.close();
-        ps.close();
-      }
-      finally
-      {
-        if(db != null)
-          Torque.closeConnection(db);
-      }
+      List v = DbUtils.executeQuery("SELECT COUNT(*) AS NUMRECORDS FROM " + nomeTabella);
+      if(!v.isEmpty())
+        totalRecords = ((Record) (v.get(0))).getValue(1).asLong();
     }
 
     return totalRecords;
@@ -737,6 +721,9 @@ abstract public class PeerAbstractTableModel extends RigelObjectTableModel
 
   /**
    * Ritorna il conteggio totale dei records secondo il filtro impostato.
+   * @param fl
+   * @return numero di records
+   * @throws java.lang.Exception
    */
   @Override
   public long getTotalRecords(FiltroListe fl)

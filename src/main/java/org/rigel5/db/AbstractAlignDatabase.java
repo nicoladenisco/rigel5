@@ -251,8 +251,7 @@ abstract public class AbstractAlignDatabase
   protected void executeFileSql(Element e, File fileSql)
      throws Exception
   {
-    if(verbose)
-      System.out.println("Elaborazione " + fileSql.getAbsolutePath());
+    System.out.println("=== Elaborazione " + fileSql.getAbsolutePath() + " ===");
 
     try (InputStreamReader rd = new InputStreamReader(new FileInputStream(fileSql), "UTF-8"))
     {
@@ -579,19 +578,28 @@ abstract public class AbstractAlignDatabase
   public void macro_dropallviews(String params)
      throws Exception
   {
+    Map<String, String> options = StringOper.string2Map(StringOper.okStr(params), " ,;", true);
+    boolean optionVerbose = StringOper.checkTrueFalse(options.get("verbose"), false);
+    boolean optionShowsql = StringOper.checkTrueFalse(options.get("showsql"), false);
+
     DatabaseMetaData databaseMetaData = con.getMetaData();
     ArrayList<String> viewNames = new ArrayList<String>();
-    try (ResultSet rSet = databaseMetaData.getTables(null, null, null, new String[]
-    {
-      "VIEW"
-    }))
+    try (ResultSet rSet = databaseMetaData.getTables(null, null, null, DbUtils.VIEWS_FILTER))
     {
       while(rSet.next())
       {
         if(rSet.getString("TABLE_TYPE").equals("VIEW"))
         {
-          String tableName = rSet.getString("TABLE_NAME");
-          viewNames.add(tableName);
+          String schemaName = StringOper.okStrNull(rSet.getString("TABLE_SCHEM"));
+          String tableName = StringOper.okStrNull(rSet.getString("TABLE_NAME"));
+
+          if(tableName == null)
+            continue;
+
+          if(schemaName == null)
+            viewNames.add(tableName);
+          else
+            viewNames.add(schemaName + "." + tableName);
         }
       }
     }
@@ -604,17 +612,23 @@ abstract public class AbstractAlignDatabase
       {
         String sSQL = "DROP VIEW " + vn + ";";
 
+        if("postgresql".equals(adapter))
+          sSQL = "DROP VIEW " + vn + " CASCADE;";
+
+        if(optionShowsql)
+          System.out.println("SQL=" + sSQL);
+
         try (Statement st = con.createStatement())
         {
           st.executeUpdate(sSQL);
         }
 
-        if(verbose)
+        if(verbose || optionVerbose)
           System.out.println("OK: " + sSQL);
       }
       catch(SQLException ex)
       {
-        if(verbose)
+        if(verbose || optionVerbose)
           System.out.println("ERROR: " + ex.getMessage());
       }
     }
@@ -654,8 +668,9 @@ abstract public class AbstractAlignDatabase
     try (Statement st = con.createStatement())
     {
       // rimuove i valori che vanno in conflitto con la chiave esterna
-      String sSQL = "UPDATE " + tabella
-         + " SET " + colonne + "=NULL"
+      String sSQL
+         = "UPDATE " + tabella
+         + "   SET " + colonne + "=NULL"
          + " WHERE " + colonne + " NOT IN (SELECT " + fcolonne + " FROM " + ftabella + ")";
 
       st.executeUpdate(sSQL);
@@ -664,14 +679,46 @@ abstract public class AbstractAlignDatabase
         System.out.println("macro_createforeign: " + sSQL);
 
       // applica la chiave esterna
-      sSQL = "ALTER TABLE " + tabella
-         + " ADD CONSTRAINT " + indice + " FOREIGN KEY (" + colonne + ")"
-         + " REFERENCES " + ftabella + " (" + fcolonne + ")";
+      sSQL
+         = "ALTER TABLE " + tabella
+         + "  ADD CONSTRAINT " + indice + " FOREIGN KEY (" + colonne + ")"
+         + "  REFERENCES " + ftabella + " (" + fcolonne + ")";
 
       st.executeUpdate(sSQL);
 
       if(verbose)
         System.out.println("macro_createforeign: " + sSQL);
+    }
+    catch(SQLException ex)
+    {
+      if(verbose)
+        System.out.println("ERROR: " + ex.getMessage());
+    }
+  }
+
+  /**
+   * Macro per l'inserimento di un record 0 in una tabella.
+   * Sintassi: macro_createzero(NOME TABELLA)<br>
+   * Esempio: macro_createzero(TURBINE_USER)
+   * @param params
+   * @throws Exception
+   */
+  public void macro_createzero(String params)
+     throws Exception
+  {
+    String sSQL = DbUtils.costruisciSQLzero(con, params);
+
+    if(verbose)
+      System.out.println("macro_createzero: " + sSQL);
+
+    try (Statement st = con.createStatement())
+    {
+      st.executeUpdate(sSQL);
+    }
+    catch(SQLException ex)
+    {
+      if(verbose)
+        System.out.println("ERROR: " + ex.getMessage());
     }
   }
 

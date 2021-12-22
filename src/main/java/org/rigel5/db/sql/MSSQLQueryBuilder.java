@@ -17,6 +17,9 @@
  */
 package org.rigel5.db.sql;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import org.apache.commons.logging.*;
 import org.commonlib5.utils.*;
 import org.rigel5.table.RigelColumnDescriptor;
@@ -151,5 +154,23 @@ public class MSSQLQueryBuilder extends QueryBuilder
      throws Exception
   {
     return "(" + makeSQLstringNoFiltro(false) + ") foo";
+  }
+
+  @Override
+  public String getTransactionID(Connection con)
+     throws Exception
+  {
+    String sSQL = "SELECT CONVERT(VARCHAR, CURRENT_TRANSACTION_ID())";
+
+    try (Statement st = con.createStatement())
+    {
+      try (ResultSet rs = st.executeQuery(sSQL))
+      {
+        if(rs.next())
+          return rs.getString(1);
+      }
+    }
+
+    return super.getTransactionID(con);
   }
 }

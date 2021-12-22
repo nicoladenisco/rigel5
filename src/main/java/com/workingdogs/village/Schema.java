@@ -401,7 +401,7 @@ public final class Schema
 
     if(position != null)
     {
-      return position.intValue();
+      return position;
     }
     else
     {
@@ -534,9 +534,8 @@ public final class Schema
       }
 
       columns[i] = col;
-      Integer position = new Integer(i);
-      columnNumberByName.put(metaColumnName, position);
-      columnNumberByName.put(metaTableName + "." + metaColumnName, position);
+      columnNumberByName.put(metaColumnName, i);
+      columnNumberByName.put(metaTableName + "." + metaColumnName, i);
 
       if((i > 1) && !col.getTableName().equalsIgnoreCase(columns[i - 1].getTableName()))
       {
@@ -629,7 +628,7 @@ public final class Schema
 
       cols.add(c);
 
-      Integer position = new Integer(dbMeta.getInt(17)); // ordinal number
+      int position = dbMeta.getInt(17); // ordinal number
       columnNumberByName.put(c.name(), position);
       columnNumberByName.put(tableName + "." + c.name(), position);
     }

@@ -25,7 +25,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import org.commonlib5.lambda.ConsumerThrowException;
 
@@ -682,7 +681,7 @@ public abstract class DataSet implements Closeable
     if(!allRecordsRetrieved())
       fetchRecords();
 
-    return Collections.unmodifiableList(records);
+    return new ArrayList<>(records);
   }
 
   /**

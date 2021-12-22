@@ -21,13 +21,13 @@ import java.sql.Connection;
 import java.util.*;
 import javax.servlet.http.HttpSession;
 import org.apache.torque.criteria.Criteria;
+import org.apache.torque.om.ColumnAccessByName;
 import org.apache.torque.om.Persistent;
 import org.commonlib5.utils.StringOper;
 import org.rigel5.HtmlUtils;
 import org.rigel5.db.torque.PeerTransactAgent;
 import org.rigel5.glue.PeerObjectSaver;
 import org.rigel5.glue.validators.Validator;
-import org.rigel5.table.RigelColumnDescriptor;
 import org.rigel5.table.RigelTableModel;
 import org.rigel5.table.html.AbstractHtmlTablePager;
 import org.rigel5.table.html.hEditTable;
@@ -44,9 +44,9 @@ import org.rigel5.table.peer.html.PeerWrapperEditHtml;
  */
 public class PeerTablePagerEditApp extends AbstractHtmlTablePager
 {
-  public PeerObjectSaver pos = null;
-  private PeerWrapperEditHtml wl;
-  public Map mdLinkParams;
+  protected PeerObjectSaver pos = null;
+  protected PeerWrapperEditHtml wl;
+  protected Map mdLinkParams;
 
   /**
    * Costruisce il paginatore.
@@ -87,9 +87,6 @@ public class PeerTablePagerEditApp extends AbstractHtmlTablePager
 
   /**
    * Ricollega l'insieme di record.
-   * L'operazione e' sottoposta a cache in sessione:
-   * se non ci sono state variazioni sull'insieme di record
-   * non vengono ripetute le query al db.
    * @throws Exception
    */
   public void rebindAllRecords()
@@ -215,23 +212,7 @@ public class PeerTablePagerEditApp extends AbstractHtmlTablePager
      throws Exception
   {
     Persistent newObj = (Persistent) (wl.getObjectClass().newInstance());
-
-    // carica eventuali valori di default per il nuovo oggetto
-    PeerTableModel ptm = ((PeerTableModel) (wl.getPtm()));
-    for(int i = 0; i < ptm.getColumnCount(); i++)
-    {
-      RigelColumnDescriptor cd = ptm.getColumn(i);
-      String key = cd.getDefValParam();
-      if(key != null)
-      {
-        Object defVal = param.get(key);
-        if(defVal == null)
-          defVal = param.get(wl.getNome() + key);
-        if(defVal != null)
-          cd.setValueAscii(newObj, defVal.toString());
-      }
-    }
-
+    ((hEditTable) table).caricaDefaultsNuovoOggetto(newObj, param, wl.getNome());
     return newObj;
   }
 
@@ -256,11 +237,26 @@ public class PeerTablePagerEditApp extends AbstractHtmlTablePager
       public boolean run(Connection dbCon, boolean transactionSupported)
          throws Exception
       {
+        Object oldStatoRecObj;
+        // recupera eventuale write level dell'utente; se non specificato si presume il massimo
+        int userWriteLevel = StringOper.parse(param.get("user_write_level"), 9);
+
         for(int i = 0; i < ptm.getRowCount(); i++)
         {
-          int statoRec = ptm.isRowDeleted(i) ? 10 : 0;
-          saveObject(dbCon, (Persistent) ptm.getRowRecord(i), ptm, i,
-             session, param, custom, statoRec);
+          int recordWriteLevel = 0;
+
+          ColumnAccessByName obj = (ColumnAccessByName) ptm.getRowRecord(i);
+          if((oldStatoRecObj = obj.getByName("StatoRec")) != null)
+          {
+            // la tabella ha lo statorec: verifica per write level
+            // altrimenti salta questo record nel salvataggio
+            recordWriteLevel = StringOper.parse(oldStatoRecObj, 0) % 10;
+            if(userWriteLevel < recordWriteLevel)
+              continue;
+          }
+
+          int statoRec = (ptm.isRowDeleted(i) ? 10 : 0) + recordWriteLevel;
+          saveObject(dbCon, (Persistent) obj, ptm, i, session, param, custom, statoRec);
         }
 
         return true;

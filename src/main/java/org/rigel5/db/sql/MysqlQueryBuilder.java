@@ -17,6 +17,9 @@
  */
 package org.rigel5.db.sql;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import org.apache.commons.logging.*;
 import org.commonlib5.utils.*;
 import org.rigel5.table.RigelColumnDescriptor;
@@ -143,5 +146,26 @@ public class MysqlQueryBuilder extends QueryBuilder
      throws Exception
   {
     return "(" + makeSQLstringNoFiltro(false) + ") AS foo";
+  }
+
+  @Override
+  public String getTransactionID(Connection con)
+     throws Exception
+  {
+    String sSQL
+       = "SELECT tx.trx_id\n"
+       + "FROM information_schema.innodb_trx tx\n"
+       + "WHERE tx.trx_mysql_thread_id = connection_id()";
+
+    try (Statement st = con.createStatement())
+    {
+      try (ResultSet rs = st.executeQuery(sSQL))
+      {
+        if(rs.next())
+          return rs.getString(1);
+      }
+    }
+
+    return super.getTransactionID(con);
   }
 }

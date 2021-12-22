@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@ import org.commonlib5.utils.ClassOper;
 import org.jdom2.Element;
 import org.rigel5.RigelI18nInterface;
 import org.rigel5.RigelXmlSetupInterface;
+import org.rigel5.db.sql.QueryBuilder;
 import org.rigel5.exceptions.MissingListException;
 import org.rigel5.glue.pager.PeerPagerAppMaint;
 import org.rigel5.glue.pager.PeerTablePagerEditApp;
@@ -32,7 +33,9 @@ import org.rigel5.glue.table.AlternateColorTableAppBase;
 import org.rigel5.glue.table.HeditTableApp;
 import org.rigel5.glue.table.PeerAppMaintDispTable;
 import org.rigel5.glue.table.PeerAppMaintFormTable;
+import org.rigel5.table.RigelTableModel;
 import org.rigel5.table.html.AbstractHtmlTablePager;
+import org.rigel5.table.html.FormTable;
 import org.rigel5.table.html.hTable;
 import org.rigel5.table.html.wrapper.HtmlWrapperBase;
 import org.rigel5.table.html.wrapper.MasterDetailInfo;
@@ -145,6 +148,8 @@ abstract public class WrapperCacheBase
 
   abstract public PeerObjectSaver buildDefaultSaver();
 
+  abstract public void populateTableModelProperties(RigelTableModel tm);
+
   protected PeerWrapperEditHtml creaListaEditPeer(String type)
      throws Exception
   {
@@ -178,6 +183,7 @@ abstract public class WrapperCacheBase
     wl.init();
 
     org.rigel5.table.peer.html.PeerTableModel ptm = (org.rigel5.table.peer.html.PeerTableModel) wl.getPtm();
+    populateTableModelProperties(ptm);
 
     if(wl.getMdInfo() != null && wl.getMdInfo().getRole() == MasterDetailInfo.ROLE_DETAIL)
     {
@@ -236,6 +242,7 @@ abstract public class WrapperCacheBase
     wl.init();
 
     org.rigel5.table.peer.html.PeerTableModel ptm = (org.rigel5.table.peer.html.PeerTableModel) wl.getPtm();
+    populateTableModelProperties(ptm);
 
     if(wl.getMdInfo() != null && wl.getMdInfo().getRole() == MasterDetailInfo.ROLE_DETAIL)
     {
@@ -279,11 +286,19 @@ abstract public class WrapperCacheBase
   {
     PeerWrapperFormHtml wf = wrpBuilder.getFormPeer(type);
 
-    PeerAppMaintFormTable tbl = (PeerAppMaintFormTable) getTableCustom(wf.getEleXml());
+    FormTable tbl = (FormTable) getTableCustom(wf.getEleXml());
     if(tbl == null)
       tbl = buildDefaultTableForm();
 
-    tbl.init("FP", wf, buildDefaultSaver());
+    if(tbl instanceof PeerAppMaintFormTable)
+    {
+      ((PeerAppMaintFormTable) tbl).init("FP", wf, buildDefaultSaver());
+    }
+    else if(tbl instanceof PeerAppMaintDispTable)
+    {
+      ((PeerAppMaintDispTable) tbl).init("FP", wf);
+    }
+
     tbl.setTableStatement(tagTabelleForm);
     tbl.setI18n(i18n);
 
@@ -293,6 +308,8 @@ abstract public class WrapperCacheBase
     wf.setTableStatement(tagTabelleForm);
     wf.setTbl(tbl);
     wf.init();
+
+    populateTableModelProperties(wf.getPtm());
 
     log.debug("Creato nuovo PeerWrapperFormHtml " + type);
     return wf;
@@ -339,6 +356,8 @@ abstract public class WrapperCacheBase
     wf.setTableStatement(tagTabelleForm);
     wf.setTbl(table);
     wf.init();
+
+    populateTableModelProperties(wf.getPtm());
 
     log.debug("Creato nuovo PeerWrapperFormHtml " + type);
     return wf;
@@ -395,6 +414,8 @@ abstract public class WrapperCacheBase
     wf.setTbl(table);
     wf.init();
 
+    populateTableModelProperties(wf.getPtm());
+
     log.debug("Creato nuovo PeerWrapperFormHtml/Disp " + type);
     return wf;
   }
@@ -440,6 +461,8 @@ abstract public class WrapperCacheBase
     table.init("DP", wf);
     table.setTableStatement(tagTabelleForm);
     table.setI18n(i18n);
+
+    populateTableModelProperties(wf.getPtm());
 
     log.debug("Creato nuovo PeerWrapperFormHtml/Disp " + type);
     return wf;
@@ -504,6 +527,8 @@ abstract public class WrapperCacheBase
     wl.setPager(pager);
     wl.init();
 
+    populateTableModelProperties(wl.getPtm());
+
     log.debug("Creato nuovo PeerWrapperListaHtml " + type);
     return wl;
   }
@@ -540,10 +565,15 @@ abstract public class WrapperCacheBase
     if(pager instanceof RigelXmlSetupInterface)
       ((RigelXmlSetupInterface) pager).setEleXml(wl.getEleXml());
 
+    // crea il query builder con il macro resolver: qui deve avvenire prima di wl.init()
+    QueryBuilder qb = wl.getPtm().makeQueryBuilder();
+    wl.getPtm().setQuery(qb);
+    populateTableModelProperties(wl.getPtm());
+
     wl.setTableStatement(tagTabelleList);
     wl.setTbl(tbl);
     wl.setPager(pager);
-    wl.init();
+    wl.init(qb);
 
     log.debug("Creato nuovo SqlWrapperListaHtml " + type);
     return wl;
@@ -572,12 +602,14 @@ abstract public class WrapperCacheBase
 
     wl.setTableStatement(tagTabelleList);
     wl.setTbl(tbl);
-    wl.init();
     wl.setPager(pager);
+    wl.init();
 
     pager.setWl(wl);
     pager.setI18n(i18n);
     pager.limit = wl.getNumPerPage();
+
+    populateTableModelProperties(wl.getPtm());
 
     log.debug("Creato nuovo PeerWrapperListaHtml " + type);
     return wl;

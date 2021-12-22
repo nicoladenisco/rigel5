@@ -17,7 +17,10 @@
  */
 package org.rigel5.db.sql;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.logging.Log;
@@ -252,5 +255,23 @@ public class Postgre72QueryBuilder extends QueryBuilder
     }
 
     throw ex;
+  }
+
+  @Override
+  public String getTransactionID(Connection con)
+     throws Exception
+  {
+    String sSQL = "SELECT CAST(txid_current() AS text)";
+
+    try (Statement st = con.createStatement())
+    {
+      try (ResultSet rs = st.executeQuery(sSQL))
+      {
+        if(rs.next())
+          return rs.getString(1);
+      }
+    }
+
+    return super.getTransactionID(con);
   }
 }

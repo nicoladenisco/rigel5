@@ -65,6 +65,13 @@ public class DbUtils
   {
     "VIEW"
   };
+  public static final String[] TABLES_VIEWS_FILTER = new String[]
+  {
+    "TABLE",
+    "VIEW"
+  };
+
+  public static final String NESSUNO_INDEFINITO = "'Nessuno/indefinito'";
 
   private static QueryBuilder __qbStaticForDbUtils = null;
 
@@ -111,7 +118,6 @@ public class DbUtils
     qb.setWhere(where);
     qb.setLimit(1);
     String sSQL = qb.makeSQLstring();
-
     List<Record> records = executeQuery(sSQL);
     if(records.isEmpty())
       return 0;
@@ -121,9 +127,8 @@ public class DbUtils
   }
 
   /**
-   * Calcola il numero di record totali di un Criteria. Vengono conteggiati tutti i record selezionabili dal criteria
-   * specificato.
-   *
+   * Calcola il numero di record totali di un Criteria.
+   * Vengono conteggiati tutti i record selezionabili dal criteria specificato.
    * @param c criteria da conteggiare
    * @return numero di record
    * @throws java.lang.Exception
@@ -1025,7 +1030,7 @@ public class DbUtils
 
     int startRecord = 0;
 
-    //Offset the correct number of records
+    // Offset the correct number of records
     if(start > 0 && numberOfResults <= 0)
     {
       startRecord = start;
@@ -1422,5 +1427,85 @@ public class DbUtils
     while(c != -1);
 
     return count;
+  }
+
+  public static String costruisciSQLzero(Connection con, String nomeTabella)
+     throws Exception
+  {
+    return scanTabelleColonne(con, nomeTabella, null, (conp, nomeSchemap, nomeTabellap, __ignorami) ->
+    {
+      int nsize = NESSUNO_INDEFINITO.length() - 2;
+      StringBuilder sb1 = new StringBuilder(1024);
+      StringBuilder sb2 = new StringBuilder(1024);
+
+      try (ResultSet rs = con.getMetaData().getColumns(conp.getCatalog(), nomeSchemap, nomeTabellap, null))
+      {
+        for(int i = 0; rs.next(); i++)
+        {
+          String cn = rs.getString("COLUMN_NAME");
+          int tipo = rs.getInt("DATA_TYPE");
+          int size = rs.getInt("COLUMN_SIZE");
+          int tn = rs.getInt("NULLABLE");
+
+          if(i > 0)
+          {
+            sb1.append(',');
+            sb2.append(',');
+          }
+
+          sb1.append(cn);
+
+          switch(tipo)
+          {
+            case Types.BIT:
+            case Types.TINYINT:
+            case Types.SMALLINT:
+            case Types.INTEGER:
+            case Types.BIGINT:
+            case Types.FLOAT:
+            case Types.REAL:
+            case Types.DOUBLE:
+            case Types.NUMERIC:
+            case Types.DECIMAL:
+              if("stato_rec".equalsIgnoreCase(cn))
+                sb2.append("10");
+              else
+                sb2.append("0");
+              break;
+
+            case Types.TIMESTAMP:
+              if(tn == ResultSetMetaData.columnNoNulls)
+                sb2.append("current_timestamp");
+              else
+                sb2.append("NULL");
+              break;
+
+            case Types.BOOLEAN:
+              sb2.append("false");
+              break;
+
+            default:
+              if(tn == ResultSetMetaData.columnNoNulls)
+              {
+                if(size > nsize)
+                  sb2.append(NESSUNO_INDEFINITO);
+                else
+                  sb2.append("'0'");
+              }
+              else
+                sb2.append("NULL");
+              break;
+          }
+        }
+      }
+
+      if(sb1.length() == 0)
+        return null;
+
+      if(nomeSchemap != null)
+        return "INSERT INTO " + nomeSchemap + "." + nomeTabellap + " (" + sb1.toString() + ") VALUES (" + sb2.toString() + ")";
+
+      return "INSERT INTO " + nomeTabellap + " (" + sb1.toString() + ") VALUES (" + sb2.toString() + ")";
+    });
   }
 }

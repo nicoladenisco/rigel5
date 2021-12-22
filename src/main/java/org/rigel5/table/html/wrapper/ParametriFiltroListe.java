@@ -29,7 +29,7 @@ import org.commonlib5.utils.StringOper;
  */
 public class ParametriFiltroListe
 {
-  protected ArrayList<ParametroListe> parametri = new ArrayList<ParametroListe>();
+  protected final ArrayList<ParametroListe> parametri = new ArrayList<ParametroListe>();
 
   public void addParametri(ParametroListe par)
   {

@@ -19,7 +19,6 @@ package org.rigel5.glue.table;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpSession;
@@ -28,7 +27,6 @@ import org.apache.torque.om.Persistent;
 import org.rigel5.db.torque.PeerTransactAgent;
 import org.rigel5.glue.PeerObjectSaver;
 import org.rigel5.glue.validators.Validator;
-import org.rigel5.table.RigelColumnDescriptor;
 import org.rigel5.table.RigelTableModel;
 import org.rigel5.table.html.FormTable;
 import org.rigel5.table.html.RigelHtmlPage;
@@ -224,31 +222,7 @@ public class PeerAppMaintFormTable extends FormTable
 
     // oggetto completamente nuovo
     newObj = (Persistent) (wf.getObjectClass().newInstance());
-
-    // carica eventuali valori di default per il nuovo oggetto
-    PeerTableModel ptm = ((PeerTableModel) (getModel()));
-    for(int i = 0; i < ptm.getColumnCount(); i++)
-    {
-      RigelColumnDescriptor cd = ptm.getColumn(i);
-
-      if(cd.getDefVal() != null)
-      {
-        String sVal = cd.getDefVal();
-        if(sVal.equals("@today"))
-          sVal = cd.formatValue(new Date());
-        cd.setValueAscii(newObj, sVal);
-      }
-
-      String key = cd.getDefValParam();
-      if(key != null)
-      {
-        Object defVal = param.get(key);
-        if(defVal == null)
-          defVal = param.get(wf.getNome() + key);
-        if(defVal != null)
-          cd.setValueAscii(newObj, defVal.toString());
-      }
-    }
+    caricaDefaultsNuovoOggetto(newObj, param, wf.getNome());
 
     return newObj;
   }

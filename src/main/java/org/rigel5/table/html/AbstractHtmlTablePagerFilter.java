@@ -260,14 +260,16 @@ abstract public class AbstractHtmlTablePagerFilter extends AbstractHtmlTablePage
         setSelezione(sessione, cSelezione);
     }
 
+    // recupera html per la pagina
+    // ATTENZIONE: questa va prima di getHtmlFiltro/getSimpleSearch
+    // altrimenti l'html dei filtri potrebbe essere incompleto (combo-auto)
+    getHtmlTable(page);
+
     // recupera filtro per la pagina
     getHtmlFiltro(page);
 
     // recupera filtro semplificato per la pagina
     getSimpleSearch(sessione, 20, page);
-
-    // recupera html per la pagina
-    getHtmlTable(page);
 
     // recupera componenti di navigazione
     long totalRecords = getTotalRecords();
@@ -335,13 +337,14 @@ abstract public class AbstractHtmlTablePagerFilter extends AbstractHtmlTablePage
   protected void getHtmlFiltro(RigelHtmlPage page)
      throws Exception
   {
-    if(!getTableModel().isInitalized())
-      throw new Exception(i18n.msg("Oggetto table model non inizializzato"));
-
     if(mgr == null)
-      mgr = getTableModel().getMascheraRG(i18n);
+    {
+      if(getTableModel().isInitalized())
+        mgr = getTableModel().getMascheraRG(i18n);
+    }
 
-    mgr.buildHtmlRicerca(formName, page);
+    if(mgr != null)
+      mgr.buildHtmlRicerca(formName, page);
   }
 
   /**

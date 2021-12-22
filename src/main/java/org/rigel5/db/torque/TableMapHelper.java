@@ -145,6 +145,101 @@ public class TableMapHelper
     }
   }
 
+  public boolean isNumeric(ColumnMap campo)
+  {
+    switch(campo.getJavaType())
+    {
+      case "int":
+      case "short":
+      case "Integer":
+
+      case "long":
+      case "Long":
+
+      case "float":
+      case "Float":
+
+      case "double":
+      case "Double":
+      case "Number":
+      case "BigDecimal":
+        return true;
+
+      case "Date":
+      case "Time":
+      case "Timestamp":
+
+      case "String":
+
+      default:
+        return false;
+    }
+  }
+
+  public boolean isDate(ColumnMap campo)
+  {
+    switch(campo.getJavaType())
+    {
+      case "int":
+      case "short":
+      case "Integer":
+
+      case "long":
+      case "Long":
+
+      case "float":
+      case "Float":
+
+      case "double":
+      case "Double":
+      case "Number":
+      case "BigDecimal":
+        return false;
+
+      case "Date":
+      case "Time":
+      case "Timestamp":
+        return true;
+
+      case "String":
+
+      default:
+        return false;
+    }
+  }
+
+  public boolean isString(ColumnMap campo)
+  {
+    switch(campo.getJavaType())
+    {
+      case "int":
+      case "short":
+      case "Integer":
+
+      case "long":
+      case "Long":
+
+      case "float":
+      case "Float":
+
+      case "double":
+      case "Double":
+      case "Number":
+      case "BigDecimal":
+
+      case "Date":
+      case "Time":
+      case "Timestamp":
+        return false;
+
+      case "String":
+        return true;
+
+      default:
+        return false;
+    }
+  }
+
   public boolean testNomeColonna(String nomeColonna, String nomeTorque)
   {
     if(nomeTorque.equalsIgnoreCase(nomeColonna))

@@ -21,7 +21,6 @@ import java.util.*;
 import javax.servlet.http.*;
 import org.apache.torque.criteria.Criteria;
 import org.apache.torque.om.Persistent;
-import org.rigel5.table.RigelColumnDescriptor;
 import org.rigel5.table.html.DispTable;
 import org.rigel5.table.html.FormTable;
 import org.rigel5.table.peer.html.PeerTableModel;
@@ -100,25 +99,7 @@ public class PeerAppMaintDispTable extends DispTable
      throws Exception
   {
     Persistent newObj = (Persistent) (wf.getObjectClass().newInstance());
-
-    // carica eventuali valori di default per il nuovo oggetto
-    PeerTableModel ptm = ((PeerTableModel) (getModel()));
-    for(int i = 0; i < ptm.getColumnCount(); i++)
-    {
-      RigelColumnDescriptor cd = ptm.getColumn(i);
-      String key = cd.getDefValParam();
-      if(key != null)
-      {
-        Object defVal = param.get(key);
-        if(defVal == null)
-          defVal = param.get(wf.getNome() + key);
-        if(defVal != null)
-        {
-          cd.setValueAscii(newObj, defVal.toString());
-        }
-      }
-    }
-
+    caricaDefaultsNuovoOggetto(newObj, param, wf.getNome());
     return newObj;
   }
 

@@ -17,6 +17,7 @@
  */
 package org.rigel5.table;
 
+import com.google.inject.internal.Iterators;
 import java.util.*;
 import javax.swing.table.*;
 import org.apache.commons.logging.*;
@@ -50,6 +51,7 @@ abstract public class RigelTableModel extends AbstractTableModel
   protected long totalRecordsFilter = -1;
   protected QueryBuilder query = null;
   protected String formName = "fo";
+  protected final Map<String, String> properties = new HashMap<>();
 
   public int addColumn(RigelColumnDescriptor tc)
   {
@@ -478,7 +480,6 @@ abstract public class RigelTableModel extends AbstractTableModel
    * @param row riga di riferimento
    * @param col colonna di riferimento
    * @param valore valore in input.
-   * @param strictFlag solleva eccezione se non risolve la macro
    * @param useQuote se vero i valori stringa vengono richiusi fra apici
    * @param encodeURI applica l'encoding ai valori sostituiti (parametri get)
    * @return il valore elaborato
@@ -491,6 +492,10 @@ abstract public class RigelTableModel extends AbstractTableModel
     if(!StringOper.isOkStr(valore))
       return null;
 
+    Object valObj = getRowRecord(row);
+    if(valObj == null)
+      return null;
+
     valore = resolveMacro('#', row, col, valore, useQuote, encodeURI);
     valore = resolveMacro('@', row, col, valore, useQuote, encodeURI);
 
@@ -501,10 +506,12 @@ abstract public class RigelTableModel extends AbstractTableModel
    * Usata internamente da getValueMacroInside per ogni carattere
    * che identifica l'inizio di una macro.
    * @param chbegin carattere che identifica l'inizio di una macro (solo '#' e '@' sono supportate)
-   * @param row
-   * @param col
-   * @param valore
-   * @return
+   * @param row riga di riferimento
+   * @param col colonna di riferimento
+   * @param valore valore in input.
+   * @param useQuote se vero i valori stringa vengono richiusi fra apici
+   * @param encodeURI applica l'encoding ai valori sostituiti (parametri get)
+   * @return il valore elaborato
    * @throws Exception
    */
   protected String resolveMacro(int chbegin, int row, int col, String valore,
@@ -596,5 +603,40 @@ abstract public class RigelTableModel extends AbstractTableModel
     }
 
     return valore;
+  }
+
+  public String getProperty(String name)
+  {
+    return properties.get(name);
+  }
+
+  public void removeProperty(String name)
+  {
+    properties.remove(name);
+  }
+
+  public void clearProperties()
+  {
+    properties.clear();
+  }
+
+  public void setProperty(String name, String value)
+  {
+    properties.put(name, value);
+  }
+
+  public void setProperties(Map<String, String> prop)
+  {
+    properties.putAll(prop);
+  }
+
+  public Iterator<String> propertyKeys()
+  {
+    return Iterators.unmodifiableIterator(properties.keySet().iterator());
+  }
+
+  public Map<String, String> getAllProperties()
+  {
+    return Collections.unmodifiableMap(properties);
   }
 }

@@ -27,6 +27,7 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Calendar;
+import org.commonlib5.utils.StringOper;
 
 /**
  * A Value represents a single cell in a database table. In other words,
@@ -357,6 +358,11 @@ public class Value
     {
       return valueObject.toString();
     }
+  }
+
+  public String asOkString()
+  {
+    return StringOper.okStr(asString());
   }
 
   /**

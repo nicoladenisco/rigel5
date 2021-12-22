@@ -20,6 +20,7 @@ package org.rigel5.db.sql;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.logging.Log;
@@ -388,5 +389,26 @@ public class OracleQueryBuilder extends QueryBuilder
            .forEach((s) -> normalizedPublicSchemas.add(schema));
       }
     }
+  }
+
+  @Override
+  public String getTransactionID(Connection con)
+     throws Exception
+  {
+    String sSQL
+       = "SELECT RAWTOHEX(tx.xid)\n"
+       + "FROM v$transaction tx\n"
+       + "JOIN v$session s ON tx.ses_addr = s.saddr";
+
+    try (Statement st = con.createStatement())
+    {
+      try (ResultSet rs = st.executeQuery(sSQL))
+      {
+        if(rs.next())
+          return rs.getString(1);
+      }
+    }
+
+    return super.getTransactionID(con);
   }
 }

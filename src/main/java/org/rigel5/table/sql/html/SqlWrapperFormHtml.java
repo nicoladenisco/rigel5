@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@ import java.util.*;
 import javax.servlet.http.*;
 import org.rigel5.RigelUIManager;
 import org.rigel5.SetupHolder;
+import org.rigel5.db.sql.QueryBuilder;
 import org.rigel5.exceptions.InvalidObjectException;
 import org.rigel5.table.html.FormTable;
 import org.rigel5.table.html.RigelHtmlPage;
@@ -46,12 +47,20 @@ public class SqlWrapperFormHtml extends HtmlSqlWrapperBase
     return ((org.rigel5.table.sql.html.SqlTableModel) (ptm));
   }
 
-  public void init()
+  public void init(QueryBuilder qb)
      throws Exception
   {
-    getTM().init(ssp.getSelect(), ssp.getFrom(), ssp.getWhere(), getOrderby(), false);
-    getTM().getQuery().setDeleteFrom(ssp.getDeleteFrom());
-    getTM().attach(tbl);
+    SqlTableModel tm = getTM();
+    qb.setSelect(ssp.getSelect());
+    qb.setFrom(ssp.getFrom());
+    qb.setWhere(ssp.getWhere());
+    qb.setOrderby(getOrderby());
+    qb.setGroupby(ssp.makeGroupBySelect());
+    qb.setHaving(ssp.getHaving());
+    qb.setDeleteFrom(ssp.getDeleteFrom());
+
+    tm.init(qb, false);
+    tm.attach(tbl);
 
     tbl.setTableStatement(tableStatement == null ? defTableStm : tableStatement);
     tbl.setModel(ptm);

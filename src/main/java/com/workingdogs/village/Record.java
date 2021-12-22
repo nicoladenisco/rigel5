@@ -555,7 +555,7 @@ public class Record
         }
         else
         {
-          iss1.append(", " + schema().column(i).name());
+          iss1.append(", ").append(schema().column(i).name());
           iss2.append(", ?");
         }
       }
@@ -665,7 +665,7 @@ public class Record
    */
   public boolean toBeSavedWithInsert()
   {
-    return (this.saveType == Enums.INSERT) ? true : false;
+    return (this.saveType == Enums.INSERT);
   }
 
   /**
@@ -675,7 +675,7 @@ public class Record
    */
   public boolean toBeSavedWithUpdate()
   {
-    return (this.saveType == Enums.UPDATE) ? true : false;
+    return (this.saveType == Enums.UPDATE);
   }
 
   /**
@@ -685,7 +685,7 @@ public class Record
    */
   public boolean toBeSavedWithDelete()
   {
-    return (this.saveType == Enums.DELETE) ? true : false;
+    return (this.saveType == Enums.DELETE);
   }
 
   /**
@@ -904,7 +904,7 @@ public class Record
   public Record setValue(int pos, boolean value)
      throws DataSetException
   {
-    this.values[pos].setValue(new Boolean(value));
+    this.values[pos].setValue(value);
     markValueDirty(pos);
 
     return this;
@@ -980,7 +980,7 @@ public class Record
   public Record setValue(int pos, double value)
      throws DataSetException
   {
-    this.values[pos].setValue(new Double(value));
+    this.values[pos].setValue(value);
     markValueDirty(pos);
 
     return this;
@@ -999,7 +999,7 @@ public class Record
   public Record setValue(int pos, float value)
      throws DataSetException
   {
-    this.values[pos].setValue(new Float(value));
+    this.values[pos].setValue(value);
     markValueDirty(pos);
 
     return this;
@@ -1018,7 +1018,7 @@ public class Record
   public Record setValue(int pos, int value)
      throws DataSetException
   {
-    this.values[pos].setValue(new Integer(value));
+    this.values[pos].setValue(value);
     markValueDirty(pos);
 
     return this;
@@ -1037,7 +1037,7 @@ public class Record
   public Record setValue(int pos, long value)
      throws DataSetException
   {
-    this.values[pos].setValue(new Long(value));
+    this.values[pos].setValue(value);
     markValueDirty(pos);
 
     return this;
@@ -1495,15 +1495,9 @@ public class Record
       throw new DataSetException("You can only perform a refresh on Records created with a TableDataSet.");
     }
 
-    PreparedStatement stmt = null;
-    ResultSet rs = null;
-
-    try
+    try (PreparedStatement stmt = connection.prepareStatement(getRefreshQueryString()))
     {
-      stmt = connection.prepareStatement(getRefreshQueryString());
-
       int ps = 1;
-
       for(int i = 1; i <= dataset().keydef().size(); i++)
       {
         Value val = getValue(dataset().keydef().getAttrib(i));
@@ -1516,44 +1510,11 @@ public class Record
         val.setPreparedStatementValue(stmt, ps++);
       }
 
-      rs = stmt.executeQuery();
-      rs.next();
-
-      initializeRecord();
-
-      createValues(rs);
-    }
-    finally
-    {
-      SQLException sqlEx = null;
-
-      try
+      try (ResultSet rs = stmt.executeQuery())
       {
-        if(rs != null)
-        {
-          rs.close();
-        }
-      }
-      catch(SQLException e2)
-      {
-        sqlEx = e2;
-      }
-
-      try
-      {
-        if(stmt != null)
-        {
-          stmt.close();
-        }
-      }
-      catch(SQLException e2)
-      {
-        sqlEx = e2;
-      }
-
-      if(sqlEx != null)
-      {
-        throw sqlEx;
+        rs.next();
+        initializeRecord();
+        createValues(rs);
       }
     }
   }

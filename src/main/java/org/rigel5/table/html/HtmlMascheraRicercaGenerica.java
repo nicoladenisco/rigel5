@@ -537,7 +537,7 @@ public class HtmlMascheraRicercaGenerica implements MascheraRicercaGenerica
        .append("<input type=\"hidden\" name=\"SSORT\" value=\"").append(simpleSearchColumn).append("\"/>\r\n");
 
     javascript
-       //.append("document.").append(formName).append(".").append(firstControl).append(".focus();\r\n")
+       .append("document.").append(formName).append(".").append(firstControl).append(".focus();\r\n")
        .append("\r\n")
        .append("function SimpleSort_").append(formName).append("(idx)\r\n")
        .append("{\r\n")
@@ -576,6 +576,7 @@ public class HtmlMascheraRicercaGenerica implements MascheraRicercaGenerica
        .append(i18n.getCaptionButtonCerca()).append("\" onclick=\"document.").append(formName).append(".submit();\"/>\r\n")
        .append("<input type=\"button\" name=\"publisciSimpleSearch_").append(formName).append("\" value=\"")
        .append(i18n.getCaptionButtonPulisci()).append("\" onclick=\"pulisciRicercaSemplice_").append(formName).append("();\"/>\r\n")
+       .append(haveFilter ? " [" + i18n.msg("Filtro attivo") + "]" : "")
        .append("<!-- END FORM SIMPLE SEARCH -->\r\n")
        .append("</div>\r\n");
 

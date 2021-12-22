@@ -60,6 +60,7 @@ public class PeerBuilderRicercaGenerica implements BuilderRicercaGenerica
    * Analizza le informazioni di runtime del map builder
    * per rintracciare i nomi dei campi sulla tabella SQL.
    * Quindi costruisce il Criteria di select di conseguenza.
+   * @throws java.lang.Exception
    */
   @Override
   public Object buildCriteria()
@@ -81,7 +82,7 @@ public class PeerBuilderRicercaGenerica implements BuilderRicercaGenerica
       String nomeCampo = tmap.getNomeCampo(cd.getName());
       SqlEnum critItem = criteriaItems[idxCombo];
 
-      if(idxCombo == 1) // LIKE
+      if(idxCombo == IDX_CRITERIA_LIKE && cd.getDataType() == RigelColumnDescriptor.PDT_STRING) // LIKE
       {
         String filtro = "";
         String valFiltro = cd.getFiltroValore();
@@ -94,7 +95,7 @@ public class PeerBuilderRicercaGenerica implements BuilderRicercaGenerica
         c.and(nomeCampo, (Object) (filtro.trim()), critItem);
         haveFilter = true;
       }
-      else if(idxCombo == 8) // BETWEEN
+      else if(idxCombo == IDX_CRITERIA_BETWEEN) // BETWEEN
       {
         String valFiltro = cd.getFiltroValore();
         StringTokenizer stok = new StringTokenizer(valFiltro, "|");

@@ -22,6 +22,7 @@ import java.net.URLEncoder;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import org.apache.commons.lang3.StringUtils;
 import org.commonlib5.utils.StringOper;
 
 /**
@@ -390,10 +391,12 @@ public class HtmlUtils
    */
   public static String generaOptionCombo(String codice, String descrizione, boolean isSelected)
   {
+    String sdes = aggiustaDescrizione(descrizione);
+
     if(isSelected)
-      return "<option value=\"" + codice + "\" selected>" + StringOper.okStr(descrizione, "&nbsp;") + "</option>";
+      return "<option value=\"" + codice + "\" selected>" + sdes + "</option>";
     else
-      return "<option value=\"" + codice + "\">" + StringOper.okStr(descrizione, "&nbsp;") + "</option>";
+      return "<option value=\"" + codice + "\">" + sdes + "</option>";
   }
 
   /**
@@ -405,6 +408,16 @@ public class HtmlUtils
    */
   public static String generaOptionCombo(int codice, String descrizione, int defVal)
   {
-    return generaOptionCombo(Integer.toString(codice), descrizione, codice == defVal);
+    String sdes = aggiustaDescrizione(descrizione);
+
+    if(codice == defVal)
+      return "<option value=\"" + codice + "\" selected>" + sdes + "</option>";
+    else
+      return "<option value=\"" + codice + "\">" + sdes + "</option>";
+  }
+
+  public static String aggiustaDescrizione(String descrizione)
+  {
+    return StringUtils.abbreviate(StringOper.okStr(descrizione, "&nbsp;"), SetupHolder.getComboDescLimit());
   }
 }

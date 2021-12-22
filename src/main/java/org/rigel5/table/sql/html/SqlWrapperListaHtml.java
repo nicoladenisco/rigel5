@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -49,19 +49,19 @@ public class SqlWrapperListaHtml extends HtmlSqlWrapperBase
     return ((org.rigel5.table.sql.html.SqlTableModel) (ptm));
   }
 
-  public void init()
+  public void init(QueryBuilder qb)
      throws Exception
   {
     SqlTableModel tm = getTM();
-    QueryBuilder qb = tm.makeQueryBuilder();
     qb.setSelect(ssp.getSelect());
     qb.setFrom(ssp.getFrom());
     qb.setWhere(ssp.getWhere());
     qb.setOrderby(getOrderby());
     qb.setGroupby(ssp.makeGroupBySelect());
     qb.setHaving(ssp.getHaving());
+    qb.setDeleteFrom(ssp.getDeleteFrom());
+
     tm.init(qb, false);
-    tm.getQuery().setDeleteFrom(ssp.getDeleteFrom());
     tm.attach(tbl);
 
     tbl.setTableStatement(tableStatement == null ? defTableStm : tableStatement);

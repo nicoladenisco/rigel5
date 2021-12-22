@@ -18,12 +18,12 @@ package com.workingdogs.village;
  * specific language governing permissions and limitations
  * under the License.
  */
-
 import java.util.Vector;
 
 /**
  * A KeyDef is a way to define the key columns in a table. The KeyDef is generally used in conjunction with a <a
- * href="TableDataSet.html">TableDataSet</a>. Essentially a KeyDef is what forms the WHERE clause for an UPDATE or DELETE.
+ * href="TableDataSet.html">TableDataSet</a>. Essentially a KeyDef is what forms the WHERE clause for an UPDATE or
+ * DELETE.
  *
  * <P>
  * In order to use the KeyDef, you simply use it like this:
@@ -35,7 +35,7 @@ import java.util.Vector;
  *  rec.setValue("column_name", "new value" );
  *  rec.save();
  *  tds.close();
- *  </PRE>
+ * </PRE>
  * In the above example, Record 0 is retrieved from the database table and the following update statement is generated:
  * </p>
  *
@@ -43,84 +43,91 @@ import java.util.Vector;
  * UPDATE table SET column_name=? WHERE key_column_a=?
  * </p>
  *
- * <P></p>
+ * <P>
+ * </p>
  *
  * @author <a href="mailto:jon@latchkey.com">Jon S. Stevens</a>
  * @version $Revision: 568 $
  */
 public class KeyDef
 {
-    /** TODO: DOCUMENT ME! */
-    private Vector mySelf = null;
+  /** TODO: DOCUMENT ME! */
+  private Vector mySelf = null;
 
-    /**
-     * Constructor for KeyDef. Make sure to always initialize KeyDef with an initial element because it is 1 based.
-     */
-    public KeyDef()
+  /**
+   * Constructor for KeyDef. Make sure to always initialize KeyDef with an initial element because it is 1 based.
+   */
+  public KeyDef()
+  {
+    mySelf = new Vector();
+    mySelf.addElement("");
+  }
+
+  /**
+   * Adds the named attribute to the KeyDef.
+   *
+   * @param name TODO: DOCUMENT ME!
+   *
+   * @return a copy of itself
+   */
+  public KeyDef addAttrib(String name)
+  {
+    mySelf.addElement(name);
+
+    return this;
+  }
+
+  /**
+   * Determines if the KeyDef contains the requested Attribute.
+   *
+   * @param name TODO: DOCUMENT ME!
+   *
+   * @return true if the attribute has been defined. false otherwise.
+   */
+  public boolean containsAttrib(String name)
+  {
+    return (mySelf.indexOf((Object) name) != -1);
+  }
+
+  /**
+   * getAttrib is 1 based. Setting pos to 0 will attempt to return pos 1.
+   *
+   * @param pos TODO: DOCUMENT ME!
+   *
+   * @return value of Attribute at pos as String. null if value is not found.
+   */
+  public String getAttrib(int pos)
+  {
+    if(pos == 0)
     {
-        mySelf = new Vector();
-        mySelf.addElement("");
+      pos = 1;
     }
 
-    /**
-     * Adds the named attribute to the KeyDef.
-     *
-     * @param name TODO: DOCUMENT ME!
-     *
-     * @return a copy of itself
-     */
-    public KeyDef addAttrib(String name)
+    try
     {
-        mySelf.addElement(name);
-
-        return this;
+      return (String) mySelf.elementAt(pos);
     }
-
-    /**
-     * Determines if the KeyDef contains the requested Attribute.
-     *
-     * @param name TODO: DOCUMENT ME!
-     *
-     * @return true if the attribute has been defined. false otherwise.
-     */
-    public boolean containsAttrib(String name)
+    catch(ArrayIndexOutOfBoundsException e)
     {
-        return (mySelf.indexOf((Object) name) == -1) ? false : true;
+      return null;
     }
+  }
 
-    /**
-     * getAttrib is 1 based. Setting pos to 0 will attempt to return pos 1.
-     *
-     * @param pos TODO: DOCUMENT ME!
-     *
-     * @return value of Attribute at pos as String. null if value is not found.
-     */
-    public String getAttrib(int pos)
-    {
-        if (pos == 0)
-        {
-            pos = 1;
-        }
+  /**
+   * KeyDef's are 1 based, returns size - 1
+   *
+   * @return the number of elements in the KeyDef that were set by addAttrib()
+   *
+   * @see #addAttrib(java.lang.String)
+   */
+  public int size()
+  {
+    return mySelf.size() - 1;
+  }
 
-        try
-        {
-            return (String) mySelf.elementAt(pos);
-        }
-        catch (ArrayIndexOutOfBoundsException e)
-        {
-            return null;
-        }
-    }
-
-    /**
-     * KeyDef's are 1 based, returns size - 1
-     *
-     * @return the number of elements in the KeyDef that were set by addAttrib()
-     *
-     * @see #addAttrib(java.lang.String)
-     */
-    public int size()
-    {
-        return mySelf.size() - 1;
-    }
+  @Override
+  public String toString()
+  {
+    return "KeyDef{" + "mySelf=" + mySelf + '}';
+  }
 }

@@ -18,14 +18,17 @@
 package org.rigel5.table.html;
 
 import java.net.URLEncoder;
+import java.util.Date;
 import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.torque.om.Persistent;
 import org.commonlib5.utils.StringOper;
 import org.rigel5.HtmlUtils;
 import org.rigel5.table.ForeignDataHolder;
 import org.rigel5.table.RigelColumnDescriptor;
 import org.rigel5.table.RigelTableModel;
+import org.rigel5.table.peer.html.PeerTableModel;
 
 /**
  * Tabella con edit dei campi.
@@ -313,7 +316,18 @@ public class hEditTable extends hTable
 
       // se il custom edit ritorna null vuol dire che per questa colonna va bene il comportamento di default
       if(htmlCell != null)
+      {
+        // caso speciale del test custom applicato anche a campi custom edit
+        if(cd.getTestcustom() != null)
+        {
+          String nomeCampo = getNomeCampo(row, col);
+          String campoForm = "document." + formName + "." + nomeCampo;
+          String caption = i18n.localizeTableCaption(this, getTM(), cd, col, cd.getCaption());
+          scriptTest.append("    if(!" + cd.getTestcustom() + "(" + campoForm + ",\"" + nomeCampo + "\", \"" + caption + "\"))  return false;\r\n");
+        }
+
         return htmlCell;
+      }
     }
 
     if(cd.useForeignAutoCombo(row, col, getTM()))
@@ -922,11 +936,12 @@ public class hEditTable extends hTable
   protected void addToFormTests(RigelColumnDescriptor tc, int row, int col)
      throws Exception
   {
-    String nc = "document." + formName + "." + getNomeCampo(row, col);
+    String nomeCampo = getNomeCampo(row, col);
+    String campoForm = "document." + formName + "." + nomeCampo;
     String caption = i18n.localizeTableCaption(this, getTM(), tc, col, tc.getCaption());
 
     if(tc.isTestfornull())
-      scriptTest.append("    if(!testCampoNull(" + nc + ",\"" + caption + "\"))  return false;\r\n");
+      scriptTest.append("    if(!testCampoNull(" + campoForm + ",\"" + caption + "\"))  return false;\r\n");
 
     if(tc.isTestfortype() || (tc.isTestforzero() && tc.isNumeric()))
     {
@@ -963,27 +978,27 @@ public class hEditTable extends hTable
       }
 
       if(testFun != null)
-        scriptTest.append("    if(!" + testFun + "(" + nc + ",\"" + caption + "\"))  return false;\r\n");
+        scriptTest.append("    if(!" + testFun + "(" + campoForm + ",\"" + caption + "\"))  return false;\r\n");
 
       if(tc.isTestrange() && testRangeFun != null)
-        scriptTest.append("    if(!" + testRangeFun + "(" + nc + ",\"" + caption + "\", "
+        scriptTest.append("    if(!" + testRangeFun + "(" + campoForm + ",\"" + caption + "\", "
            + tc.getTestrangemin() + ", " + tc.getTestrangemax() + "))  return false;\r\n");
     }
 
     if(tc.isTestforcodice())
-      scriptTest.append("    if(!testCampoCodice(" + nc + ",\"" + caption + "\"))  return false;\r\n");
+      scriptTest.append("    if(!testCampoCodice(" + campoForm + ",\"" + caption + "\"))  return false;\r\n");
 
     if(tc.isTestforzero() && tc.isNumeric())
-      scriptTest.append("    if(!testCampoZero(" + nc + ",\"" + caption + "\"))  return false;\r\n");
+      scriptTest.append("    if(!testCampoZero(" + campoForm + ",\"" + caption + "\"))  return false;\r\n");
 
     if(tc.isTestforcf())
-      scriptTest.append("    if(!testCampoCodFis(" + nc + ",\"" + caption + "\"))  return false;\r\n");
+      scriptTest.append("    if(!testCampoCodFis(" + campoForm + ",\"" + caption + "\"))  return false;\r\n");
 
     if(tc.isTestforpi())
-      scriptTest.append("    if(!testCampoPIVA(" + nc + ",\"" + caption + "\"))  return false;\r\n");
+      scriptTest.append("    if(!testCampoPIVA(" + campoForm + ",\"" + caption + "\"))  return false;\r\n");
 
     if(tc.getTestcustom() != null)
-      scriptTest.append("    if(!" + tc.getTestcustom() + "(" + nc + ",\"" + caption + "\"))  return false;\r\n");
+      scriptTest.append("    if(!" + tc.getTestcustom() + "(" + campoForm + ",\"" + nomeCampo + "\", \"" + caption + "\"))  return false;\r\n");
   }
 
   /**
@@ -1168,5 +1183,39 @@ public class hEditTable extends hTable
   public void setPopupFormFunction(String popupFormFunction)
   {
     this.popupFormFunction = popupFormFunction;
+  }
+
+  /**
+   * Carica eventuali valori di default per il nuovo oggetto.
+   * @param newObj nuovo oggetto creato
+   * @param param parametri della richiesta
+   * @param radiceNomeParametri radice del nome da cercare nei parametri (generlamente wrapper.getNome())
+   * @throws Exception
+   */
+  public void caricaDefaultsNuovoOggetto(Persistent newObj, Map param, String radiceNomeParametri)
+     throws Exception
+  {
+    PeerTableModel ptm = (PeerTableModel) (getModel());
+    for(int i = 0; i < ptm.getColumnCount(); i++)
+    {
+      RigelColumnDescriptor cd = ptm.getColumn(i);
+      if(cd.getDefVal() != null)
+      {
+        String sVal = cd.getDefVal();
+        if(sVal.equals("@today"))
+          sVal = cd.formatValue(new Date());
+        cd.setValueAscii(newObj, sVal);
+      }
+
+      String key = cd.getDefValParam();
+      if(key != null)
+      {
+        Object defVal = param.get(key);
+        if(defVal == null)
+          defVal = param.get(radiceNomeParametri + key);
+        if(defVal != null)
+          cd.setValueAscii(newObj, defVal.toString());
+      }
+    }
   }
 }

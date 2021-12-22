@@ -392,4 +392,40 @@ abstract public class SqlTransactAgent implements TransactAgent
     ta.runReadOnly();
     return (T) ta.tcontext.get("rv");
   }
+
+  public static Map<String, Object> executeReadonly(Connection con, executorNoconn exec)
+     throws Exception
+  {
+    SqlTransactAgent ta = new SqlTransactAgent(false, exec)
+    {
+      @Override
+      public boolean run(Connection dbCon, boolean transactionSupported)
+         throws Exception
+      {
+        ((executorNoconn) tparams[0]).execute();
+        return true;
+      }
+    };
+
+    ta.runReadOnlyInternal(con);
+    return ta.tcontext;
+  }
+
+  public static <T> T executeReturnReadonly(Connection con, executorReturnNoconn<T> exec)
+     throws Exception
+  {
+    SqlTransactAgent ta = new SqlTransactAgent(false, exec)
+    {
+      @Override
+      public boolean run(Connection dbCon, boolean transactionSupported)
+         throws Exception
+      {
+        tcontext.put("rv", ((executorReturnNoconn<T>) tparams[0]).execute());
+        return true;
+      }
+    };
+
+    ta.runReadOnlyInternal(con);
+    return (T) ta.tcontext.get("rv");
+  }
 }

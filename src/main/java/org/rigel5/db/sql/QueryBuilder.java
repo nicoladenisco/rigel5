@@ -1182,6 +1182,19 @@ abstract public class QueryBuilder
     return tableNames;
   }
 
+  /**
+   * Restituisce un identificativo della transazione corrente.
+   * In caso di non implementazione restituisce null.
+   * @param con connessione al db
+   * @return stringa rappresentazione dell ID della transazione
+   * @throws Exception
+   */
+  public String getTransactionID(Connection con)
+     throws Exception
+  {
+    return null;
+  }
+
   public boolean haveSelect()
   {
     return !(select == null || select.trim().length() == 0);
@@ -1411,5 +1424,15 @@ abstract public class QueryBuilder
   public void setNativeOffset(boolean nativeOffset)
   {
     this.nativeOffset = nativeOffset;
+  }
+
+  public MacroResolver getMacroResolver()
+  {
+    return macroResolver;
+  }
+
+  public void setMacroResolver(MacroResolver macroResolver)
+  {
+    this.macroResolver = macroResolver;
   }
 }

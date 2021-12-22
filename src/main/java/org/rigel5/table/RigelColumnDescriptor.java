@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -22,7 +22,6 @@ import java.text.Format;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.table.*;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.*;
 import org.apache.torque.om.NumberKey;
 import org.apache.torque.om.StringKey;
@@ -99,6 +98,7 @@ abstract public class RigelColumnDescriptor extends TableColumn
   protected boolean caratteristicheSelezioneRiga;
   protected boolean caratteristicheEditRiga;
   protected boolean caratteristicheCancellaRiga;
+  protected boolean suNuovaRiga;
   protected String fixedText;
   protected boolean testfortype;
   protected boolean testfornull;
@@ -476,133 +476,61 @@ abstract public class RigelColumnDescriptor extends TableColumn
     return convertiTipo(dataType, obj);
   }
 
-  public static Object convertiTipo(int dataType, Object obj)
+  public Object convertiTipo(int dataType, Object obj)
      throws Exception
   {
-    if(obj instanceof java.lang.Long)
-      switch(dataType)
-      {
-        case PDT_BOOLEAN:
-          return ((Long) (obj)).longValue() != 0;
-        case PDT_INTEGER:
-          return new Integer(((Long) (obj)).intValue());
-        case PDT_FLOAT:
-          return new Float(((Long) (obj)).floatValue());
-        case PDT_DOUBLE:
-        case PDT_MONEY:
-          return new Double(((Long) (obj)).doubleValue());
-        case PDT_DATE:
-        case PDT_TIMESTAMP_CMPDATEONLY:
-        case PDT_TIMESTAMP_CMPHOURONLY:
-        case PDT_TIMESTAMP_CMPTOSEC:
-        case PDT_TIMESTAMP_CMPTOMIN:
-        case PDT_TIMESTAMP:
-        case PDT_TIME:
-          return new Date();
-        case PDT_STRINGKEY:
-          return new StringKey(((Long) (obj)).toString());
-        case PDT_NUMBERKEY:
-          return new NumberKey(((Long) (obj)).longValue());
-        case PDT_STRING:
-        case PDT_FILE:
-          return ((Long) (obj)).toString();
-      }
-    else if(obj instanceof java.lang.Integer)
-      switch(dataType)
-      {
-        case PDT_BOOLEAN:
-          return ((Integer) (obj)).longValue() != 0;
-        case PDT_INTEGER:
+    // test per conversione non necessaria
+    switch(dataType)
+    {
+      case PDT_BOOLEAN:
+        if(obj instanceof Boolean)
           return obj;
-        case PDT_FLOAT:
-          return new Float(((Integer) (obj)).floatValue());
-        case PDT_DOUBLE:
-        case PDT_MONEY:
-          return new Double(((Integer) (obj)).doubleValue());
-        case PDT_DATE:
-        case PDT_TIMESTAMP_CMPDATEONLY:
-        case PDT_TIMESTAMP_CMPHOURONLY:
-        case PDT_TIMESTAMP_CMPTOSEC:
-        case PDT_TIMESTAMP_CMPTOMIN:
-        case PDT_TIMESTAMP:
-        case PDT_TIME:
-          return new Date();
-        case PDT_STRINGKEY:
-          return new StringKey(((Integer) (obj)).toString());
-        case PDT_NUMBERKEY:
-          return new NumberKey(((Integer) (obj)).longValue());
-        case PDT_STRING:
-        case PDT_FILE:
-          return ((Integer) (obj)).toString();
-      }
-    else if(obj instanceof java.lang.Float)
-      switch(dataType)
-      {
-        case PDT_BOOLEAN:
-          return ((Float) (obj)).longValue() != 0;
-        case PDT_INTEGER:
-          return new Integer(((Float) (obj)).intValue());
-        case PDT_FLOAT:
+      case PDT_INTEGER:
+        if(obj instanceof Integer)
           return obj;
-        case PDT_DOUBLE:
-        case PDT_MONEY:
-          return new Double(((Float) (obj)).doubleValue());
-        case PDT_DATE:
-        case PDT_TIMESTAMP_CMPDATEONLY:
-        case PDT_TIMESTAMP_CMPHOURONLY:
-        case PDT_TIMESTAMP_CMPTOSEC:
-        case PDT_TIMESTAMP_CMPTOMIN:
-        case PDT_TIMESTAMP:
-        case PDT_TIME:
-          return new Date();
-        case PDT_STRINGKEY:
-          return new StringKey(((Float) (obj)).toString());
-        case PDT_NUMBERKEY:
-          return new NumberKey(((Float) (obj)).longValue());
-        case PDT_STRING:
-        case PDT_FILE:
-          return ((Float) (obj)).toString();
-      }
-    else if(obj instanceof java.lang.Double)
-      switch(dataType)
-      {
-        case PDT_BOOLEAN:
-          return ((Double) (obj)).longValue() != 0;
-        case PDT_INTEGER:
-          return new Integer(((Double) (obj)).intValue());
-        case PDT_FLOAT:
-          return new Float(((Double) (obj)).floatValue());
-        case PDT_DOUBLE:
-        case PDT_MONEY:
+      case PDT_FLOAT:
+        if(obj instanceof Float)
           return obj;
-        case PDT_DATE:
-        case PDT_TIMESTAMP_CMPDATEONLY:
-        case PDT_TIMESTAMP_CMPHOURONLY:
-        case PDT_TIMESTAMP_CMPTOSEC:
-        case PDT_TIMESTAMP_CMPTOMIN:
-        case PDT_TIMESTAMP:
-        case PDT_TIME:
-          return new Date();
-        case PDT_STRINGKEY:
-          return new StringKey(((Double) (obj)).toString());
-        case PDT_NUMBERKEY:
-          return new NumberKey(((Double) (obj)).longValue());
-        case PDT_STRING:
-        case PDT_FILE:
-          return ((Double) (obj)).toString();
-      }
-    else if(obj instanceof java.lang.String)
+      case PDT_DOUBLE:
+      case PDT_MONEY:
+        if(obj instanceof Double)
+          return obj;
+      case PDT_DATE:
+      case PDT_TIMESTAMP_CMPDATEONLY:
+      case PDT_TIMESTAMP_CMPHOURONLY:
+      case PDT_TIMESTAMP_CMPTOSEC:
+      case PDT_TIMESTAMP_CMPTOMIN:
+      case PDT_TIMESTAMP:
+      case PDT_TIME:
+        if(obj instanceof Date)
+          return obj;
+      case PDT_STRINGKEY:
+        if(obj instanceof StringKey)
+          return obj;
+      case PDT_NUMBERKEY:
+        if(obj instanceof NumberKey)
+          return obj;
+      case PDT_STRING:
+      case PDT_FILE:
+        if(obj instanceof String)
+          return obj;
+    }
+
+    if(obj instanceof Number)
+    {
+      Number tmp = (Number) obj;
+
       switch(dataType)
       {
         case PDT_BOOLEAN:
-          return StringOper.checkTrue((String) obj);
+          return tmp.longValue() != 0;
         case PDT_INTEGER:
-          return new Integer(((String) (obj)));
+          return tmp.intValue();
         case PDT_FLOAT:
-          return new Float(((String) (obj)));
+          return tmp.floatValue();
         case PDT_DOUBLE:
         case PDT_MONEY:
-          return new Double(((String) (obj)));
+          return tmp.doubleValue();
         case PDT_DATE:
         case PDT_TIMESTAMP_CMPDATEONLY:
         case PDT_TIMESTAMP_CMPHOURONLY:
@@ -612,13 +540,49 @@ abstract public class RigelColumnDescriptor extends TableColumn
         case PDT_TIME:
           return new Date();
         case PDT_STRINGKEY:
-          return new StringKey(((String) (obj)));
+          return new StringKey(tmp.toString());
         case PDT_NUMBERKEY:
-          return new NumberKey(((String) (obj)));
+          return new NumberKey(tmp.longValue());
+        case PDT_STRING:
+        case PDT_FILE:
+          return obj.toString();
+      }
+
+      return obj.toString();
+    }
+
+    if(obj instanceof java.lang.String)
+    {
+      String tmp = (String) obj;
+
+      switch(dataType)
+      {
+        case PDT_BOOLEAN:
+          return parseBoolean(tmp);
+        case PDT_INTEGER:
+          return parseInteger(tmp);
+        case PDT_FLOAT:
+          return parseFloat(tmp);
+        case PDT_DOUBLE:
+        case PDT_MONEY:
+          return parseDouble(tmp);
+        case PDT_DATE:
+        case PDT_TIMESTAMP_CMPDATEONLY:
+        case PDT_TIMESTAMP_CMPHOURONLY:
+        case PDT_TIMESTAMP_CMPTOSEC:
+        case PDT_TIMESTAMP_CMPTOMIN:
+        case PDT_TIMESTAMP:
+        case PDT_TIME:
+          return new Date();
+        case PDT_STRINGKEY:
+          return new StringKey(tmp);
+        case PDT_NUMBERKEY:
+          return new NumberKey(tmp);
         case PDT_STRING:
         case PDT_FILE:
           return obj;
       }
+    }
 
     // ritorna l'oggetto cosi' come' sperando che vada bene!
     return obj;
@@ -909,9 +873,7 @@ abstract public class RigelColumnDescriptor extends TableColumn
       if(removeZero && fd.codice.equals("0"))
         continue;
 
-      sOut.append(HtmlUtils.generaOptionCombo(fd.codice,
-         StringUtils.abbreviate(fd.descrizione, 64),
-         fd.codice.equals(defVal)));
+      sOut.append(HtmlUtils.generaOptionCombo(fd.codice, fd.descrizione, fd.codice.equals(defVal)));
     }
 
     return sOut.toString();
@@ -2003,5 +1965,15 @@ abstract public class RigelColumnDescriptor extends TableColumn
   public String toString()
   {
     return getCaption() + " (" + getName() + ")";
+  }
+
+  public boolean isSuNuovaRiga()
+  {
+    return suNuovaRiga;
+  }
+
+  public void setSuNuovaRiga(boolean suNuovaRiga)
+  {
+    this.suNuovaRiga = suNuovaRiga;
   }
 }

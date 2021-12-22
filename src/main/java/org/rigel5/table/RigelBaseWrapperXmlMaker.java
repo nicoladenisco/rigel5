@@ -488,6 +488,7 @@ public class RigelBaseWrapperXmlMaker
       buildExtraWhere(e, cd);
     }
 
+    // visualizzazione con valori predefiniti (in edit o ricerca diventa combobox)
     if((e = item.getChild("foreign-edit-values")) != null
        || (e = item.getChild("foreign-values")) != null)
     {

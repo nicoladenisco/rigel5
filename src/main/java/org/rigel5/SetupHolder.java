@@ -71,6 +71,11 @@ public class SetupHolder
    */
   private static int autoComboLimit = 50;
   /**
+   * Limite della descrizione nei combo box.
+   * La descrizione viene troncata se eccede questa dimensione.
+   */
+  private static int comboDescLimit = 40;
+  /**
    * Quando usa l'auto combo per foreign edit inserisce
    * comunque una voce 0=Nessuno/non definito in cima al
    * combo-box anche se non appare fra i risultati collegati.
@@ -225,13 +230,13 @@ public class SetupHolder
     if(qryBldcname == null)
       throw new Exception("Nessuna definizione di QueryBuilder.");
 
-    Class clqb = ClassOper.loadClass(qryBldcname, "org.rigel2.db.sql", null);
+    Class clqb = ClassOper.loadClass(qryBldcname, "org.rigel5.db.sql", null);
 
     if(clqb != null)
       return (QueryBuilder) clqb.newInstance();
 
     throw new ClassNotFoundException("La classe " + qryBldcname
-       + " non e' definita o non e' derivata da org.rigel2.db.sql.QueryBuilder.");
+       + " non e' definita o non e' derivata da org.rigel5.db.sql.QueryBuilder.");
   }
 
   public static void setQueryBuilderClassName(String s)
@@ -372,5 +377,15 @@ public class SetupHolder
   public static void setRi18n(RigelI18nInterface ri18n)
   {
     SetupHolder.ri18n = ri18n;
+  }
+
+  public static int getComboDescLimit()
+  {
+    return comboDescLimit;
+  }
+
+  public static void setComboDescLimit(int comboDescLimit)
+  {
+    SetupHolder.comboDescLimit = comboDescLimit;
   }
 }

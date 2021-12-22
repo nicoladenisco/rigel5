@@ -27,6 +27,7 @@ import org.rigel5.RigelCustomUrlBuilder;
 import org.rigel5.RigelExtendedFormat;
 import org.rigel5.RigelI18nInterface;
 import org.rigel5.SetupHolder;
+import org.rigel5.glue.RigelFormat;
 import org.rigel5.table.*;
 
 /**
@@ -396,7 +397,13 @@ public class hTable
     html.append("<").append(sRowStat).append(">\r\n").append(preValues(row));
 
     for(int i = 0; i < tableModel.getColumnCount(); i++)
+    {
+      RigelColumnDescriptor rcd = getCD(i);
+      if(rcd.getFormatter() != null && rcd.getFormatter() instanceof RigelFormat)
+        ((RigelFormat) rcd.getFormatter()).prepareFormatRecord(getTM(), row, i);
+
       html.append(doCell(row, i));
+    }
 
     html.append(postValues(row)).append("</TR>\r\n");
   }

@@ -81,9 +81,11 @@ public class DispTable extends FormTable
       case RigelColumnDescriptor.DISP_FLD_ONLY:
         // nessun collegamento master-detail
         return sval;
+
       case RigelColumnDescriptor.DISP_FLD_EDIT:
         // collegamento master-detail in edit senza descrizione
-        return sval;
+        return fd.descrizione;
+
       case RigelColumnDescriptor.DISP_DESCR_EDIT:
         // collegamento master-detail in edit con descrizione
         return "\r\n"
@@ -91,6 +93,7 @@ public class DispTable extends FormTable
            + "<td>" + StringOper.okStr(fd.codice) + "</td>\r\n"
            + "<td>&nbsp;<b>" + StringOper.okStr(fd.descrizione) + "</b></td>\r\n"
            + "</tr></table>\r\n";
+
       case RigelColumnDescriptor.DISP_DESCR_EDIT_ALTERNATE:
         // collegamento master-detail in edit con descrizione
         return "\r\n"
@@ -98,6 +101,15 @@ public class DispTable extends FormTable
            + "<td>" + StringOper.okStr(fd.alternateCodice) + "</td>\r\n"
            + "<td>&nbsp;<b>" + StringOper.okStr(fd.descrizione) + "</b></td>\r\n"
            + "</tr></table>\r\n";
+
+      case RigelColumnDescriptor.DISP_FLD_DESCR:
+        // collegamento master-detail di sola visualizzazione
+        return fd.descrizione;
+
+      case RigelColumnDescriptor.DISP_FLD_DESCR_ALTERNATE:
+        // collegamento master-detail di sola visualizzazione (alternata)
+        return fd.descrizione;
+
       default:
         // collegamento master-detail di sola visualizzazione
         return fd.descrizione;
