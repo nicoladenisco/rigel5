@@ -20,6 +20,7 @@ package org.rigel5.db;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -310,6 +311,19 @@ abstract public class AbstractAlignDatabase
     catch(IOException ex)
     {
       System.err.println("SEVERE ERROR: " + ex.getMessage());
+    }
+  }
+
+  public void executeFileSQL(File fileSQL, boolean ignoraErrori)
+     throws Exception
+  {
+    try (InputStreamReader fr = new InputStreamReader(
+       new FileInputStream(fileSQL), StandardCharsets.UTF_8))
+    {
+      if(ignoraErrori)
+        executeStreamSqlIgnoraErrori(fr);
+      else
+        executeStreamSql(fr);
     }
   }
 
