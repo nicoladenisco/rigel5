@@ -45,7 +45,10 @@ public class PeerReadWriteHelper implements Closeable
      throws Exception
   {
     if(dbCon != null)
+    {
       Torque.closeConnection(dbCon);
+      dbCon = null;
+    }
   }
 
   @Override

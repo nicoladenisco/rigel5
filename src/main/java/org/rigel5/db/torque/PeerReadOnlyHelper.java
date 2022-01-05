@@ -72,6 +72,7 @@ public class PeerReadOnlyHelper implements Closeable
         dbCon.setTransactionIsolation(isolationLevelState);
 
       Torque.closeConnection(dbCon);
+      dbCon = null;
     }
   }
 
