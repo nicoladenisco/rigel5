@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import static org.commonlib5.utils.StringOper.isEquNocase;
 
 /**
  * The Schema object represents the <a href="Column.html">Columns</a> in a database table. It contains a collection of <a
@@ -709,5 +710,52 @@ public final class Schema
 
     sb.append('}');
     return sb.toString();
+  }
+
+  /**
+   * Cerca la colonna in modo case insensitive.
+   * La ricerca avviene su tutte le colonne, anche
+   * se questo schema fa riferimento a più tabelle (query).
+   * @param nomeColonna nome della colonna da cercare
+   * @return la colonna corrispondente oppure null
+   * @throws DataSetException
+   */
+  public Column findInSchemaIgnoreCaseQuiet(String nomeColonna)
+     throws DataSetException
+  {
+    for(int i = 1; i <= numberOfColumns(); i++)
+    {
+      Column col = column(i);
+      if(isEquNocase(nomeColonna, col.name()))
+        return col;
+    }
+
+    return null;
+  }
+
+  /**
+   * Cerca la colonna in modo case insensitive.
+   * La ricerca avviene su tutte le colonne, anche
+   * se questo schema fa riferimento a più tabelle (query).
+   * @param nomeColonna nome della colonna da cercare
+   * @return la colonna corrispondente oppure null
+   * @throws Exception
+   */
+  public Column findInSchemaIgnoreCase(String nomeColonna)
+     throws Exception
+  {
+    Column col = findInSchemaIgnoreCaseQuiet(nomeColonna);
+
+    if(col != null)
+      return col;
+
+    if(singleTable)
+      throw new DataSetException(String.format(
+         "Field %s not found in table %s.",
+         nomeColonna, tableName));
+
+    throw new DataSetException(String.format(
+       "Field %s not found.",
+       nomeColonna));
   }
 }

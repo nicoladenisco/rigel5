@@ -20,6 +20,8 @@ package org.rigel5.db.sql;
 import com.workingdogs.village.QueryDataSet;
 import com.workingdogs.village.Record;
 import com.workingdogs.village.Schema;
+import java.io.Closeable;
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -60,7 +62,7 @@ import org.rigel5.table.RigelTableModel;
  * @author Nicola De Nisco
  * @version 1.0
  */
-abstract public class QueryBuilder
+abstract public class QueryBuilder implements Closeable
 {
   /** Logging */
   private static final Log log = LogFactory.getLog(QueryBuilder.class);
@@ -1055,6 +1057,17 @@ abstract public class QueryBuilder
    * @return vero se l'operazione ha avuto successo
    */
   abstract public boolean enableForeignKeys(String nomeTabella);
+
+  @Override
+  public void close()
+     throws IOException
+  {
+    if(lastQuery != null)
+    {
+      lastQuery.close();
+      lastQuery = null;
+    }
+  }
 
   @FunctionalInterface
   public interface ScanColumn<T>
