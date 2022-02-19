@@ -76,7 +76,7 @@ public class QueryDataSet
   {
     this.conn = conn;
 
-    selectString = new StringBuffer(selectStmt);
+    selectString = new StringBuilder(selectStmt);
 
     boolean ok = false;
     try

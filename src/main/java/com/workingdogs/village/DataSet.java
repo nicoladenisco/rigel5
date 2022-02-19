@@ -63,10 +63,10 @@ public abstract class DataSet implements Closeable
   private String columns;
 
   /** the select string that was used to build this DataSet */
-  protected StringBuffer selectString;
+  protected StringBuilder selectString;
 
   /** the KeyDef for this DataSet */
-  private KeyDef keyDefValue;
+  protected KeyDef keyDefValue;
 
   /** the result set for this DataSet */
   protected ResultSet resultSet;
@@ -381,6 +381,54 @@ public abstract class DataSet implements Closeable
   }
 
   /**
+   * Pulizia selettiva.
+   * Rilascia gli oggetti collegati alla connessione e
+   * tutti i records caricati in memoria.
+   * Dopo questo il DataSet è pronto per una nuova query.
+   * @throws DataSetException
+   */
+  public void clear()
+     throws DataSetException
+  {
+    releaseRecords();
+
+    Throwable sqlEx = null;
+
+    try
+    {
+      if(resultSet != null)
+      {
+        resultSet.close();
+      }
+    }
+    catch(SQLException e)
+    {
+      sqlEx = e;
+    }
+
+    resultSet = null;
+
+    try
+    {
+      if(stmt != null)
+      {
+        stmt.close();
+      }
+    }
+    catch(SQLException e)
+    {
+      sqlEx = e;
+    }
+
+    stmt = null;
+
+    if(sqlEx != null)
+    {
+      throw new DataSetException("", sqlEx);
+    }
+  }
+
+  /**
    * Essentially the same as releaseRecords, but it won't work on a QueryDataSet that has been created with a ResultSet
    *
    * @return an instance of myself
@@ -629,7 +677,7 @@ public abstract class DataSet implements Closeable
   public String tableName()
      throws DataSetException
   {
-    return schema().tableName();
+    return schema.tableName();
   }
 
   /**
@@ -711,11 +759,11 @@ public abstract class DataSet implements Closeable
 
     if(selectString == null)
     {
-      selectString = new StringBuffer(256);
+      selectString = new StringBuilder(256);
       selectString.append("SELECT ");
-      selectString.append(schema().attributes());
+      selectString.append(schema.attributes());
       selectString.append(" FROM ");
-      selectString.append(schema().tableName());
+      selectString.append(schema.tableName());
     }
 
     try
@@ -726,53 +774,7 @@ public abstract class DataSet implements Closeable
         resultSet = stmt.executeQuery(selectString.toString());
       }
 
-      if(resultSet != null)
-      {
-        if((records == null) && (max > 0))
-        {
-          records = new ArrayList<Record>(max);
-        }
-        else
-        {
-          records = new ArrayList<Record>();
-        }
-
-        int startCounter = 0;
-        int fetchCount = 0;
-
-        while(!allRecordsRetrieved())
-        {
-          if(fetchCount == max)
-          {
-            break;
-          }
-
-          if(resultSet.next())
-          {
-            if(startCounter >= start)
-            {
-              Record rec = new Record(this);
-              records.add(rec);
-
-              if(consumer != null)
-                consumer.accept(rec);
-
-              fetchCount++;
-            }
-            else
-            {
-              startCounter++;
-            }
-          }
-          else
-          {
-            setAllRecordsRetrieved(true);
-            break;
-          }
-        }
-
-        lastFetchSize = fetchCount;
-      }
+      populateRecords(max, start, consumer);
     }
     catch(SQLException | DataSetException e)
     {
@@ -798,5 +800,76 @@ public abstract class DataSet implements Closeable
     }
 
     return this;
+  }
+
+  /**
+   * Costruisce l'elenco dei record.
+   * Dopo aver creato statement e resultset viene chiamata
+   * questa funzione per leggere il resultset e creare l'elenco degli oggetti Record.
+   * @param max
+   * @param start
+   * @param consumer
+   * @throws Exception
+   */
+  protected void populateRecords(int max, int start, ConsumerThrowException<Record> consumer)
+     throws Exception
+  {
+    if(resultSet != null)
+    {
+      if((records == null) && (max > 0))
+      {
+        records = new ArrayList<Record>(max);
+      }
+      else
+      {
+        records = new ArrayList<Record>();
+      }
+
+      int startCounter = 0;
+      int fetchCount = 0;
+
+      while(!allRecordsRetrieved())
+      {
+        if(fetchCount == max)
+        {
+          break;
+        }
+
+        if(resultSet.next())
+        {
+          if(startCounter >= start)
+          {
+            Record rec = new Record(this);
+            records.add(rec);
+
+            if(consumer != null)
+              consumer.accept(rec);
+
+            fetchCount++;
+          }
+          else
+          {
+            startCounter++;
+          }
+        }
+        else
+        {
+          setAllRecordsRetrieved(true);
+          break;
+        }
+      }
+
+      lastFetchSize = fetchCount;
+    }
+  }
+
+  public Connection getConnection()
+  {
+    return conn;
+  }
+
+  public void setConnection(Connection conn)
+  {
+    this.conn = conn;
   }
 }

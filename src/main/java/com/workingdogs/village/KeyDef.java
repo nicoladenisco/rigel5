@@ -18,7 +18,9 @@ package com.workingdogs.village;
  * specific language governing permissions and limitations
  * under the License.
  */
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * A KeyDef is a way to define the key columns in a table. The KeyDef is generally used in conjunction with a <a
@@ -52,15 +54,15 @@ import java.util.Vector;
 public class KeyDef
 {
   /** TODO: DOCUMENT ME! */
-  private Vector mySelf = null;
+  private ArrayList<String> mySelf = null;
 
   /**
    * Constructor for KeyDef. Make sure to always initialize KeyDef with an initial element because it is 1 based.
    */
   public KeyDef()
   {
-    mySelf = new Vector();
-    mySelf.addElement("");
+    mySelf = new ArrayList<String>();
+    mySelf.add("");
   }
 
   /**
@@ -72,8 +74,7 @@ public class KeyDef
    */
   public KeyDef addAttrib(String name)
   {
-    mySelf.addElement(name);
-
+    mySelf.add(name);
     return this;
   }
 
@@ -105,12 +106,17 @@ public class KeyDef
 
     try
     {
-      return (String) mySelf.elementAt(pos);
+      return mySelf.get(pos);
     }
     catch(ArrayIndexOutOfBoundsException e)
     {
       return null;
     }
+  }
+
+  public boolean isEmpty()
+  {
+    return mySelf.size() <= 1;
   }
 
   /**
@@ -125,9 +131,20 @@ public class KeyDef
     return mySelf.size() - 1;
   }
 
+  public List<String> getAsList()
+  {
+    if(isEmpty())
+      return Collections.EMPTY_LIST;
+
+    return mySelf.subList(1, mySelf.size());
+  }
+
   @Override
   public String toString()
   {
-    return "KeyDef{" + "mySelf=" + mySelf + '}';
+    if(isEmpty())
+      return "KeyDef{empty}";
+
+    return "KeyDef{" + "mySelf=" + getAsList() + '}';
   }
 }

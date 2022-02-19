@@ -19,7 +19,10 @@ package com.workingdogs.village;
  * under the License.
  */
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Collection;
+import java.util.Map;
 import org.commonlib5.lambda.ConsumerThrowException;
 
 /**
@@ -447,12 +450,12 @@ public class TableDataSet
    *
    * @throws DataSetException TODO: DOCUMENT ME!
    */
-  private void buildSelectString()
+  protected void buildSelectString()
      throws DataSetException
   {
     if(selectString == null)
     {
-      selectString = new StringBuffer(256);
+      selectString = new StringBuilder(256);
     }
     else
     {
@@ -460,9 +463,9 @@ public class TableDataSet
     }
 
     selectString.append("SELECT ");
-    selectString.append(schema().attributes());
+    selectString.append(schema.attributes());
     selectString.append(" FROM ");
-    selectString.append(schema().tableName());
+    selectString.append(schema.tableName());
 
     if((this.where != null) && (this.where.length() > 0))
     {
@@ -478,5 +481,145 @@ public class TableDataSet
     {
       selectString.append(this.other);
     }
+  }
+
+  public DataSet fetchByGenericValues(Connection connection, Map<String, Object> keyValues)
+     throws DataSetException
+  {
+    try
+    {
+      return fetchByGenericValues(connection, keyValues, 0, ALL_RECORDS, null);
+    }
+    catch(DataSetException ex)
+    {
+      throw ex;
+    }
+    catch(Exception ex)
+    {
+      throw new DataSetException("Error fetching records.", ex);
+    }
+  }
+
+  public DataSet fetchByGenericValues(Connection connection, Map<String, Object> values,
+     int max, int start, ConsumerThrowException<Record> consumer)
+     throws Exception
+  {
+    clear();
+    PreparedStatement lstm = connection.prepareStatement(buildSelectStringKeydef());
+
+    int ps = 1;
+    for(Map.Entry<String, Object> entry : values.entrySet())
+    {
+      String colName = entry.getKey();
+      Column col = schema.column(colName);
+      Value val = new Value(ps, col.typeEnum(), entry.getValue());
+
+      if(val.isNull())
+        throw new DataSetException("Missing value for " + tableName() + "." + colName + ".");
+
+      val.setPreparedStatementValue(lstm, ps++);
+    }
+
+    this.stmt = lstm;
+    this.resultSet = lstm.executeQuery();
+    populateRecords(max, start, consumer);
+    return this;
+  }
+
+  public DataSet fetchByPrimaryKeys(Connection connection, Map<String, Object> keyValues)
+     throws DataSetException
+  {
+    try
+    {
+      return fetchByPrimaryKeys(connection, keyValues, 0, ALL_RECORDS, null);
+    }
+    catch(DataSetException ex)
+    {
+      throw ex;
+    }
+    catch(Exception ex)
+    {
+      throw new DataSetException("Error fetching records.", ex);
+    }
+  }
+
+  public DataSet fetchByPrimaryKeys(Connection connection, Map<String, Object> keyValues,
+     int max, int start, ConsumerThrowException<Record> consumer)
+     throws Exception
+  {
+    clear();
+    PreparedStatement lstm = connection.prepareStatement(buildSelectStringKeydef());
+
+    int ps = 1;
+    for(int i = 1; i <= keydef().size(); i++)
+    {
+      String colName = keydef().getAttrib(i);
+      Column col = schema.column(colName);
+      Value val = new Value(i, col.typeEnum(), keyValues.get(colName));
+
+      if(val.isNull())
+        throw new DataSetException("Missing primary key value for " + tableName() + "." + colName + ".");
+
+      val.setPreparedStatementValue(lstm, ps++);
+    }
+
+    this.stmt = lstm;
+    this.resultSet = lstm.executeQuery();
+    populateRecords(max, start, consumer);
+    return this;
+  }
+
+  protected String buildSelectStringKeydef()
+     throws DataSetException
+  {
+    if(keydef() == null || keydef().isEmpty())
+    {
+      throw new DataSetException(
+         "You can only perform a getRefreshQueryString on a TableDataSet that was created with a KeyDef.");
+    }
+
+    return buildSelectStringWhere(keydef().getAsList());
+  }
+
+  protected String buildSelectStringWhere(Collection<String> selectFields)
+     throws DataSetException
+  {
+    StringBuilder iss1 = new StringBuilder(256);
+    StringBuilder iss2 = new StringBuilder(256);
+    boolean comma = false;
+
+    for(int i = 1; i <= size(); i++)
+    {
+      if(!comma)
+      {
+        iss1.append(schema.column(i).name());
+        comma = true;
+      }
+      else
+      {
+        iss1.append(", ");
+        iss1.append(schema.column(i).name());
+      }
+    }
+
+    comma = false;
+
+    for(String attrib : selectFields)
+    {
+      if(!comma)
+      {
+        iss2.append(attrib);
+        iss2.append(" = ?");
+        comma = true;
+      }
+      else
+      {
+        iss2.append(" AND ");
+        iss2.append(attrib);
+        iss2.append(" = ?");
+      }
+    }
+
+    return "SELECT " + iss1.toString() + " FROM " + schema.tableName() + " WHERE " + iss2.toString();
   }
 }

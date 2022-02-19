@@ -23,6 +23,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Map;
 
 /**
  * A Record represents a row in the database. It contains a collection of <a href="Value.html">Values</A> which are the
@@ -1536,7 +1537,7 @@ public class Record
       throw new DataSetException(
          "You can only perform a getRefreshQueryString on a TableDataSet that was created with a KeyDef.");
     }
-    else if(dataset() instanceof QueryDataSet)
+    else if(!(dataset() instanceof TableDataSet))
     {
       throw new DataSetException("You can only perform a getRefreshQueryString on Records created with a TableDataSet.");
     }
@@ -1685,5 +1686,21 @@ public class Record
     {
       return "";
     }
+  }
+
+  public Record setValues(Map<String, Object> values)
+     throws DataSetException
+  {
+    for(Map.Entry<String, Object> entry : values.entrySet())
+    {
+      String fname = entry.getKey();
+      Object value = entry.getValue();
+
+      int pos = schema().index(fname);
+      this.values[pos].setValue(value);
+      markValueDirty(pos);
+    }
+
+    return this;
   }
 }
