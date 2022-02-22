@@ -19,6 +19,7 @@ package com.workingdogs.village;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
@@ -36,11 +37,11 @@ import org.junit.Test;
  *
  * @author Nicola De Nisco
  */
-public class QueryDataSet2Test
+public class QueryDataSetTest
 {
   private DerbyTestEnvironment dbe;
 
-  public QueryDataSet2Test()
+  public QueryDataSetTest()
   {
   }
 
@@ -79,9 +80,15 @@ public class QueryDataSet2Test
   private void inserisciDati()
      throws SQLException, DataSetException
   {
-    TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri");
+    try (Statement stm = dbe.getConn().createStatement())
     {
-      Record r = instance.addRecord();
+      stm.executeUpdate("DELETE FROM mic_antibiotici");
+      stm.executeUpdate("DELETE FROM mic_batteri");
+    }
+
+    TableDataSet batteri = new TableDataSet(dbe.getConn(), "mic_batteri");
+    {
+      Record r = batteri.addRecord();
       r.setValue("idbatteri", 1);
       r.setValue("codice", "bat1");
       r.setValue("descrizione", "Batterio1");
@@ -95,7 +102,7 @@ public class QueryDataSet2Test
       r.save();
     }
     {
-      Record r = instance.addRecord();
+      Record r = batteri.addRecord();
       r.setValue("idbatteri", 2);
       r.setValue("codice", "bat2");
       r.setValue("descrizione", "Batterio2");
@@ -106,11 +113,47 @@ public class QueryDataSet2Test
       r.setValue("ult_modif", new Date());
       r.setValue("creazione", new Date());
       r.setValue("codiceregionale", "BB");
+      r.save();
     }
+
+    TableDataSet antibiotici = new TableDataSet(dbe.getConn(), "mic_antibiotici");
+    {
+      Record r = antibiotici.addRecord();
+      r.setValue("idantibiotici", 1);
+      r.setValue("codice", "ant1");
+      r.setValue("descrizione", "antibiotioco1");
+      r.setValue("micdose1", "11");
+      r.setValue("micdose2", "22");
+      r.setValue("farmaco", "farmaco");
+      r.setValue("tiporecord", 1);
+      r.setValue("stato_rec", 0);
+      r.setValue("id_user", 0);
+      r.setValue("id_ucrea", 0);
+      r.setValue("ult_modif", new Date());
+      r.setValue("creazione", new Date());
+      r.setValue("codiceregionale", "BB");
+    }
+    {
+      Record r = antibiotici.addRecord();
+      r.setValue("idantibiotici", 2);
+      r.setValue("codice", "ant2");
+      r.setValue("descrizione", "antibiotioco2");
+      r.setValue("micdose1", "11");
+      r.setValue("micdose2", "22");
+      r.setValue("farmaco", "farmaco");
+      r.setValue("tiporecord", 1);
+      r.setValue("stato_rec", 0);
+      r.setValue("id_user", 0);
+      r.setValue("id_ucrea", 0);
+      r.setValue("ult_modif", new Date());
+      r.setValue("creazione", new Date());
+      r.setValue("codiceregionale", "BB");
+    }
+    antibiotici.save();
   }
 
   /**
-   * Test of getSelectResults method, of class QueryDataSet2.
+   * Test of getSelectResults method, of class QueryDataSet.
    */
   @Test
   public void testGetSelectResults()
@@ -118,30 +161,25 @@ public class QueryDataSet2Test
   {
     System.out.println("getSelectResults");
     int start = 0;
-    int numberOfResults = 0;
-    QueryDataSet2 instance = new QueryDataSet2();
-    List<Record> expResult = null;
+    int numberOfResults = -1;
+    Connection dbCon = dbe.getConn();
+    String sSQL = "SELECT * FROM mic_antibiotici";
+    QueryDataSet instance = new QueryDataSet(dbCon, sSQL);
     List<Record> result = instance.getSelectResults(start, numberOfResults);
-    assertEquals(expResult, result);
-    // TODO review the generated test code and remove the default call to fail.
-    fail("The test case is a prototype.");
+    assertEquals(2, result.size());
   }
 
   /**
-   * Test of fetchAllRecords method, of class QueryDataSet2.
+   * Test of fetchAllRecords method, of class QueryDataSet.
    */
   @Test
   public void testFetchAllRecords()
      throws Exception
   {
     System.out.println("fetchAllRecords");
-    Connection dbCon = null;
-    String sSQL = "";
-    List<Record> expResult = null;
-    List<Record> result = QueryDataSet2.fetchAllRecords(dbCon, sSQL);
-    assertEquals(expResult, result);
-    // TODO review the generated test code and remove the default call to fail.
-    fail("The test case is a prototype.");
+    Connection dbCon = dbe.getConn();
+    String sSQL = "SELECT * FROM mic_batteri";
+    List<Record> result = QueryDataSet.fetchAllRecords(dbCon, sSQL);
+    assertEquals(2, result.size());
   }
-
 }

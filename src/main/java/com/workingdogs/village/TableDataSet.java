@@ -21,6 +21,7 @@ package com.workingdogs.village;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import org.commonlib5.lambda.ConsumerThrowException;
@@ -261,7 +262,7 @@ public class TableDataSet
     if(records == null)
       throw new DataSetException("Cache records is empty: use fetchRecord.");
 
-    for(Record rec : records)
+    for(Record rec : new ArrayList<>(records))
     {
       if(rec.isAZombie())
       {
@@ -489,12 +490,12 @@ public class TableDataSet
     }
   }
 
-  public DataSet fetchByGenericValues(Connection connection, Map<String, Object> keyValues)
+  public DataSet fetchByGenericValues(Map<String, Object> keyValues)
      throws DataSetException
   {
     try
     {
-      return fetchByGenericValues(connection, keyValues, 0, ALL_RECORDS, null);
+      return fetchByGenericValues(keyValues, 0, ALL_RECORDS, null);
     }
     catch(DataSetException ex)
     {
@@ -506,19 +507,21 @@ public class TableDataSet
     }
   }
 
-  public DataSet fetchByGenericValues(Connection connection, Map<String, Object> values,
-     int max, int start, ConsumerThrowException<Record> consumer)
+  public DataSet fetchByGenericValues(Map<String, Object> values,
+     int start, int max, ConsumerThrowException<Record> consumer)
      throws Exception
   {
     clear();
-    PreparedStatement lstm = connection.prepareStatement(buildSelectStringKeydef());
+    ArrayList<String> lsChiavi = new ArrayList<>(values.keySet());
+    lsChiavi.sort((a, b) -> a.compareTo(b));
+    String sSQL = buildSelectStringWhere(lsChiavi);
+    PreparedStatement lstm = conn.prepareStatement(sSQL);
 
     int ps = 1;
-    for(Map.Entry<String, Object> entry : values.entrySet())
+    for(String colName : lsChiavi)
     {
-      String colName = entry.getKey();
       Column col = schema.column(colName);
-      Value val = new Value(ps, col.typeEnum(), entry.getValue());
+      Value val = new Value(ps, col.typeEnum(), values.get(colName));
 
       if(val.isNull())
         throw new DataSetException("Missing value for " + tableName() + "." + colName + ".");
@@ -528,16 +531,16 @@ public class TableDataSet
 
     this.stmt = lstm;
     this.resultSet = lstm.executeQuery();
-    populateRecords(max, start, consumer);
+    populateRecords(start, max, consumer);
     return this;
   }
 
-  public DataSet fetchByPrimaryKeys(Connection connection, Map<String, Object> keyValues)
+  public DataSet fetchByPrimaryKeys(Map<String, Object> keyValues)
      throws DataSetException
   {
     try
     {
-      return fetchByPrimaryKeys(connection, keyValues, 0, ALL_RECORDS, null);
+      return fetchByPrimaryKeys(keyValues, 0, ALL_RECORDS, null);
     }
     catch(DataSetException ex)
     {
@@ -549,12 +552,13 @@ public class TableDataSet
     }
   }
 
-  public DataSet fetchByPrimaryKeys(Connection connection, Map<String, Object> keyValues,
-     int max, int start, ConsumerThrowException<Record> consumer)
+  public DataSet fetchByPrimaryKeys(Map<String, Object> keyValues,
+     int start, int max, ConsumerThrowException<Record> consumer)
      throws Exception
   {
     clear();
-    PreparedStatement lstm = connection.prepareStatement(buildSelectStringKeydef());
+    String sSQL = buildSelectStringKeydef();
+    PreparedStatement lstm = conn.prepareStatement(sSQL);
 
     int ps = 1;
     for(int i = 1; i <= keydef().size(); i++)
@@ -571,7 +575,7 @@ public class TableDataSet
 
     this.stmt = lstm;
     this.resultSet = lstm.executeQuery();
-    populateRecords(max, start, consumer);
+    populateRecords(start, max, consumer);
     return this;
   }
 
@@ -579,10 +583,7 @@ public class TableDataSet
      throws DataSetException
   {
     if(keydef() == null || keydef().isEmpty())
-    {
-      throw new DataSetException(
-         "You can only perform a getRefreshQueryString on a TableDataSet that was created with a KeyDef.");
-    }
+      throw new DataSetException("KeyDef not present in this dataset.");
 
     return buildSelectStringWhere(keydef().getAsList());
   }
@@ -594,7 +595,7 @@ public class TableDataSet
     StringBuilder iss2 = new StringBuilder(256);
     boolean comma = false;
 
-    for(int i = 1; i <= size(); i++)
+    for(int i = 1; i <= schema.numberOfColumns(); i++)
     {
       if(!comma)
       {

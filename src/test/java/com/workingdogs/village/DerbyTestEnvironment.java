@@ -138,7 +138,7 @@ public class DerbyTestEnvironment implements Closeable
 
     try (Statement stm = conn.createStatement())
     {
-      stm.executeUpdate(sSQL1);
+      stm.executeUpdate(sSQL2);
     }
     catch(SQLException ex)
     {

@@ -294,6 +294,9 @@ public abstract class DataSet implements Closeable
     try
     {
       int loc = records.indexOf(rec);
+      if(loc == -1)
+        return null;
+
       removeRec = (Record) records.get(loc);
       records.remove(loc);
     }
@@ -334,7 +337,9 @@ public abstract class DataSet implements Closeable
   }
 
   /**
-   * Releases the records, closes the ResultSet and the Statement, and nulls the Schema and Connection references.
+   * Releases the records, closes the ResultSet and the Statement,
+   * and nulls the Schema and Connection references.
+   * NOTE: connection is not closed in this method; the metod only set null the internal reference.
    *
    * @exception IOException
    */
@@ -776,7 +781,7 @@ public abstract class DataSet implements Closeable
         resultSet = stmt.executeQuery(selectString.toString());
       }
 
-      populateRecords(max, start, consumer);
+      populateRecords(start, max, consumer);
     }
     catch(SQLException | DataSetException e)
     {
@@ -847,7 +852,7 @@ public abstract class DataSet implements Closeable
    * @param consumer
    * @throws Exception
    */
-  protected void populateRecords(int max, int start, ConsumerThrowException<Record> consumer)
+  protected void populateRecords(int start, int max, ConsumerThrowException<Record> consumer)
      throws Exception
   {
     if(resultSet != null)

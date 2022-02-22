@@ -17,17 +17,12 @@
  */
 package com.workingdogs.village;
 
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.junit.After;
-import org.junit.AfterClass;
+import java.util.Map;
 import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
@@ -40,51 +35,67 @@ public class TableDataSetTest
 {
   private DerbyTestEnvironment dbe;
 
-  public TableDataSetTest()
+  public void preparaDatabase()
+     throws Exception
   {
+    dbe = DerbyTestEnvironment.getInstance();
+    if(!dbe.isOpen())
+      dbe.open();
   }
 
-  @BeforeClass
-  public static void setUpClass()
+  @Test
+  public void test()
+     throws Exception
   {
-  }
+    preparaDatabase();
 
-  @AfterClass
-  public static void tearDownClass()
-  {
-  }
-
-  @Before
-  public void setUp()
-  {
-    try
+    try (Statement stm = dbe.getConn().createStatement())
     {
-      dbe = DerbyTestEnvironment.getInstance();
-      if(!dbe.isOpen())
-        dbe.open();
+      stm.executeUpdate("DELETE FROM mic_antibiotici");
+      stm.executeUpdate("DELETE FROM mic_batteri");
+    }
 
-      try (Statement stm = dbe.getConn().createStatement())
-      {
-        stm.executeUpdate("DELETE FROM mic_antibiotici");
-        stm.executeUpdate("DELETE FROM mic_batteri");
-      }
-    }
-    catch(ClassNotFoundException | SQLException ex)
-    {
-      Logger.getLogger(TableDataSetTest.class.getName()).log(Level.SEVERE, null, ex);
-    }
+    AAA_testSchema();
+    ABA_testFetchRecords();
+    ACA_testSave_boolean();
+    ADA_testRemoveDeletedRecords();
+    AEA_testRefresh();
+    AZA_testGetSelectString();
+    BAA_testFetchByPrimaryKeys();
+    BAB_testFetchByGenericValues();
   }
 
-  @After
-  public void tearDown()
+  /**
+   * Test funzionalita legate a Schema.
+   * @throws Exception
+   */
+  public synchronized void AAA_testSchema()
+     throws Exception
   {
+    System.out.println("schema");
+    TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri");
+    Schema schema = instance.schema();
+    assertNotEquals(null, schema);
+
+    Column c1 = schema.column("idbatteri");
+    assertNotEquals(null, c1);
+    assertTrue(c1.isPrimaryKey());
+    assertEquals(1, c1.getPrimaryIndex());
+
+    Column c2 = schema.column("codice");
+    assertNotEquals(null, c2);
+    assertFalse(c2.isPrimaryKey());
+    assertEquals(0, c2.getPrimaryIndex());
+
+    KeyDef kd = instance.keydef();
+    assertEquals(1, kd.size());
+    assertEquals("IDBATTERI", kd.getAttrib(1));
   }
 
   /**
    * Test of fetchRecords method, of class TableDataSet.
    */
-  @Test
-  public void testFetchRecords()
+  public synchronized void ABA_testFetchRecords()
      throws Exception
   {
     System.out.println("fetchRecords");
@@ -108,67 +119,112 @@ public class TableDataSetTest
   /**
    * Test of save method, of class TableDataSet.
    */
-  @Test
-  public void testSave_boolean()
+  public synchronized void ACA_testSave_boolean()
      throws Exception
   {
     System.out.println("save");
     boolean intransaction = false;
-    TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri");
-    List<Record> lsRecs = instance.fetchAllRecords();
-    Record r = instance.addRecord();
-    r.setValue("idbatteri", 2);
-    r.setValue("codice", "bat2");
-    r.setValue("descrizione", "Batterio2");
-    r.setValue("tiporecord", 1);
-    r.setValue("stato_rec", 0);
-    r.setValue("id_user", 0);
-    r.setValue("id_ucrea", 0);
-    r.setValue("ult_modif", new Date());
-    r.setValue("creazione", new Date());
-    r.setValue("codiceregionale", "BB");
-    int expResult = 1;
-    int result = instance.save(intransaction);
-    assertEquals(expResult, result);
+    try (TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
+    {
+      List<Record> lsRecs = instance.fetchAllRecords();
+      Record r = instance.addRecord();
+      r.setValue("idbatteri", 2);
+      r.setValue("codice", "bat2");
+      r.setValue("descrizione", "Batterio2");
+      r.setValue("tiporecord", 1);
+      r.setValue("stato_rec", 0);
+      r.setValue("id_user", 0);
+      r.setValue("id_ucrea", 0);
+      r.setValue("ult_modif", new Date());
+      r.setValue("creazione", new Date());
+      r.setValue("codiceregionale", "BB");
+      int expResult = 2;
+      int result = instance.save(intransaction);
+      assertEquals(expResult, result);
+    }
   }
 
   /**
    * Test of removeDeletedRecords method, of class TableDataSet.
    */
-  @Test
-  public void testRemoveDeletedRecords()
+  public synchronized void ADA_testRemoveDeletedRecords()
      throws Exception
   {
     System.out.println("removeDeletedRecords");
-    TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri");
-    instance.fetchRecords();
-    instance.removeDeletedRecords();
+    try (TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
+    {
+      List<Record> lsRecs = instance.fetchAllRecords();
+      assertEquals(2, lsRecs.size());
+      Record todel = lsRecs.get(1);
+      todel.markToBeDeleted();
+      instance.save();
+      instance.removeDeletedRecords();
+      List<Record> lsRecs2 = instance.fetchAllRecords();
+      assertEquals(1, lsRecs2.size());
+    }
   }
 
   /**
    * Test of refresh method, of class TableDataSet.
    */
-  @Test
-  public void testRefresh()
+  public synchronized void AEA_testRefresh()
      throws Exception
   {
     System.out.println("refresh");
-    TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri");
-    instance.fetchRecords();
-    instance.refresh(dbe.getConn());
+    try (TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
+    {
+      List<Record> lsRecs = instance.fetchAllRecords();
+      assertEquals(1, lsRecs.size());
+      Record tomodify = lsRecs.get(0);
+      tomodify.setValue("CODICEREGIONALE", "ZZ");
+      assertEquals("ZZ", tomodify.getValue("CODICEREGIONALE").asString());
+      instance.refresh(dbe.getConn());
+      assertEquals("AA", tomodify.getValue("CODICEREGIONALE").asString());
+    }
   }
 
   /**
    * Test of getSelectString method, of class TableDataSet.
    */
-  @Test
-  public void testGetSelectString()
+  public synchronized void AZA_testGetSelectString()
      throws Exception
   {
     System.out.println("getSelectString");
-    TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri");
-    String expResult = "SELECT * FROM mic_batteri";
-    String result = instance.getSelectString();
-    assertEquals(expResult, result);
+    try (TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
+    {
+      String expResult = "SELECT * FROM mic_batteri";
+      String result = instance.getSelectString();
+      assertEquals(expResult, result);
+    }
+  }
+
+  public synchronized void BAA_testFetchByPrimaryKeys()
+     throws Exception
+  {
+    System.out.println("fetchByPrimaryKeys");
+    try (TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
+    {
+      List<Record> totRecs = instance.fetchAllRecords();
+      assertFalse(totRecs.isEmpty());
+      Map<String, Object> keyValues = new HashMap<>();
+      keyValues.put("IDBATTERI", 1);
+      List<Record> lsRecs = instance.fetchByPrimaryKeys(keyValues).fetchAllRecords();
+      assertEquals(1, lsRecs.size());
+    }
+  }
+
+  public synchronized void BAB_testFetchByGenericValues()
+     throws Exception
+  {
+    System.out.println("fetchByGenericValues");
+    try (TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
+    {
+      List<Record> totRecs = instance.fetchAllRecords();
+      assertFalse(totRecs.isEmpty());
+      Map<String, Object> keyValues = new HashMap<>();
+      keyValues.put("CODICE", "bat1");
+      List<Record> lsRecs = instance.fetchByGenericValues(keyValues).fetchAllRecords();
+      assertEquals(1, lsRecs.size());
+    }
   }
 }
