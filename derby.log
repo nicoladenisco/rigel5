@@ -1,0 +1,13 @@
+----------------------------------------------------------------
+Thu Feb 17 19:39:03 CET 2022:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.13.1.1 - (1765088): instance a816c00e-017f-08fb-07ca-00000d6c2ef8 
+on database directory /tmp/rigel5test.derby with class loader sun.misc.Launcher$AppClassLoader@3d4eac69 
+Loaded from file:/home/nicola/.m2/repository/org/apache/derby/derby/10.13.1.1/derby-10.13.1.1.jar
+java.vendor=Temurin
+java.runtime.version=1.8.0_302-b08
+user.dir=/home/nicola/nuovo/rigel5
+os.name=Linux
+os.arch=amd64
+os.version=5.4.0-99-generic
+derby.system.home=null
+Database Class Loader started - derby.database.classpath=''

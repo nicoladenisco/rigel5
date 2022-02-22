@@ -38,6 +38,9 @@ public class Column
   /** what java.sql.Type is this column? */
   private int columnType = Types.LONGVARCHAR;
 
+  /** native driver column type name */
+  private String columnTypeName = "";
+
   /** name of table that this column belongs to */
   private String tableName = "";
 
@@ -46,6 +49,9 @@ public class Column
 
   /** is this a read only column? */
   private boolean readOnly = false;
+
+  /** if is primary is the index in primary key */
+  private int primaryIndex = 0;
 
   /**
    * constructor
@@ -69,14 +75,17 @@ public class Column
    *
    * @throws SQLException TODO: DOCUMENT ME!
    */
-  public void populate(ResultSetMetaData rsmd, int colNum, String tableName, String columnName)
+  public void populate(ResultSetMetaData rsmd, int colNum,
+     String tableName, String columnName, int primaryIndex)
      throws SQLException
   {
     this.name = columnName;
     this.tableName = tableName;
 
     this.columnType = rsmd.getColumnType(colNum);
+    this.columnTypeName = rsmd.getColumnTypeName(colNum);
     this.nullAllowed = rsmd.isNullable(colNum) == 1;
+    this.primaryIndex = primaryIndex;
   }
 
   /**
@@ -89,13 +98,16 @@ public class Column
    * @param isNullable true if NULL allowed.
    *
    */
-  public void populate(String tableName, String columnName, String columnTypeName,
-     int columnType, boolean isNullable)
+  public void populate(String tableName, String columnName,
+     String columnTypeName, int columnType, boolean isNullable, int primaryIndex)
   {
     this.name = columnName;
     this.tableName = tableName;
+
     this.columnType = columnType;
+    this.columnTypeName = columnTypeName;
     this.nullAllowed = isNullable;
+    this.primaryIndex = primaryIndex;
   }
 
   /**
@@ -119,6 +131,16 @@ public class Column
   }
 
   /**
+   * the data type of a column
+   *
+   * @return the name of type
+   */
+  public String typeName()
+  {
+    return this.columnTypeName;
+  }
+
+  /**
    * does this column allow null?
    *
    * @return whether or not the column has null Allowed
@@ -136,6 +158,27 @@ public class Column
   public boolean readOnly()
   {
     return this.readOnly;
+  }
+
+  /**
+   * Get the primary index of this column.
+   * 0 means is not primary key.
+   *
+   * @return the index primary key
+   */
+  public int getPrimaryIndex()
+  {
+    return primaryIndex;
+  }
+
+  /**
+   * Check for primary key.
+   *
+   * @return true if this column is in a primary key
+   */
+  public boolean isPrimaryKey()
+  {
+    return primaryIndex > 0;
   }
 
   /**

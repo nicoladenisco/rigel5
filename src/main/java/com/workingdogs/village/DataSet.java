@@ -100,6 +100,7 @@ public abstract class DataSet implements Closeable
     this.conn = conn;
     this.columns = "*";
     this.schema = new Schema().schema(conn, tableName);
+    this.keyDefValue = buildFromSchema();
   }
 
   /**
@@ -170,6 +171,7 @@ public abstract class DataSet implements Closeable
     this.conn = conn;
     this.columns = columns;
     this.schema = new Schema().schema(conn, tableName, columns);
+    this.keyDefValue = buildFromSchema();
   }
 
   /**
@@ -245,7 +247,7 @@ public abstract class DataSet implements Closeable
 
     if(records == null)
     {
-      records = new ArrayList<Record>(10);
+      records = new ArrayList<Record>();
     }
 
     Record rec = new Record(ds, true);
@@ -798,5 +800,39 @@ public abstract class DataSet implements Closeable
     }
 
     return this;
+  }
+
+  /**
+   * Build a keydef from the schema.
+   * @return a keydef or null if not primary keys found
+   */
+  public KeyDef buildFromSchema()
+  {
+    List<Column> primaryKeys = getPrimaryKeys();
+
+    if(primaryKeys.isEmpty())
+      return null;
+
+    primaryKeys.sort((c1, c2) -> c1.getPrimaryIndex() - c2.getPrimaryIndex());
+    KeyDef rv = new KeyDef();
+    primaryKeys.forEach((c) -> rv.addAttrib(c.name()));
+    return rv;
+  }
+
+  /**
+   * Return the primary keys in this schema.
+   * @return primary keys
+   */
+  public List<Column> getPrimaryKeys()
+  {
+    ArrayList<Column> primaryKeys = new ArrayList<>();
+    Column[] cols = schema.getColumns();
+    for(int i = 1; i < cols.length; i++)
+    {
+      Column col = cols[i];
+      if(col.isPrimaryKey())
+        primaryKeys.add(col);
+    }
+    return primaryKeys;
   }
 }

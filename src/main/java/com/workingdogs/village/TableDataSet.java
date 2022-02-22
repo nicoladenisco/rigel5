@@ -172,7 +172,7 @@ public class TableDataSet
    *
    * @param start
    * @param max
-   * @param parser
+   * @param consumer
    *
    * @return an instance of myself
    *
@@ -255,6 +255,9 @@ public class TableDataSet
   public void removeDeletedRecords()
      throws DataSetException
   {
+    if(records == null)
+      throw new DataSetException("Cache records is empty: use fetchRecord.");
+
     for(Record rec : records)
     {
       if(rec.isAZombie())
@@ -371,6 +374,9 @@ public class TableDataSet
   public void refresh(Connection conn)
      throws SQLException, DataSetException
   {
+    if(records == null)
+      throw new DataSetException("Cache records is empty: use fetchRecord.");
+
     for(Record rec : records)
     {
       rec.refresh(conn);

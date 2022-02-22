@@ -116,7 +116,8 @@ public class QueryDataSet
   {
     this.resultSet = resultSet;
     schema = new Schema();
-    schema.populate(resultSet.getMetaData(), null, resultSet.getStatement().getConnection());
+    Connection conn = resultSet.getStatement().getConnection();
+    schema.populate(resultSet.getMetaData(), null, conn);
   }
 
   /**

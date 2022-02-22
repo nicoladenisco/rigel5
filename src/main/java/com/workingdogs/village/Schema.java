@@ -25,21 +25,20 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import static org.commonlib5.utils.StringOper.isEquNocase;
+import org.commonlib5.utils.StringOper;
 
 /**
- * The Schema object represents the <a href="Column.html">Columns</a> in a database table. It contains a collection of <a
- * href="Column.html">Column</a> objects.
+ * The Schema object represents the <a href="Column.html">Columns</a> in a database table.
+ * It contains a collection of <a href="Column.html">Column</a> objects.
  *
  * @author <a href="mailto:jon@latchkey.com">Jon S. Stevens</a>
  * @author John D. McNally
- * @version $Revision: 568 $
+ * @author Nicola De Nisco
  */
 public final class Schema
 {
@@ -54,17 +53,19 @@ public final class Schema
 
   /** TODO: DOCUMENT ME! */
   private Column[] columns;
-  private Map columnNumberByName;
 
-  /** TODO: DOCUMENT ME! */
-  private static final Hashtable schemaCache = new Hashtable();
+  /** a map of column name to position of each columen (see index()) */
+  private final Map<String, Integer> columnNumberByName = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+
+  /** a permanent cache of all built schemas */
+  private static final HashMap<String, Schema> schemaCache = new HashMap<>();
 
   /**
    * This attribute is used to complement columns in the event that this schema represents more than one table. Its keys
    * are
-   * String contains table names and its elements are Hashtables containing columns.
+   * String contains table names and its elements are HashMaps containing columns.
    */
-  private Hashtable tableHash = null;
+  private final HashMap<String, Map<String, Column>> tableHash = new HashMap<>();
 
   /** TODO: DOCUMENT ME! */
   private boolean singleTable = true;
@@ -88,22 +89,17 @@ public final class Schema
   public static void initSchemas(Connection conn)
      throws SQLException
   {
-    ResultSet allCol = null;
-
-    try
+    DatabaseMetaData databaseMetaData = conn.getMetaData();
+    String connURL = databaseMetaData.getURL();
+    try (ResultSet allCol = databaseMetaData.getColumns(conn.getCatalog(), null, null, null))
     {
-      DatabaseMetaData databaseMetaData = conn.getMetaData();
-      String connURL = databaseMetaData.getURL();
-      allCol = databaseMetaData.getColumns(
-         conn.getCatalog(), null, null, null);
-
       while(true)
       {
         Schema schema = new Schema();
 
         schema.setAttributes("*");
         schema.singleTable = true;
-        schema.populate(allCol);
+        schema.populate(allCol, conn.getCatalog(), databaseMetaData);
 
         if(schema.numberOfColumns > 0)
         {
@@ -117,20 +113,6 @@ public final class Schema
         else
         {
           break;
-        }
-      }
-    }
-    finally
-    {
-      if(allCol != null)
-      {
-        try
-        {
-          allCol.close();
-        }
-        catch(SQLException e)
-        {
-          //Do nothing
         }
       }
     }
@@ -173,30 +155,27 @@ public final class Schema
       columnsAttribute = "*";
     }
 
-    PreparedStatement stmt = null;
+    Schema tableSchema = null;
+    DatabaseMetaData dbMeta = conn.getMetaData();
+    String keyValue = dbMeta.getURL() + tableName;
 
-    try
+    synchronized(schemaCache)
     {
-      Schema tableSchema = null;
-      String keyValue = conn.getMetaData().getURL() + tableName;
+      tableSchema = (Schema) schemaCache.get(keyValue);
 
-      synchronized(schemaCache)
+      if(tableSchema == null)
       {
-        tableSchema = (Schema) schemaCache.get(keyValue);
+        String sql = "SELECT " + columnsAttribute + " FROM " + tableName + " WHERE 1 = -1";
 
-        if(tableSchema == null)
+        try (PreparedStatement stmt = conn.prepareStatement(sql))
         {
-          String sql = "SELECT " + columnsAttribute + " FROM " + tableName + " WHERE 1 = -1";
-
-          stmt = conn.prepareStatement(sql);
-
           if(stmt != null)
           {
             stmt.executeQuery();
             tableSchema = this;
             tableSchema.setTableName(tableName);
             tableSchema.setAttributes(columnsAttribute);
-            tableSchema.populate(stmt.getMetaData(), tableName, null);
+            tableSchema.populate(stmt.getMetaData(), tableName, conn);
             schemaCache.put(keyValue, tableSchema);
           }
           else
@@ -205,23 +184,9 @@ public final class Schema
           }
         }
       }
+    }
 
-      return tableSchema;
-    }
-    finally
-    {
-      if(stmt != null)
-      {
-        try
-        {
-          stmt.close();
-        }
-        catch(SQLException e)
-        {
-          //Do nothing
-        }
-      }
-    }
+    return tableSchema;
   }
 
   /**
@@ -333,7 +298,8 @@ public final class Schema
   public Column getColumn(String tableName, String colName)
      throws DataSetException
   {
-    return (Column) ((Hashtable) tableHash.get(tableName)).get(colName);
+    Map<String, Column> ch = tableHash.get(tableName);
+    return ch == null ? null : ch.get(colName);
   }
 
   /**
@@ -373,15 +339,7 @@ public final class Schema
    */
   public String[] getAllTableNames()
   {
-    Enumeration e = tableHash.keys();
-    String[] tableNames = new String[tableHash.size()];
-
-    for(int i = 0; e.hasMoreElements(); i++)
-    {
-      tableNames[i] = (String) e.nextElement();
-    }
-
-    return tableNames;
+    return (String[]) tableHash.keySet().toArray(new String[tableHash.size()]);
   }
 
   /**
@@ -398,7 +356,7 @@ public final class Schema
   public int index(String colName)
      throws DataSetException
   {
-    Integer position = (Integer) columnNumberByName.get(colName);
+    Integer position = columnNumberByName.get(colName);
 
     if(position != null)
     {
@@ -452,62 +410,33 @@ public final class Schema
    * @param meta The meta data of the ResultSet used to build this Schema.
    * @param tableName The name of the table referenced in this schema, or null if unknown or multiple tables are
    * involved.
-   * @param conn The connection whose URL serves as a cache key prefix
+   * @param con database connection
    *
    * @exception SQLException
    * @exception DataSetException
    */
-  public void populate(ResultSetMetaData meta, String tableName, Connection conn)
+  public void populate(ResultSetMetaData meta, String tableName, Connection con)
      throws SQLException, DataSetException
   {
-    this.numberOfColumns = meta.getColumnCount();
+    numberOfColumns = meta.getColumnCount();
     columns = new Column[numberOfColumns() + 1];
-    columnNumberByName = new TreeMap(String.CASE_INSENSITIVE_ORDER);
+    columnNumberByName.clear();
 
-    String connURL = (conn != null) ? conn.getMetaData().getURL() : null;
+    DatabaseMetaData dbMeta = con.getMetaData();
+    String connURL = dbMeta.getURL();
+    LocalPrimaryCache lpc = new LocalPrimaryCache(con.getCatalog(), dbMeta);
 
     for(int i = 1; i <= numberOfColumns(); i++)
     {
+      String metaSchemaName = getSecureSchemaName(meta, i, null);
+      String metaTableName = getSecureTableName(meta, i, tableName);
       String metaColumnName = meta.getColumnName(i);
-      String metaTableName = null;
-
-      // Workaround for Sybase jConnect 5.2 and older.
-      try
-      {
-        metaTableName = meta.getTableName(i);
-
-        // ResultSetMetaData may report table name as the empty
-        // string when a database-specific function has been
-        // called to generate a Column.
-        if((metaTableName == null) || metaTableName.equals(""))
-        {
-          if(tableName != null)
-          {
-            metaTableName = tableName;
-          }
-          else
-          {
-            metaTableName = "";
-          }
-        }
-      }
-      catch(RuntimeException e)
-      {
-        if(tableName != null)
-        {
-          metaTableName = tableName;
-        }
-        else
-        {
-          metaTableName = "";
-        }
-      }
 
       Column col = null;
 
       if(metaTableName.length() > 0 && connURL != null)
       {
-        Schema tableSchema = null; // schema(conn, metaTableName);
+        Schema tableSchema = null;
 
         synchronized(schemaCache)
         {
@@ -531,7 +460,8 @@ public final class Schema
       if(col == null)
       {
         col = new Column();
-        col.populate(meta, i, metaTableName, metaColumnName);
+        col.populate(meta, i, metaTableName, metaColumnName,
+           lpc.findInPrimary(metaSchemaName, metaTableName, metaColumnName));
       }
 
       columns[i] = col;
@@ -544,7 +474,7 @@ public final class Schema
       }
     }
 
-    // Avoid creating a Hashtable in the most common case where only one
+    // Avoid creating a HashMap in the most common case where only one
     // table is involved, even though this makes the multiple table case
     // more expensive because the table/column info is duplicated.
     if(singleTable)
@@ -569,42 +499,87 @@ public final class Schema
         }
       }
     }
-    else
+
+    tableHash.clear();
+    for(int i = 1; i <= numberOfColumns(); i++)
     {
-      tableHash = new Hashtable((int) ((1.25 * numberOfColumns) + 1));
+      Map<String, Column> columnHash = tableHash.get(columns[i].getTableName());
 
-      for(int i = 1; i <= numberOfColumns(); i++)
+      if(columnHash == null)
       {
-        Hashtable columnHash;
+        columnHash = new HashMap<>();
+        tableHash.put(columns[i].getTableName(), columnHash);
+      }
 
-        if(tableHash.containsKey(columns[i].getTableName()))
+      columnHash.put(columns[i].name(), columns[i]);
+    }
+  }
+
+  private String getSecureTableName(ResultSetMetaData meta, int i, String tableName)
+  {
+    String metaTableName;
+
+    // Workaround for Sybase jConnect 5.2 and older.
+    try
+    {
+      metaTableName = meta.getTableName(i);
+      // ResultSetMetaData may report table name as the empty
+      // string when a database-specific function has been
+      // called to generate a Column.
+      if((metaTableName == null) || metaTableName.equals(""))
+      {
+        if(tableName != null)
         {
-          columnHash = (Hashtable) tableHash.get(columns[i].getTableName());
+          metaTableName = tableName;
         }
         else
         {
-          columnHash = new Hashtable((int) ((1.25 * numberOfColumns) + 1));
-          tableHash.put(columns[i].getTableName(), columnHash);
+          metaTableName = "";
         }
-
-        columnHash.put(columns[i].name(), columns[i]);
       }
+    }
+    catch(Exception e)
+    {
+      if(tableName != null)
+      {
+        metaTableName = tableName;
+      }
+      else
+      {
+        metaTableName = "";
+      }
+    }
+
+    return metaTableName;
+  }
+
+  private String getSecureSchemaName(ResultSetMetaData meta, int i, String schemaName)
+  {
+    try
+    {
+      return meta.getSchemaName(i);
+    }
+    catch(Exception e)
+    {
+      return schemaName;
     }
   }
 
   /**
    * Internal method which populates this Schema object with Columns.
    *
-   * @param meta The meta data of the database connection used to build this Schema.
-   *
-   * @exception SQLException
+   * @param dbMeta The meta data of the database connection used to build this Schema.
+   * @param catalog
+   * @param databaseMetaData
+   * @throws SQLException
    */
-  public void populate(ResultSet dbMeta)
+  public void populate(ResultSet dbMeta, String catalog, DatabaseMetaData databaseMetaData)
      throws SQLException
   {
     List cols = new ArrayList();
     String tableName = null;
-    columnNumberByName = new TreeMap(String.CASE_INSENSITIVE_ORDER);
+    columnNumberByName.clear();
+    LocalPrimaryCache lpc = new LocalPrimaryCache(catalog, databaseMetaData);
 
     while(dbMeta.next())
     {
@@ -625,7 +600,8 @@ public final class Schema
          dbMeta.getString(4), // column name
          dbMeta.getString(6), // Data source dependent type name
          dbMeta.getInt(5), // SQL type from java.sql.Types
-         dbMeta.getInt(11) == DatabaseMetaData.columnNullable); // is NULL allowed.
+         dbMeta.getInt(11) == DatabaseMetaData.columnNullable, // is NULL allowed.
+         lpc.findInPrimary(dbMeta.getString(2), tableName, dbMeta.getString(4)));
 
       cols.add(c);
 
@@ -716,17 +692,19 @@ public final class Schema
    * Cerca la colonna in modo case insensitive.
    * La ricerca avviene su tutte le colonne, anche
    * se questo schema fa riferimento a più tabelle (query).
+   * @param nomeTabella nome della tabella da cercare
    * @param nomeColonna nome della colonna da cercare
    * @return la colonna corrispondente oppure null
-   * @throws DataSetException
+   * @throws DataSetException solo in caso di errore
    */
-  public Column findInSchemaIgnoreCaseQuiet(String nomeColonna)
+  public Column findInSchemaIgnoreCaseQuiet(String nomeTabella, String nomeColonna)
      throws DataSetException
   {
     for(int i = 1; i <= numberOfColumns(); i++)
     {
       Column col = column(i);
-      if(isEquNocase(nomeColonna, col.name()))
+      if(StringOper.isEquNocase(nomeTabella, col.getTableName())
+         && StringOper.isEquNocase(nomeColonna, col.name()))
         return col;
     }
 
@@ -739,10 +717,41 @@ public final class Schema
    * se questo schema fa riferimento a più tabelle (query).
    * @param nomeColonna nome della colonna da cercare
    * @return la colonna corrispondente oppure null
-   * @throws Exception
+   * @throws DataSetException solo in caso di errore
+   */
+  public Column findInSchemaIgnoreCaseQuiet(String nomeColonna)
+     throws DataSetException
+  {
+    int dot = nomeColonna.indexOf('.');
+
+    if(dot > 0)
+    {
+      String table = nomeColonna.substring(0, dot);
+      String col = nomeColonna.substring(dot + 1);
+
+      return findInSchemaIgnoreCaseQuiet(table, col);
+    }
+
+    for(int i = 1; i <= numberOfColumns(); i++)
+    {
+      Column col = column(i);
+      if(StringOper.isEquNocase(nomeColonna, col.name()))
+        return col;
+    }
+
+    return null;
+  }
+
+  /**
+   * Cerca la colonna in modo case insensitive.
+   * La ricerca avviene su tutte le colonne, anche
+   * se questo schema fa riferimento a più tabelle (query).
+   * @param nomeColonna nome della colonna da cercare
+   * @return la colonna corrispondente
+   * @throws DataSetException in caso di errore o colonna non trovata
    */
   public Column findInSchemaIgnoreCase(String nomeColonna)
-     throws Exception
+     throws DataSetException
   {
     Column col = findInSchemaIgnoreCaseQuiet(nomeColonna);
 

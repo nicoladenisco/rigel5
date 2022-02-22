@@ -18,14 +18,14 @@ package com.workingdogs.village;
  * specific language governing permissions and limitations
  * under the License.
  */
-import java.util.Vector;
+import java.util.ArrayList;
 
 /**
  * A KeyDef is a way to define the key columns in a table. The KeyDef is generally used in conjunction with a <a
  * href="TableDataSet.html">TableDataSet</a>. Essentially a KeyDef is what forms the WHERE clause for an UPDATE or
  * DELETE.
  *
- * <P>
+ * <p>
  * In order to use the KeyDef, you simply use it like this:
  * <PRE>
  *  KeyDef kd = new KeyDef().addAttrib("key_column_a");
@@ -51,16 +51,14 @@ import java.util.Vector;
  */
 public class KeyDef
 {
-  /** TODO: DOCUMENT ME! */
-  private Vector mySelf = null;
+  private final ArrayList<String> mySelf = new ArrayList<>();
 
   /**
    * Constructor for KeyDef. Make sure to always initialize KeyDef with an initial element because it is 1 based.
    */
   public KeyDef()
   {
-    mySelf = new Vector();
-    mySelf.addElement("");
+    mySelf.add("");
   }
 
   /**
@@ -72,7 +70,7 @@ public class KeyDef
    */
   public KeyDef addAttrib(String name)
   {
-    mySelf.addElement(name);
+    mySelf.add(name);
 
     return this;
   }
@@ -105,7 +103,7 @@ public class KeyDef
 
     try
     {
-      return (String) mySelf.elementAt(pos);
+      return (String) mySelf.get(pos);
     }
     catch(ArrayIndexOutOfBoundsException e)
     {

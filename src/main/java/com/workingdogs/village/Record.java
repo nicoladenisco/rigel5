@@ -211,12 +211,8 @@ public class Record
   public int saveWithDelete(Connection connection)
      throws DataSetException, SQLException
   {
-    PreparedStatement stmt = null;
-
-    try
+    try (PreparedStatement stmt = connection.prepareStatement(getSaveString()))
     {
-      stmt = connection.prepareStatement(getSaveString());
-
       int ps = 1;
 
       for(int i = 1; i <= dataset().keydef().size(); i++)
@@ -244,24 +240,6 @@ public class Record
 
       return ret;
     }
-    catch(SQLException e1)
-    {
-      throw e1;
-    }
-    finally
-    {
-      try
-      {
-        if(stmt != null)
-        {
-          stmt.close();
-        }
-      }
-      catch(SQLException e2)
-      {
-        throw e2;
-      }
-    }
   }
 
   /**
@@ -277,12 +255,8 @@ public class Record
   public int saveWithUpdate(Connection connection)
      throws DataSetException, SQLException
   {
-    PreparedStatement stmt = null;
-
-    try
+    try (PreparedStatement stmt = connection.prepareStatement(getSaveString()))
     {
-      stmt = connection.prepareStatement(getSaveString());
-
       int ps = 1;
 
       for(int i = 1; i <= size(); i++)
@@ -323,24 +297,6 @@ public class Record
 
       return ret;
     }
-    catch(SQLException e1)
-    {
-      throw e1;
-    }
-    finally
-    {
-      try
-      {
-        if(stmt != null)
-        {
-          stmt.close();
-        }
-      }
-      catch(SQLException e2)
-      {
-        throw e2;
-      }
-    }
   }
 
   /**
@@ -356,12 +312,8 @@ public class Record
   public int saveWithInsert(Connection connection)
      throws DataSetException, SQLException
   {
-    PreparedStatement stmt = null;
-
-    try
+    try (PreparedStatement stmt = connection.prepareStatement(getSaveString()))
     {
-      stmt = connection.prepareStatement(getSaveString());
-
       int ps = 1;
 
       for(int i = 1; i <= size(); i++)
@@ -394,24 +346,6 @@ public class Record
       }
 
       return ret;
-    }
-    catch(SQLException e1)
-    {
-      throw e1;
-    }
-    finally
-    {
-      try
-      {
-        if(stmt != null)
-        {
-          stmt.close();
-        }
-      }
-      catch(SQLException e2)
-      {
-        throw e2;
-      }
     }
   }
 
@@ -564,19 +498,6 @@ public class Record
     return "INSERT INTO " + schema().tableName() + " ( " + iss1.toString() + " ) VALUES ( " + iss2.toString() + " )";
   }
 
-  /*
-     *       private Hashtable getAffectedColumns()
-     *         throws DataSetException
-     *       {
-     *               Hashtable affectedColumns = new Hashtable ( size() );
-     *               for ( int i = 1; i <= size(); i++ )
-     *         {
-     *           if ( valueIsClean(i) == false )
-     *             affectedColumns.put ( (Object) new Integer(i) , (Object) schema().getColumns()[i].name() );
-     *         }
-     *               return affectedColumns;
-     *       }
-   */
   /**
    * Gets the appropriate SQL string for this record.
    *
