@@ -216,7 +216,7 @@ public class TableDataSetTest
   public synchronized void BAB_testFetchByGenericValues()
      throws Exception
   {
-    System.out.println("fetchByPrimaryKeys");
+    System.out.println("fetchByGenericValues");
     try (TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
     {
       List<Record> totRecs = instance.fetchAllRecords();

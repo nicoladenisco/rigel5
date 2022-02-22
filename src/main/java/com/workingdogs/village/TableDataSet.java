@@ -512,15 +512,16 @@ public class TableDataSet
      throws Exception
   {
     clear();
-    String sSQL = buildSelectStringWhere(values.keySet());
+    ArrayList<String> lsChiavi = new ArrayList<>(values.keySet());
+    lsChiavi.sort((a, b) -> a.compareTo(b));
+    String sSQL = buildSelectStringWhere(lsChiavi);
     PreparedStatement lstm = conn.prepareStatement(sSQL);
 
     int ps = 1;
-    for(Map.Entry<String, Object> entry : values.entrySet())
+    for(String colName : lsChiavi)
     {
-      String colName = entry.getKey();
       Column col = schema.column(colName);
-      Value val = new Value(ps, col.typeEnum(), entry.getValue());
+      Value val = new Value(ps, col.typeEnum(), values.get(colName));
 
       if(val.isNull())
         throw new DataSetException("Missing value for " + tableName() + "." + colName + ".");
