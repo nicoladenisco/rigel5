@@ -21,6 +21,9 @@ package com.workingdogs.village;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import org.commonlib5.utils.Pair;
 
 /**
  * This class is used for doing SQL select statements on the database.
@@ -129,5 +132,69 @@ public class QueryDataSet
   public String getSelectString()
   {
     return this.selectString.toString();
+  }
+
+  /**
+   * Returns numberOfResults records in a QueryDataSet as a List
+   * of Record objects. Starting at record start. Used for
+   * functionality like util.LargeSelect.
+   *
+   * @param start The index from which to start retrieving
+   * <code>Record</code> objects from the data set.
+   * @param numberOfResults The number of results to return (or
+   * <code> -1</code> for all results).
+   * @return A <code>List</code> of <code>Record</code> objects.
+   * @exception Exception
+   */
+  public List<Record> getSelectResults(int start, int numberOfResults)
+     throws Exception
+  {
+    List<Record> results = null;
+
+    if(numberOfResults < 0)
+    {
+      results = new ArrayList<>();
+      fetchRecords();
+    }
+    else
+    {
+      results = new ArrayList<>(numberOfResults);
+      fetchRecords(start, numberOfResults);
+    }
+
+    int startRecord = 0;
+
+    //Offset the correct number of records
+    if(start > 0 && numberOfResults <= 0)
+    {
+      startRecord = start;
+    }
+
+    // Return a List of Record objects.
+    for(int i = startRecord; i < size(); i++)
+    {
+      Record rec = getRecord(i);
+      results.add(rec);
+    }
+
+    return results;
+  }
+
+  public static List<Record> fetchAllRecords(Connection dbCon, String sSQL)
+     throws Exception
+  {
+    try (QueryDataSet qs = new QueryDataSet(dbCon, sSQL))
+    {
+      return qs.fetchAllRecords();
+    }
+  }
+
+  public static Pair<Schema, List<Record>> fetchAllRecordsAndSchema(Connection dbCon, String sSQL)
+     throws Exception
+  {
+    try (QueryDataSet qs = new QueryDataSet(dbCon, sSQL))
+    {
+      return new Pair<>(qs.schema, qs.fetchAllRecords());
+    }
   }
 }
