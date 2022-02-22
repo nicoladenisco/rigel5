@@ -583,10 +583,7 @@ public class TableDataSet
      throws DataSetException
   {
     if(keydef() == null || keydef().isEmpty())
-    {
-      throw new DataSetException(
-         "You can only perform a getRefreshQueryString on a TableDataSet that was created with a KeyDef.");
-    }
+      throw new DataSetException("KeyDef not present in this dataset.");
 
     return buildSelectStringWhere(keydef().getAsList());
   }
