@@ -19,6 +19,8 @@ package com.workingdogs.village;
  * under the License.
  */
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * A KeyDef is a way to define the key columns in a table. The KeyDef is generally used in conjunction with a <a
@@ -111,6 +113,11 @@ public class KeyDef
     }
   }
 
+  public boolean isEmpty()
+  {
+    return mySelf.size() <= 1;
+  }
+
   /**
    * KeyDef's are 1 based, returns size - 1
    *
@@ -123,9 +130,20 @@ public class KeyDef
     return mySelf.size() - 1;
   }
 
+  public List<String> getAsList()
+  {
+    if(isEmpty())
+      return Collections.EMPTY_LIST;
+
+    return mySelf.subList(1, mySelf.size());
+  }
+
   @Override
   public String toString()
   {
-    return "KeyDef{" + "mySelf=" + mySelf + '}';
+    if(isEmpty())
+      return "KeyDef{empty}";
+
+    return "KeyDef{" + "mySelf=" + getAsList() + '}';
   }
 }

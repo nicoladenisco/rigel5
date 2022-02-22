@@ -812,6 +812,11 @@ public class DbUtils
     return new java.sql.Date(d.getTime());
   }
 
+  public static java.sql.Timestamp cvtTimestamp(java.util.Date d)
+  {
+    return new java.sql.Timestamp(d.getTime());
+  }
+
   /**
    * Costruzione di statement SQL.
    *

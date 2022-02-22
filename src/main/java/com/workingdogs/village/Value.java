@@ -92,33 +92,33 @@ public class Value
         break;
 
       case Types.TINYINT:
-        valueObject = new Byte(rs.getByte(columnNumber));
+        valueObject = rs.getByte(columnNumber);
 
         break;
 
       case Types.BIGINT:
-        valueObject = new Long(rs.getLong(columnNumber));
+        valueObject = rs.getLong(columnNumber);
 
         break;
 
       case Types.SMALLINT:
-        valueObject = new Short(rs.getShort(columnNumber));
+        valueObject = rs.getShort(columnNumber);
 
         break;
 
       case Types.INTEGER:
-        valueObject = new Integer(rs.getInt(columnNumber));
+        valueObject = rs.getInt(columnNumber);
 
         break;
 
       case Types.REAL:
-        valueObject = new Float(rs.getFloat(columnNumber));
+        valueObject = rs.getFloat(columnNumber);
 
         break;
 
       case Types.FLOAT:
       case Types.DOUBLE:
-        valueObject = new Double(rs.getDouble(columnNumber));
+        valueObject = rs.getDouble(columnNumber);
 
         break;
 
@@ -189,8 +189,14 @@ public class Value
     {
       valueObject = null;
     }
+  }
 
-    return;
+  public Value(int columnNumber, int type, Object val)
+     throws SQLException
+  {
+    this.columnNumber = columnNumber;
+    this.type = type;
+    this.valueObject = val;
   }
 
   /**
@@ -852,11 +858,11 @@ public class Value
       }
       else if(isLong())
       {
-        return ((Long) valueObject).longValue();
+        return ((Long) valueObject);
       }
       else if(isString())
       {
-        return Integer.valueOf((String) valueObject).longValue();
+        return Long.parseLong((String) valueObject);
       }
       else if(isShort())
       {
@@ -1524,7 +1530,7 @@ public class Value
   private boolean isTrue(String value)
   {
     return (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("t")
-       || value.equalsIgnoreCase("yes")
+       || value.equalsIgnoreCase("yes") || value.equalsIgnoreCase("si")
        || value.equalsIgnoreCase("y") || value.equals("1"));
   }
 
