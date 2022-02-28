@@ -23,6 +23,7 @@ import org.rigel5.db.sql.QueryBuilder;
 import org.rigel5.table.html.AbstractHtmlTablePager;
 import org.rigel5.table.html.AbstractHtmlTablePagerFilter;
 import org.rigel5.table.html.CommonPager;
+import org.rigel5.table.html.RigelHtmlPage;
 
 /**
  * <p>
@@ -119,6 +120,19 @@ public class SqlWrapperListaHtml extends HtmlSqlWrapperBase
       return ((CommonPager) (pager)).getHtmlSimpleSearchPalmare(params, sessione);
 
     return ((AbstractHtmlTablePager) pager).getHtml(params, sessione);
+  }
+
+  @Override
+  public void getHtml(Map params, HttpSession sessione, RigelHtmlPage page)
+     throws Exception
+  {
+    if(haveParametri())
+      rebindQuery(params);
+
+    if(pager instanceof CommonPager)
+      ((CommonPager) (pager)).getHtml(params, sessione, page);
+    else
+      ((AbstractHtmlTablePager) pager).getHtml(params, sessione, page);
   }
 
   private void rebindQuery(Map params)

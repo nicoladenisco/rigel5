@@ -48,31 +48,26 @@ public class DispTable extends FormTable
   }
 
   @Override
-  protected String doInnerCell(int row, int col)
+  protected String doInnerCell(int row, int col, String cellText, String cellHtml)
      throws Exception
   {
-    Object val = tableModel.getValueAt(row, col);
-    if(val == null)
-      return "&nbsp;";
-
-    String sval = formatCell(row, col, val);
-    if(sval == null || sval.trim().length() == 0)
+    if(cellText == null || cellText.trim().length() == 0)
       return "&nbsp;";
 
     RigelColumnDescriptor cd = getCD(col);
 
     // se nessun tipo di foreign esce adesso
     if(cd.getForeignMode() == RigelColumnDescriptor.DISP_FLD_ONLY || !(tableModel instanceof RigelTableModel))
-      return sval;
+      return cellText;
 
-    ForeignDataHolder fd = cd.findHTableForeign(sval, getTM(), i18n);
+    ForeignDataHolder fd = cd.findHTableForeign(cellText, getTM(), i18n);
 
     if(fd == null)
     {
       // ritorna un foreign value di tipo INDEFINITO
       fd = new ForeignDataHolder();
-      fd.codice = sval;
-      fd.alternateCodice = sval;
+      fd.codice = cellText;
+      fd.alternateCodice = cellText;
       fd.descrizione = "INDEFINITO";
     }
 
@@ -80,7 +75,7 @@ public class DispTable extends FormTable
     {
       case RigelColumnDescriptor.DISP_FLD_ONLY:
         // nessun collegamento master-detail
-        return sval;
+        return cellText;
 
       case RigelColumnDescriptor.DISP_FLD_EDIT:
         // collegamento master-detail in edit senza descrizione

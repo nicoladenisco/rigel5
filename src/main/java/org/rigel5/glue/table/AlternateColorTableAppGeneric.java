@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -60,7 +60,7 @@ public class AlternateColorTableAppGeneric extends AlternateColorTable
   }
 
   @Override
-  public String doCell(int row, int col)
+  public void doCell(int row, int col, String cellText, String text)
      throws Exception
   {
     if(isLineLinkCell(row, col))
@@ -68,7 +68,7 @@ public class AlternateColorTableAppGeneric extends AlternateColorTable
     else
       setColStatement(defColStat);
 
-    return super.doCell(row, col);
+    super.doCell(row, col, cellText, text);
   }
 
   public void setLineLink(String uri)

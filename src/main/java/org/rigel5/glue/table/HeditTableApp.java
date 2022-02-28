@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -82,7 +82,7 @@ public class HeditTableApp extends hEditTable
    * @throws Exception
    */
   @Override
-  public String doFormCellValue(int row, int col)
+  public String doCellHtml(int row, int col, String cellText)
      throws Exception
   {
     RigelColumnDescriptor cd = getCD(col);
@@ -93,15 +93,15 @@ public class HeditTableApp extends hEditTable
       return (hcb != null) ? hcb : "&nbsp;";
     }
 
-    return super.doFormCellValue(row, col);
+    return super.doCellHtml(row, col, cellText);
   }
 
   /**
    * Costruisce butHtml per le colonne caratteristiche.
    * L'HTML dei pulsanti caratteristiche deve essere
- elaborato prima dell'butHtml della riga. In questa funzione
- viene costruito l'butHtml di tutti i pulsanti e salvati
- in una map per essere utilizzati nella giusta colonna.
+   * elaborato prima dell'butHtml della riga. In questa funzione
+   * viene costruito l'butHtml di tutti i pulsanti e salvati
+   * in una map per essere utilizzati nella giusta colonna.
    * @param row
    * @throws Exception
    */

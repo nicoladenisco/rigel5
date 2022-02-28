@@ -27,6 +27,7 @@ import org.rigel5.exceptions.MissingColumnException;
 import org.rigel5.exceptions.MissingParameterException;
 import org.rigel5.table.*;
 import org.rigel5.table.html.AbstractHtmlTablePager;
+import org.rigel5.table.html.RigelHtmlPage;
 import org.rigel5.table.html.hTable;
 
 /**
@@ -76,7 +77,7 @@ abstract public class HtmlWrapperBase extends WrapperBase
      throws Exception;
 
   /**
-   * Recupera l'HTML del form
+   * Recupera l'HTML del form.
    * @param params
    * @param sessione
    * @return
@@ -97,7 +98,7 @@ abstract public class HtmlWrapperBase extends WrapperBase
      throws Exception;
 
   /**
-   * Produce l'HTML della pager ordinaria.
+   * Produce l'HTML della pager per palmare.
    * L'HTML prodotto e' piu' compatto, adatto alla visualizzazione
    * su un palmare o comunque una device con schermo ridotto.
    * @param params
@@ -106,6 +107,16 @@ abstract public class HtmlWrapperBase extends WrapperBase
    * @throws Exception
    */
   abstract public String getHtmlListaPalmare(Map params, HttpSession sessione)
+     throws Exception;
+
+  /**
+   * Produce HTML della pagina.
+   * @param params
+   * @param sessione
+   * @param page
+   * @throws Exception
+   */
+  abstract public void getHtml(Map params, HttpSession sessione, RigelHtmlPage page)
      throws Exception;
 
   /////////////////////////////////////////////////////////////////

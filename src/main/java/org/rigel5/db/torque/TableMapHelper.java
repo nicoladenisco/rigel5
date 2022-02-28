@@ -36,6 +36,13 @@ import org.commonlib5.utils.StringOper;
 /**
  * Supporto all'introspezione dei campi tabella.
  * Semplifica l'uso dei TableMap.
+ * <pre>
+ *  // ricerca case insensitive del nome tabella
+ *  TableMapHelper tm = TableMapHelper.getByTableName(tableName);
+ *
+ *  // ricerca case insensitive del nome colonna
+ *  ColumnMap cm = tm.getCampo("codice");
+ * </pre>
  *
  * @author Nicola De Nisco
  * @version 1.0
@@ -67,6 +74,8 @@ public class TableMapHelper
         return;
       }
     }
+
+    throw new TorqueException("Table " + tableName + " not found in database map.");
   }
 
   public TableMapHelper(TableMap tmap)

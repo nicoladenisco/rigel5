@@ -22,6 +22,7 @@ import java.util.Map;
 import javax.servlet.http.HttpSession;
 import org.rigel5.glue.pager.PeerTablePagerEditApp;
 import org.rigel5.table.html.AbstractHtmlTablePager;
+import org.rigel5.table.html.RigelHtmlPage;
 import org.rigel5.table.html.hEditTable;
 
 /**
@@ -89,6 +90,20 @@ public class PeerWrapperEditHtml extends HtmlPeerWrapperBase
      throws Exception
   {
     throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public void getHtml(Map params, HttpSession sessione, RigelHtmlPage page)
+     throws Exception
+  {
+    // carica i parametri dalla map
+    if(haveParametri() && (populateParametri(params) || params.get("reload") != null))
+    {
+      if(pager instanceof PeerTablePagerEditApp)
+        ((PeerTablePagerEditApp) pager).reloadAllRecords();
+    }
+
+    ((AbstractHtmlTablePager) pager).getHtml(params, sessione, page);
   }
 
   public void rebind(List newRows)

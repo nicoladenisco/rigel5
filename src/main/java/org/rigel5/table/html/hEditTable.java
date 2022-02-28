@@ -267,7 +267,7 @@ public class hEditTable extends hTable
   }
 
   @Override
-  public String doCell(int row, int col)
+  public void doCell(int row, int col, String cellText, String cellHtml)
      throws Exception
   {
     RigelColumnDescriptor cd = getCD(col);
@@ -276,34 +276,35 @@ public class hEditTable extends hTable
       if(isColumnEditable(row, col) || cd.isHiddenEdit())
       {
         // genera campo di input per dato (eventualmente invisibile)
-        String inner = doInnerCell(row, col);
-
-        return cellBegin(row, col)
-           + (inner == null || inner.trim().length() == 0 ? "&nbsp;" : inner)
-           + cellEnd(row, col);
+        String inner = StringOper.okStr(doInnerCell(row, col, cellText, cellHtml), "&nbsp;");
+        html.append(cellBegin(row, col));
+        html.append(inner);
+        html.append(cellEnd(row, col));
+        return;
       }
 
       // genera cella con il valore semplice
-      return super.doCell(row, col);
+      super.doCell(row, col, cellText, cellHtml);
+      return;
     }
 
     // solo campo invisibile se richiesto (senza <td>)
     if(cd.isHiddenEdit())
-      return "<input type=\"hidden\" name=\"" + getNomeCampo(row, col) + "\" value=\""
-         + formatCell(row, col, tableModel.getValueAt(row, col))
-         + "\">\r\n";
-
-    return "";
+      html.append("<input type=\"hidden\" name=\"")
+         .append(getNomeCampo(row, col))
+         .append("\" value=\"").append(cellText).append("\">\r\n");
   }
 
   /**
    * Elabora il contenuto interno di una cella.
    * @param row riga corrente
    * @param col colonna corrente
+   * @param cellText testo interno della cella
+   * @param cellHtml html interno della cella
    * @return HTML
    * @throws Exception
    */
-  protected String doInnerCell(int row, int col)
+  protected String doInnerCell(int row, int col, String cellText, String cellHtml)
      throws Exception
   {
     RigelColumnDescriptor cd = getCD(col);
@@ -311,8 +312,8 @@ public class hEditTable extends hTable
     if(cd.getColedit() != null && cd.getColedit().haveCustomHtml())
     {
       // colonna con generatore HTML custom per l'editing
-      String value = formatCell(row, col, tableModel.getValueAt(row, col));
-      String htmlCell = cd.getColedit().getHtmlEdit(cd, tableModel, row, col, value, getNomeCampo(row, col), i18n);
+      String nomeCampo = getNomeCampo(row, col);
+      String htmlCell = cd.getColedit().getHtmlEdit(cd, tableModel, row, col, cellText, nomeCampo, i18n);
 
       // se il custom edit ritorna null vuol dire che per questa colonna va bene il comportamento di default
       if(htmlCell != null)
@@ -320,7 +321,6 @@ public class hEditTable extends hTable
         // caso speciale del test custom applicato anche a campi custom edit
         if(cd.getTestcustom() != null)
         {
-          String nomeCampo = getNomeCampo(row, col);
           String campoForm = "document." + formName + "." + nomeCampo;
           String caption = i18n.localizeTableCaption(this, getTM(), cd, col, cd.getCaption());
           scriptTest.append("    if(!" + cd.getTestcustom() + "(" + campoForm + ",\"" + nomeCampo + "\", \"" + caption + "\"))  return false;\r\n");
@@ -331,25 +331,25 @@ public class hEditTable extends hTable
     }
 
     if(cd.useForeignAutoCombo(row, col, getTM()))
-      return getForeignEditAutocombo(row, col);
+      return getForeignEditAutocombo(row, col, cellText, cellHtml);
 
     switch(cd.getForeignMode())
     {
       case RigelColumnDescriptor.DISP_FLD_ONLY:
         // nessun collegamento master-detail
-        return doFormCellValue(row, col);
+        return cellHtml;
       case RigelColumnDescriptor.DISP_FLD_EDIT:
         // collegamento master-detail in edit senza descrizione
-        return getForeignEditFld(row, col);
+        return getForeignEditFld(row, col, cellText, cellHtml);
       case RigelColumnDescriptor.DISP_DESCR_EDIT:
         // collegamento master-detail in edit con descrizione
-        return getForeignEditDescr(row, col);
+        return getForeignEditDescr(row, col, cellText, cellHtml);
       case RigelColumnDescriptor.DISP_DESCR_EDIT_ALTERNATE:
         // collegamento master-detail in edit con descrizione
-        return getForeignEditDescrAlternate(row, col);
+        return getForeignEditDescrAlternate(row, col, cellText, cellHtml);
       default:
         // collegamento master-detail di sola visualizzazione
-        return getForeignDataViewOnly(row, col);
+        return getForeignDataViewOnly(row, col, cellText, cellHtml);
     }
   }
 
@@ -357,10 +357,12 @@ public class hEditTable extends hTable
    * Visualizza i dati foreign in sola lettura.
    * @param row riga corrente
    * @param col colonna corrente
+   * @param cellText testo interno della cella
+   * @param cellHtml html interno della cella
    * @return HTML
    * @throws Exception
    */
-  protected String getForeignDataViewOnly(int row, int col)
+  protected String getForeignDataViewOnly(int row, int col, String cellText, String cellHtml)
      throws Exception
   {
     String foreignVal = "";
@@ -377,7 +379,7 @@ public class hEditTable extends hTable
 
     return "\r\n"
        + "<table border=0 cellspacing=0 cellpadding=0><tr>\r\n"
-       + "<td>" + doFormCellValue(row, col) + "</td>\r\n"
+       + "<td>" + cellHtml + "</td>\r\n"
        + "<td>&nbsp;<b>" + foreignVal + "</b></td>\r\n"
        + "</tr></table>\r\n";
   }
@@ -399,10 +401,12 @@ public class hEditTable extends hTable
    * (se la url è presente).
    * @param row riga corrente
    * @param col colonna corrente
+   * @param cellText testo interno della cella
+   * @param cellHtml html interno della cella
    * @return HTML
    * @throws Exception
    */
-  protected String getForeignEditAutocombo(int row, int col)
+  protected String getForeignEditAutocombo(int row, int col, String cellText, String cellHtml)
      throws Exception
   {
     RigelColumnDescriptor cd = getCD(col);
@@ -411,7 +415,7 @@ public class hEditTable extends hTable
 
     String rv = "\r\n"
        + "<table border=0 cellspacing=0 cellpadding=0><tr>\r\n"
-       + "<td>" + doFormCellValue(row, col) + "</td>\r\n";
+       + "<td>" + cellHtml + "</td>\r\n";
 
     // attiva visualizzazione/edit del record su tabella allegata
     if(getImgFormForeign() != null && cd.getForeignFormUrl() != null
@@ -430,10 +434,12 @@ public class hEditTable extends hTable
    * Visualizza il campo con a fianco le icone di lista e form.
    * @param row riga corrente
    * @param col colonna corrente
+   * @param cellText testo interno della cella
+   * @param cellHtml html interno della cella
    * @return HTML
    * @throws Exception
    */
-  protected String getForeignEditFld(int row, int col)
+  protected String getForeignEditFld(int row, int col, String cellText, String cellHtml)
      throws Exception
   {
     RigelColumnDescriptor cd = getCD(col);
@@ -442,7 +448,7 @@ public class hEditTable extends hTable
 
     String rv = "\r\n"
        + "<table border=0 cellspacing=0 cellpadding=0><tr>\r\n"
-       + "<td>" + doFormCellValue(row, col) + "</td>\r\n";
+       + "<td>" + cellHtml + "</td>\r\n";
 
     // attiva scelta attraverso tabella allegata
     if(getImgEditForeign() != null && cd.getForeignEditUrl() != null
@@ -470,10 +476,12 @@ public class hEditTable extends hTable
    * Il valore del campo descrizione viene prelevato dalla tabella collegata.
    * @param row riga corrente
    * @param col colonna corrente
+   * @param cellText testo interno della cella
+   * @param cellHtml html interno della cella
    * @return HTML
    * @throws Exception
    */
-  protected String getForeignEditDescr(int row, int col)
+  protected String getForeignEditDescr(int row, int col, String cellText, String cellHtml)
      throws Exception
   {
     RigelColumnDescriptor cd = getCD(col);
@@ -483,7 +491,7 @@ public class hEditTable extends hTable
 
     String rv = "\r\n"
        + "<table border=0 cellspacing=0 cellpadding=0><tr>\r\n"
-       + "<td>" + doFormCellValue(row, col) + "</td>\r\n";
+       + "<td>" + cellHtml + "</td>\r\n";
 
     // attiva scelta attraverso tabella allegata
     if(getImgEditForeign() != null && cd.getForeignEditUrl() != null
@@ -513,10 +521,12 @@ public class hEditTable extends hTable
    * Il valore del campo descrizione viene prelevato dalla tabella collegata.
    * @param row riga corrente
    * @param col colonna corrente
+   * @param cellText testo interno della cella
+   * @param cellHtml html interno della cella
    * @return HTML
    * @throws Exception
    */
-  protected String getForeignEditDescrAlternate(int row, int col)
+  protected String getForeignEditDescrAlternate(int row, int col, String cellText, String cellHtml)
      throws Exception
   {
     RigelColumnDescriptor cd = getCD(col);
@@ -526,7 +536,7 @@ public class hEditTable extends hTable
 
     String rv = "\r\n"
        + "<table border=0 cellspacing=0 cellpadding=0><tr>\r\n"
-       + "<td>" + doFormCellValue(row, col) + "</td>\r\n";
+       + "<td>" + cellHtml + "</td>\r\n";
 
     // attiva scelta attraverso tabella allegata
     if(getImgEditForeign() != null && cd.getForeignEditUrl() != null
@@ -683,7 +693,7 @@ public class hEditTable extends hTable
       return "";
 
     // definizione del valore da inserire nel campo
-    String sval = formatCell(row, col, tableModel.getValueAt(row, col));
+    String sval = doCellText(row, col, tableModel.getValueAt(row, col));
     if(cd.getForeignMode() == RigelColumnDescriptor.DISP_DESCR_EDIT_ALTERNATE)
     {
       // in questo caso editiamo un valore che in realtà non esiste
@@ -813,7 +823,7 @@ public class hEditTable extends hTable
     }
 
     String nomeCampo = getNomeCampo(row, col);
-    String value = formatCell(row, col, tableModel.getValueAt(row, col));
+    String value = doCellText(row, col, tableModel.getValueAt(row, col));
 
     javascript.append(""
        + "    function fileChange_" + nomeCampo + "()\r\n"
@@ -838,7 +848,7 @@ public class hEditTable extends hTable
   protected String campoHidden(int row, int col)
      throws Exception
   {
-    String defVal = formatCell(row, col, tableModel.getValueAt(row, col));
+    String defVal = doCellText(row, col, tableModel.getValueAt(row, col));
 
     return "<input type=\"hidden\" name=\"" + getNomeCampo(row, col) + "\" value=\""
        + defVal + "\">" + (defVal.length() == 0 ? "&nbsp;" : "");
@@ -1007,18 +1017,18 @@ public class hEditTable extends hTable
    * produce l'HTML per l'edit del campo.
    * @param row riga corrente
    * @param col colonna corrente
-   * @return HTML
+   * @param cellText contenuto dell campo
+   * @return HTML interno della colonna (senza tag TD)
    * @throws Exception
    */
   @Override
-  public String doFormCellValue(int row, int col)
+  public String doCellHtml(int row, int col, String cellText)
      throws Exception
   {
     RigelColumnDescriptor tc = getCD(col);
 
     if((tableModel instanceof RigelTableModel) && tc.isComboDisplay())
     {
-      String defVal = formatCell(row, col, tableModel.getValueAt(row, col));
       if(tc.isEditable())
       {
         String navUpDown = moveKey(row, col);
@@ -1027,26 +1037,25 @@ public class hEditTable extends hTable
         if(tc.getExtraScript() != null)
           sOut += " onChange=\"" + tc.getExtraScript() + "\" ";
         sOut += ">\n";
-        sOut += tc.getHtmlComboColonnaAttached(row, col, getTM(), defVal, i18n, false);
+        sOut += tc.getHtmlComboColonnaAttached(row, col, getTM(), cellText, i18n, false);
         sOut += "</select>";
         addToFormTests(tc, row, col);
         return sOut;
       }
       else
-        return tc.getValueComboAttached(row, col, (RigelTableModel) tableModel, defVal, i18n);
+        return tc.getValueComboAttached(row, col, (RigelTableModel) tableModel, cellText, i18n);
     }
 
     if((tableModel instanceof RigelTableModel) && tc.isEditable() && tc.useForeignAutoCombo(row, col, getTM()))
     {
       // funzione autocombo: trasforma una foreign edit in un combo se possibile
       String navUpDown = moveKey(row, col);
-      String defVal = formatCell(row, col, tableModel.getValueAt(row, col));
       String nomeCombo = getNomeCampo(row, col);
       String sOut = "<select name=\"" + nomeCombo + "\" " + navUpDown;
       if(tc.getExtraScript() != null)
         sOut += " onChange=\"" + tc.getExtraScript() + "\" ";
       sOut += ">\n";
-      sOut += tc.getHtmlForeignAutoCombo(row, col, getTM(), defVal, i18n);
+      sOut += tc.getHtmlForeignAutoCombo(row, col, getTM(), cellText, i18n);
       sOut += "\n</select>";
       addToFormTests(tc, row, col);
       return sOut;
@@ -1093,7 +1102,7 @@ public class hEditTable extends hTable
       return campoHidden(row, col);
     }
     else
-      return super.doFormCellValue(row, col);
+      return super.doCellHtml(row, col, cellText);
   }
 
   public boolean isColumnEditable(int row, int col)

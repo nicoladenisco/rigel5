@@ -220,10 +220,10 @@ public class AlternateColorTableAppBase extends AlternateColorTableAppGeneric
    * @throws Exception
    */
   @Override
-  public String doFormCellValue(int row, int col)
+  public String doCellHtml(int row, int col, String cellText)
      throws Exception
   {
-    String sOut = super.doFormCellValue(row, col);
+    String sOut = super.doCellHtml(row, col, cellText);
     RigelColumnDescriptor cd = getCD(col);
 
     String hcb;

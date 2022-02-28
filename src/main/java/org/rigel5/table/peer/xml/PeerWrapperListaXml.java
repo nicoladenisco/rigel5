@@ -26,6 +26,7 @@ import org.apache.torque.map.ColumnMap;
 import org.apache.torque.sql.OrderBy;
 import org.apache.torque.util.UniqueList;
 import org.rigel5.table.RigelColumnDescriptor;
+import org.rigel5.table.html.RigelHtmlPage;
 import org.rigel5.table.peer.PeerAbstractTableModel;
 import org.rigel5.table.peer.html.HtmlPeerWrapperBase;
 import org.rigel5.table.xml.xTable;
@@ -170,14 +171,14 @@ public class PeerWrapperListaXml extends HtmlPeerWrapperBase
   public void salvaDatiForm(Map params, HttpSession sessione)
      throws Exception
   {
-    throw new UnsupportedOperationException("Method getHtml() not yet implemented.");
+    throw new UnsupportedOperationException("Not supported yet.");
   }
 
   @Override
   public String getHtmlForm(Map params, HttpSession sessione)
      throws Exception
   {
-    throw new UnsupportedOperationException("Method getHtml() not yet implemented.");
+    throw new UnsupportedOperationException("Not supported yet.");
   }
 
   @Override
@@ -189,6 +190,13 @@ public class PeerWrapperListaXml extends HtmlPeerWrapperBase
 
   @Override
   public String getHtmlListaPalmare(Map params, HttpSession sessione)
+     throws Exception
+  {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public void getHtml(Map params, HttpSession sessione, RigelHtmlPage page)
      throws Exception
   {
     throw new UnsupportedOperationException("Not supported yet.");

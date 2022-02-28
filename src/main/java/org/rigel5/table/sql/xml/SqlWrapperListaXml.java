@@ -26,6 +26,7 @@ import org.rigel5.SetupHolder;
 import org.rigel5.db.sql.QueryBuilder;
 import org.rigel5.table.RigelColumnDescriptor;
 import org.rigel5.table.RigelTableModel;
+import org.rigel5.table.html.RigelHtmlPage;
 import org.rigel5.table.sql.SqlGroupBy;
 import org.rigel5.table.sql.html.HtmlSqlWrapperBase;
 import org.rigel5.table.xml.xTable;
@@ -359,6 +360,13 @@ public class SqlWrapperListaXml extends HtmlSqlWrapperBase
 
   @Override
   public String getHtmlListaPalmare(Map params, HttpSession sessione)
+     throws Exception
+  {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public void getHtml(Map params, HttpSession sessione, RigelHtmlPage page)
      throws Exception
   {
     throw new UnsupportedOperationException("Not supported yet.");

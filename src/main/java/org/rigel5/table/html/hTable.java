@@ -17,7 +17,7 @@
  */
 package org.rigel5.table.html;
 
-import java.awt.*;
+import java.awt.Color;
 import java.text.Format;
 import java.util.*;
 import javax.swing.table.*;
@@ -314,6 +314,7 @@ public class hTable
     String style = doStyle(row, col);
 
     if(row == -1)
+    {
       // header della tabella
       if(nosize)
         return "<" + colheadStatement + " "
@@ -321,13 +322,17 @@ public class hTable
       else
         return "<" + colheadStatement + " WIDTH=\"" + normWidth[col] + "%\""
            + align + " " + color + " " + style + ">";
-    else // corpo della tabella
-    if(nosize)
-      return "<" + colStatement + " "
-         + align + " " + color + " " + style + ">";
+    }
     else
-      return "<" + colStatement + " WIDTH=\"" + normWidth[col] + "%\""
-         + align + " " + color + " " + style + ">";
+    {
+      // corpo della tabella
+      if(nosize)
+        return "<" + colStatement + " "
+           + align + " " + color + " " + style + ">";
+      else
+        return "<" + colStatement + " WIDTH=\"" + normWidth[col] + "%\""
+           + align + " " + color + " " + style + ">";
+    }
   }
 
   protected String cellEnd(int row, int col)
@@ -396,18 +401,48 @@ public class hTable
 
     html.append("<").append(sRowStat).append(">\r\n").append(preValues(row));
 
-    for(int i = 0; i < tableModel.getColumnCount(); i++)
+    // recupera tutti i valori per tutte le colonne
+    int numCol = tableModel.getColumnCount();
+    List<Pair<String, String>> cellValues = new ArrayList<>(numCol);
+    for(int i = 0; i < numCol; i++)
     {
-      RigelColumnDescriptor rcd = getCD(i);
-      if(rcd.getFormatter() != null && rcd.getFormatter() instanceof RigelFormat)
-        ((RigelFormat) rcd.getFormatter()).prepareFormatRecord(getTM(), row, i);
+      RigelColumnDescriptor cd = getCD(i);
+      if(cd.isVisible())
+      {
+        if(cd.getFormatter() != null && cd.getFormatter() instanceof RigelFormat)
+          ((RigelFormat) cd.getFormatter()).prepareFormatRecord(getTM(), row, i);
 
-      html.append(doCell(row, i));
+        String cellText = doCellText(row, i, tableModel.getValueAt(row, i));
+        String cellHtml = doCellHtml(row, i, cellText);
+        cellValues.add(new Pair<>(cellText, elaboraFixedText(row, i, cellHtml)));
+      }
+      else
+      {
+        cellValues.add(new Pair<>("", ""));
+      }
+    }
+
+    // produce l'html per le colonne
+    for(int i = 0; i < numCol; i++)
+    {
+      RigelColumnDescriptor cd = getCD(i);
+      if(cd.isVisible())
+      {
+        Pair<String, String> p = cellValues.get(i);
+        doCell(row, i, p.first, p.second);
+      }
     }
 
     html.append(postValues(row)).append("</TR>\r\n");
   }
 
+  /**
+   * Ritorna il colore di background della cella se impostato.
+   * @param row riga corrente
+   * @param col colonna corrente
+   * @return il tag background oppure stringa vuota
+   * @throws Exception
+   */
   public String doColor(int row, int col)
      throws Exception
   {
@@ -429,6 +464,13 @@ public class hTable
     return "";
   }
 
+  /**
+   * Ritorna un tag di allineamento per la cella se impostato.
+   * @param row riga corrente
+   * @param col colonna corrente
+   * @return il tag align per la cella oppure stringa vuota
+   * @throws Exception
+   */
   public String doAlign(int row, int col)
      throws Exception
   {
@@ -454,6 +496,13 @@ public class hTable
     return sAlign;
   }
 
+  /**
+   * Ritorna una classe CSS per la cella se impostato.
+   * @param row riga corrente
+   * @param col colonna corrente
+   * @return classe CSS oppure stringa vuota
+   * @throws Exception
+   */
   public String doStyle(int row, int col)
      throws Exception
   {
@@ -464,22 +513,34 @@ public class hTable
     return cd.getHtmlStyle() == null ? "" : " class=\"" + cd.getHtmlStyle() + "\"";
   }
 
-  public String doCell(int row, int col)
+  /**
+   * Formatta una cella della tabella.
+   * Aggiunge ai rispettivi component il contenuto completo della cella.
+   * @param row riga corrente
+   * @param col colonna corrente
+   * @param cellText testo interno della cella
+   * @param cellHtml html interno della cella
+   * @throws Exception
+   */
+  public void doCell(int row, int col, String cellText, String cellHtml)
      throws Exception
   {
-    RigelColumnDescriptor cd;
-    if((cd = getCD(col)) != null)
-      if(!cd.isVisible())
-        return "";
-
-    String value = doFormCellValue(row, col);
-    String text = elaboraFixedText(row, col, value);
-
-    return cellBegin(row, col)
-       + text
-       + cellEnd(row, col);
+    html.append(cellBegin(row, col));
+    html.append(cellHtml);
+    html.append(cellEnd(row, col));
   }
 
+  /**
+   * Elabora una colonna per testo fisso.
+   * Se la colonna ha la proprietà fixedText impostata lo ritorna
+   * al posto del valore del campo. Il testo fisso può contenere la
+   * macro speciale '@@@' che si espande nel valore del campo.
+   * @param row riga corrente
+   * @param col colonna corrente
+   * @param strCella HTML interno della cella
+   * @return HTML interno della cella (all'interno dei tags TD).
+   * @throws Exception
+   */
   public String elaboraFixedText(int row, int col, String strCella)
      throws Exception
   {
@@ -487,7 +548,7 @@ public class hTable
     if((cd = getCD(col)) != null)
     {
       int pos;
-      String sfix = cd.getFixedText();
+      String sfix = StringOper.okStrNull(cd.getFixedText());
       if(sfix == null)
         return strCella;
 
@@ -503,38 +564,43 @@ public class hTable
    * Formatta l'interno della cella.
    * @param row riga corrente
    * @param col colonna corrente
-   * @return HTML
+   * @param cellText contenuto dell campo (vedi doCellText)
+   * @return HTML interno della cella (all'interno dei tags TD).
    * @throws Exception
    */
-  public String doFormCellValue(int row, int col)
+  public String doCellHtml(int row, int col, String cellText)
      throws Exception
   {
-    String val = formatCell(row, col, tableModel.getValueAt(row, col));
-    if(val == null || val.trim().length() == 0)
-      val = " &nbsp;";
+    if(cellText == null || cellText.trim().length() == 0)
+      cellText = " &nbsp;";
 
     RigelColumnDescriptor cd;
     if((cd = getCD(col)) != null)
     {
       if(cd.getForeignMode() != RigelColumnDescriptor.DISP_FLD_ONLY)
       {
-        val = getForeignData(cd, val);
-        if(val == null || val.trim().length() == 0)
-          val = " &nbsp;";
+        cellText = getForeignData(cd, cellText);
+        if(cellText == null || cellText.trim().length() == 0)
+          cellText = " &nbsp;";
       }
 
       if(cd.isHtmlPara())
-        val = "<p id=\"" + getNomePara(row, col) + "\">" + val + "</p>";
+        cellText = "<p id=\"" + getNomePara(row, col) + "\">" + cellText + "</p>";
     }
 
-    return val;
+    return cellText;
   }
 
   /**
    * Produce la stringa rappresentazione del dato.
    * Se la colonna ha un formattatore esplicito lo usa.
+   * @param row riga corrente
+   * @param col colonna corrente
+   * @param value valore proveniente dal table model
+   * @return la stringa rappresentazione
+   * @throws Exception
    */
-  public String formatCell(int row, int col, Object value)
+  public String doCellText(int row, int col, Object value)
      throws Exception
   {
     if(value == null)
@@ -657,7 +723,10 @@ public class hTable
   }
 
   /**
-   * Genera un nome paragrafo a partire dal nome campo
+   * Genera un nome paragrafo a partire dal nome campo.
+   * @param row
+   * @param col
+   * @return
    */
   public String getNomePara(int row, int col)
   {
@@ -669,9 +738,11 @@ public class hTable
   }
 
   /**
-   * Ritorna un oggetto RigelColumnDescriptor se la colonna
+   * Ritorna il cast RigelColumnDescriptor se la colonna
    * indicata e' realmente una istanza di RigelColumnDescriptor;
    * altrimenti ritorna null.
+   * @param col
+   * @return
    */
   public RigelColumnDescriptor getCD(int col)
   {
@@ -679,6 +750,11 @@ public class hTable
     return (tc instanceof RigelColumnDescriptor) ? ((RigelColumnDescriptor) (tc)) : null;
   }
 
+  /**
+   * Ritorna il cast RigelTableModel se il table model
+   * collegato è realmente una istanza di RigelTableModel.
+   * @return
+   */
   public RigelTableModel getTM()
   {
     return (tableModel instanceof RigelTableModel) ? (RigelTableModel) tableModel : null;

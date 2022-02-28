@@ -36,7 +36,7 @@ import org.commonlib5.utils.Pair;
  * <PRE>
  *  try(QueryDataSet qds = new QueryDataSet ( connection, "SELECT * from my_table" )) {
  *    qds.fetchRecords(10); // fetch the first 10 records
- *    for ( int i = 0; i < qds.size(); i++ )
+ *    for ( int i = 0; i &lt; qds.size(); i++ )
  *    {
  *      Record rec = qds.getRecord(i);
  *      int value = rec.getValue("column").asInt();

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -76,10 +76,13 @@ public class FormTableTwoRows extends FormTable
         mc = 0;
       }
 
+      String cellText = doCellText(row, i, tableModel.getValueAt(row, i));
+      String cellHtml = doCellHtml(row, i, cellText);
+
       String align = doAlign(row, i);
       String color = doColor(row, i);
       String style = doStyle(row, i);
-      String inner = doInnerCell(row, i);
+      String inner = doInnerCell(row, i, cellText, cellHtml);
       String std = "";
 
       String size = nosize ? "" : "WIDTH=\"" + wd + "%\" ";

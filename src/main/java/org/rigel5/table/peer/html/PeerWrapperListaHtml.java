@@ -24,6 +24,7 @@ import org.rigel5.table.RigelColumnDescriptor;
 import org.rigel5.table.html.AbstractHtmlTablePager;
 import org.rigel5.table.html.AbstractHtmlTablePagerFilter;
 import org.rigel5.table.html.CommonPager;
+import org.rigel5.table.html.RigelHtmlPage;
 
 /**
  * Wrapper specializzato per tabelle di visualizzazione HTML.
@@ -151,5 +152,15 @@ public class PeerWrapperListaHtml extends HtmlPeerWrapperBase
       return ((CommonPager) (pager)).getHtmlSimpleSearchPalmare(params, sessione);
 
     return ((AbstractHtmlTablePager) pager).getHtml(params, sessione);
+  }
+
+  @Override
+  public void getHtml(Map params, HttpSession sessione, RigelHtmlPage page)
+     throws Exception
+  {
+    if(pager instanceof CommonPager)
+      ((CommonPager) (pager)).getHtml(params, sessione, page);
+    else
+      ((AbstractHtmlTablePager) pager).getHtml(params, sessione, page);
   }
 }

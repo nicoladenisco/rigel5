@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -130,5 +130,18 @@ public class PeerWrapperFormHtml extends HtmlPeerWrapperBase
      throws Exception
   {
     throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public void getHtml(Map params, HttpSession sessione, RigelHtmlPage page)
+     throws Exception
+  {
+    if(tbl instanceof FormTable)
+    {
+      ((FormTable) (tbl)).doHtml(page);
+      return;
+    }
+
+    throw new InvalidObjectException("La tabella associata DEVE essere una FormTable.");
   }
 }
