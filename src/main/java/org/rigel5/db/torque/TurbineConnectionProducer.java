@@ -17,6 +17,7 @@
  */
 package org.rigel5.db.torque;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.util.Hashtable;
 import org.apache.commons.logging.*;
@@ -35,11 +36,9 @@ import org.rigel5.db.ConnectionProducer;
  * @author Nicola De Nisco
  * @version 1.0
  */
-public class TurbineConnectionProducer implements ConnectionProducer
+public class TurbineConnectionProducer extends ConnectionProducer
 {
-  private boolean transactionSupported = false, transactionChecked = false;
-  public static final String DB_YES_TRANS = "Il database supporta le transazioni.";
-  public static final String DB_NO_TRANS = "Transazioni NON supportate da questo database.";
+  private Boolean transactionSupported = null;
   /** Logging */
   private static Log log = LogFactory.getLog(TurbineConnectionProducer.class);
   private static final Object semaforo = new Object();
@@ -97,6 +96,20 @@ public class TurbineConnectionProducer implements ConnectionProducer
         log.error("Chiudendo la connessione:", ex);
       }
     }
+
+    @Override
+    public void close()
+       throws IOException
+    {
+      try
+      {
+        releaseConnection();
+      }
+      catch(Exception ex)
+      {
+        throw new IOException(ex);
+      }
+    }
   }
 
   /**
@@ -150,76 +163,31 @@ public class TurbineConnectionProducer implements ConnectionProducer
 
   /**
    * Verifica se il db di default supporta le transazioni.
-   * Il risultato viene recuperato solo una volta e salvato in una cache.
-   * @param con connessione da testare
-   * @throws Exception
-   */
-  public boolean supportTransaction(Connection dbCon)
-  {
-    if(!transactionChecked)
-    {
-      try
-      {
-        transactionSupported = dbCon.getMetaData().supportsTransactions();
-        log.info(transactionSupported ? DB_YES_TRANS : DB_NO_TRANS);
-        log.debug(transactionSupported ? DB_YES_TRANS : DB_NO_TRANS);
-      }
-      catch(Exception ex)
-      {
-        transactionSupported = false;
-        log.info(DB_NO_TRANS);
-        log.debug(DB_NO_TRANS);
-      }
-      transactionChecked = true;
-    }
-    return transactionSupported;
-  }
-
-  /**
-   * Verifica se il db di default supporta le transazioni.
-   * Il risultato viene recuperato solo una volta e salvato in una cache.
+   * Il risultato viene recuperato solo una volta e salvato in una
+   * cache.
    * Viene testata la connessione di default.
-   * @throws Exception
+   * @return
    */
-  public boolean supportTransaction()
+  protected boolean supportTransaction()
   {
-    if(!transactionChecked)
+    if(transactionSupported == null)
     {
       Connection dbCon = null;
       try
       {
         dbCon = Torque.getConnection();
-        supportTransaction(dbCon);
+        transactionSupported = supportTransaction(dbCon);
       }
       catch(Exception ex)
       {
-        if(dbCon != null)
-          Torque.closeConnection(dbCon);
+        log.error("", ex);
+        transactionSupported = false;
       }
-      transactionChecked = true;
+
+      if(dbCon != null)
+        Torque.closeConnection(dbCon);
     }
+
     return transactionSupported;
-  }
-
-  /**
-   * Ritorna vero se il database di default supporta le transazioni.
-   */
-  @Override
-  public boolean isTransactionSupported()
-  {
-    return supportTransaction();
-  }
-
-  /**
-   * Imposta esplicitamente lo stato di supporto delle transazioni senza
-   * interrogare il database in merito: alcuni database (DBMAKER ver. 3.7) non
-   * gradiscono che si indaghi sul suo stato di supporto delle transazioni;
-   * con questo metodo si puo' impostare esplicitamente senza ricorrere
-   * all'auto discovering.
-   */
-  public void setTransactionSupported(boolean transactionSupported)
-  {
-    this.transactionChecked = true;
-    this.transactionSupported = transactionSupported;
   }
 }

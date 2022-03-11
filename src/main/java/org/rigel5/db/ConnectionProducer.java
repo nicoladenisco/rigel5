@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -17,7 +17,10 @@
  */
 package org.rigel5.db;
 
+import java.io.Closeable;
 import java.sql.Connection;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.commonlib5.lambda.ConsumerThrowException;
 import org.commonlib5.lambda.FunctionTrowException;
 
@@ -30,9 +33,14 @@ import org.commonlib5.lambda.FunctionTrowException;
  * @author Nicola De Nisco
  * @version 1.0
  */
-public interface ConnectionProducer
+abstract public class ConnectionProducer
 {
-  public interface ConnectionHolder
+  protected Boolean transactionSupported = null;
+  public static final String DB_YES_TRANS = "Il database supporta le transazioni.";
+  public static final String DB_NO_TRANS = "Transazioni NON supportate da questo database.";
+  private static Log log = LogFactory.getLog(ConnectionProducer.class);
+
+  public interface ConnectionHolder extends Closeable
   {
     /**
      * Ritorna la connessione al database di default.
@@ -55,44 +63,70 @@ public interface ConnectionProducer
    * @return l'oggetto connessione
    * @throws Exception
    */
-  public ConnectionHolder getConnectionHolder()
+  abstract public ConnectionHolder getConnectionHolder()
      throws Exception;
+
+  public void runConnection(ConsumerThrowException<Connection> fun)
+     throws Exception
+  {
+    try (ConnectionHolder ch = getConnectionHolder())
+    {
+      Connection con = ch.getConnection();
+      fun.accept(con);
+    }
+  }
+
+  public <T> T functionConnection(FunctionTrowException<Connection, T> fun)
+     throws Exception
+  {
+    try (ConnectionHolder ch = getConnectionHolder())
+    {
+      Connection con = ch.getConnection();
+      return fun.apply(con);
+    }
+  }
+
+  /**
+   * Verifica se il db di default supporta le transazioni.
+   * Il risultato viene recuperato solo una volta e salvato in una cache.
+   * @param con
+   * @return
+   */
+  public boolean supportTransaction(Connection con)
+  {
+    if(transactionSupported == null)
+    {
+      try
+      {
+        transactionSupported = con.getMetaData().supportsTransactions();
+        log.info(transactionSupported ? DB_YES_TRANS : DB_NO_TRANS);
+      }
+      catch(Exception ex)
+      {
+        transactionSupported = false;
+        log.error("Error checking transaction support:", ex);
+      }
+    }
+
+    return transactionSupported;
+  }
+
+  abstract protected boolean supportTransaction();
 
   /**
    * Ritorna vero se il database supporta le transazioni.
    * @return
    */
-  public boolean isTransactionSupported();
-
-  public default void runConnection(ConsumerThrowException<Connection> fun)
-     throws Exception
+  public boolean isTransactionSupported()
   {
-    ConnectionHolder ch = getConnectionHolder();
+    if(transactionSupported == null)
+      supportTransaction();
 
-    try
-    {
-      Connection con = ch.getConnection();
-      fun.accept(con);
-    }
-    finally
-    {
-      ch.releaseConnection();
-    }
+    return transactionSupported;
   }
 
-  public default <T> T functionConnection(FunctionTrowException<Connection, T> fun)
-     throws Exception
+  public void setTransactionSupported(boolean transactionSupported)
   {
-    ConnectionHolder ch = getConnectionHolder();
-
-    try
-    {
-      Connection con = ch.getConnection();
-      return fun.apply(con);
-    }
-    finally
-    {
-      ch.releaseConnection();
-    }
+    this.transactionSupported = transactionSupported;
   }
 }

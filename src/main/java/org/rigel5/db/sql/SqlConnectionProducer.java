@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -17,8 +17,10 @@
  */
 package org.rigel5.db.sql;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.rigel5.db.ConnectionProducer;
@@ -32,7 +34,7 @@ import org.rigel5.db.ConnectionProducer;
  * @author Nicola De Nisco
  * @version 1.0
  */
-public class SqlConnectionProducer implements ConnectionProducer
+public class SqlConnectionProducer extends ConnectionProducer
 {
   /** Logging */
   private static Log log = LogFactory.getLog(SqlConnectionProducer.class);
@@ -61,7 +63,7 @@ public class SqlConnectionProducer implements ConnectionProducer
 
     @Override
     public void releaseConnection()
-       throws Exception
+       throws SQLException
     {
       if(con != null)
       {
@@ -83,6 +85,20 @@ public class SqlConnectionProducer implements ConnectionProducer
       catch(Exception ex)
       {
         log.error("Chiudendo la connessione:", ex);
+      }
+    }
+
+    @Override
+    public void close()
+       throws IOException
+    {
+      try
+      {
+        releaseConnection();
+      }
+      catch(SQLException ex)
+      {
+        throw new IOException(ex);
       }
     }
   }
@@ -107,7 +123,6 @@ public class SqlConnectionProducer implements ConnectionProducer
     this.url = url;
     this.user = user;
     this.password = password;
-    this.transactionChecked = true;
     this.transactionSupported = supTrans;
   }
 
@@ -144,31 +159,6 @@ public class SqlConnectionProducer implements ConnectionProducer
       con.close();
       con = null;
     }
-  }
-
-  private boolean transactionSupported = false, transactionChecked = false;
-
-  /**
-   * Verifica se il db di default supporta le transazioni.
-   * Il risultato viene recuperato solo una volta e salvato in una cache.
-   * @param con
-   * @return
-   */
-  public boolean supportTransaction(Connection con)
-  {
-    if(!transactionChecked)
-    {
-      try
-      {
-        transactionSupported = con.getMetaData().supportsTransactions();
-      }
-      catch(Exception ex)
-      {
-        transactionSupported = false;
-      }
-      transactionChecked = true;
-    }
-    return transactionSupported;
   }
 
   public void setUrl(String url)
@@ -232,20 +222,34 @@ public class SqlConnectionProducer implements ConnectionProducer
   }
 
   @Override
-  public boolean isTransactionSupported()
-  {
-    return transactionSupported;
-  }
-
-  public void setTransactionSupported(boolean transactionSupported)
-  {
-    this.transactionSupported = transactionSupported;
-  }
-
-  @Override
   public ConnectionHolder getConnectionHolder()
      throws Exception
   {
     return new SqlConnectionHolder();
+  }
+
+  @Override
+  protected boolean supportTransaction()
+  {
+    Connection con = null;
+
+    try
+    {
+      con = getConnection();
+      return supportTransaction(con);
+    }
+    catch(Exception e)
+    {
+      try
+      {
+        releaseConnection(con);
+      }
+      catch(Exception ex)
+      {
+        log.error("", e);
+      }
+    }
+
+    return false;
   }
 }
