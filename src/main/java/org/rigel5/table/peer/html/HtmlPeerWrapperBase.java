@@ -235,6 +235,7 @@ abstract public class HtmlPeerWrapperBase extends HtmlWrapperBase
       if(valore == null)
         throw new MissingParameterException("Parametro " + nomec + " non specificato nella richiesta!");
 
+      String columnName = null;
       if(campo.startsWith("#"))
       {
         // aggancio dinamico a valore di colonna
@@ -242,14 +243,19 @@ abstract public class HtmlPeerWrapperBase extends HtmlWrapperBase
         if(cd == null)
           throw new MissingColumnException("Colonna " + campo + " non trovata!");
 
-        String nomeCampo = tmap.getNomeCampo(cd.getName());
-        c.and(nomeCampo, valore);
+        columnName = cd.getName();
       }
       else if(campo.startsWith("@"))
       {
         // aggancio dinamico a valore di campo tabella
-        String nomeCampo = tmap.getNomeCampo(campo.substring(1));
-        c.and(nomeCampo, valore);
+        columnName = campo.substring(1);
+      }
+
+      if(columnName != null)
+      {
+        Pair<ColumnMap, Object> cv = tmap.getCampoAndParseValue(columnName, valore);
+        if(cv != null)
+          c.and(cv.first, cv.second);
       }
     }
 
