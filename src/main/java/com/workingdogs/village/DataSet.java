@@ -315,8 +315,11 @@ public abstract class DataSet implements Closeable
    */
   public DataSet clearRecords()
   {
-    records.clear();
-    records = null;
+    if(records != null)
+    {
+      records.clear();
+      records = null;
+    }
 
     return this;
   }
