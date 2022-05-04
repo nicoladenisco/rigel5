@@ -146,6 +146,11 @@ abstract public class QueryBuilder implements Closeable
 
   abstract public String adjValue(int dataType, Object val);
 
+  public String adjCampoValue(int dataType, String campo, String compare, Object val)
+  {
+    return adjCampo(dataType, campo) + compare + adjValue(dataType, val);
+  }
+
   abstract public String getVista()
      throws Exception;
 
@@ -452,6 +457,17 @@ abstract public class QueryBuilder implements Closeable
   public Schema getSchema()
   {
     return lastQuery == null ? null : lastQuery.schema();
+  }
+
+  @Override
+  public void close()
+     throws IOException
+  {
+    if(lastQuery != null)
+    {
+      lastQuery.close();
+      lastQuery = null;
+    }
   }
 
   /**
@@ -1057,17 +1073,6 @@ abstract public class QueryBuilder implements Closeable
    * @return vero se l'operazione ha avuto successo
    */
   abstract public boolean enableForeignKeys(String nomeTabella);
-
-  @Override
-  public void close()
-     throws IOException
-  {
-    if(lastQuery != null)
-    {
-      lastQuery.close();
-      lastQuery = null;
-    }
-  }
 
   @FunctionalInterface
   public interface ScanColumn<T>

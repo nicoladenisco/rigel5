@@ -767,19 +767,19 @@ public abstract class DataSet implements Closeable
       throw new DataSetException("You must call DataSet.clearRecords() before executing DataSet.fetchRecords() again!");
     }
 
-    if(selectString == null)
-    {
-      selectString = new StringBuilder(256);
-      selectString.append("SELECT ");
-      selectString.append(schema.attributes());
-      selectString.append(" FROM ");
-      selectString.append(schema.tableName());
-    }
-
     try
     {
       if((stmt == null) && (resultSet == null))
       {
+        if(selectString == null)
+        {
+          selectString = new StringBuilder(256);
+          selectString.append("SELECT ");
+          selectString.append(schema.attributes());
+          selectString.append(" FROM ");
+          selectString.append(schema.tableName());
+        }
+
         stmt = connection().createStatement();
         resultSet = stmt.executeQuery(selectString.toString());
       }

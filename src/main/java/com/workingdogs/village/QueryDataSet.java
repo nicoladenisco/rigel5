@@ -78,7 +78,6 @@ public class QueryDataSet
      throws SQLException, DataSetException
   {
     this.conn = conn;
-
     selectString = new StringBuilder(selectStmt);
 
     boolean ok = false;
@@ -118,8 +117,9 @@ public class QueryDataSet
      throws SQLException, DataSetException
   {
     this.resultSet = resultSet;
+    this.conn = resultSet.getStatement().getConnection();
+    selectString = new StringBuilder();
     schema = new Schema();
-    Connection conn = resultSet.getStatement().getConnection();
     schema.populate(resultSet.getMetaData(), null, conn);
   }
 
@@ -131,7 +131,7 @@ public class QueryDataSet
   @Override
   public String getSelectString()
   {
-    return this.selectString.toString();
+    return selectString == null ? "" : selectString.toString();
   }
 
   /**
@@ -193,6 +193,24 @@ public class QueryDataSet
      throws Exception
   {
     try (QueryDataSet qs = new QueryDataSet(dbCon, sSQL))
+    {
+      return new Pair<>(qs.schema, qs.fetchAllRecords());
+    }
+  }
+
+  public static List<Record> fetchAllRecords(ResultSet rs)
+     throws Exception
+  {
+    try (QueryDataSet qs = new QueryDataSet(rs))
+    {
+      return qs.fetchAllRecords();
+    }
+  }
+
+  public static Pair<Schema, List<Record>> fetchAllRecordsAndSchema(ResultSet rs)
+     throws Exception
+  {
+    try (QueryDataSet qs = new QueryDataSet(rs))
     {
       return new Pair<>(qs.schema, qs.fetchAllRecords());
     }
