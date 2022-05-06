@@ -166,10 +166,8 @@ abstract public class QueryBuilder implements Closeable
     String fldNames = "";
     String fldValues = "";
 
-    Enumeration enum1 = fd.vUpdate.elements();
-    while(enum1.hasMoreElements())
+    for(FiltroData.updateInfo ui : fd.vUpdate)
     {
-      FiltroData.updateInfo ui = (FiltroData.updateInfo) enum1.nextElement();
       if(ui.val == null)
         continue;
 
@@ -330,10 +328,8 @@ abstract public class QueryBuilder implements Closeable
   {
     String sel = "";
 
-    Enumeration enum1 = fd.vSelect.elements();
-    while(enum1.hasMoreElements())
+    for(String col : fd.vSelect)
     {
-      String col = (String) enum1.nextElement();
       if(col == null)
         continue;
 
@@ -347,10 +343,8 @@ abstract public class QueryBuilder implements Closeable
   {
     String upd = "";
 
-    Enumeration enum1 = fd.vUpdate.elements();
-    while(enum1.hasMoreElements())
+    for(FiltroData.updateInfo ui : fd.vUpdate)
     {
-      FiltroData.updateInfo ui = (FiltroData.updateInfo) enum1.nextElement();
       if(ui.val == null)
         continue;
 
@@ -362,47 +356,47 @@ abstract public class QueryBuilder implements Closeable
 
   public synchronized String makeFiltroWhere(FiltroData fd)
   {
-    String whre = "";
+    StringBuilder whre = new StringBuilder();
 
-    Enumeration enum1 = fd.vWhere.elements();
-    while(enum1.hasMoreElements())
+    for(FiltroData.whereInfo wi : fd.vWhere)
     {
-      FiltroData.whereInfo wi = (FiltroData.whereInfo) enum1.nextElement();
-
       if(SqlEnum.ISNULL.equals(wi.criteria))
-        whre += " AND " + wi.nomecampo + " IS NULL";
+        whre.append(" AND ").append(wi.nomecampo).append(" IS NULL");
       else if(SqlEnum.ISNOTNULL.equals(wi.criteria))
-        whre += " AND " + wi.nomecampo + " IS NOT NULL";
+        whre.append(" AND ").append(wi.nomecampo).append(" IS NOT NULL");
       else if(SqlEnum.IN.equals(wi.criteria))
       {
-        String sVals = "";
+        ArrayList<String> sVals = new ArrayList<>();
 
         if(wi.val instanceof Collection)
           for(Object oVal : (Collection) wi.val)
-            sVals += "," + adjValue(wi.type, oVal);
+            sVals.add(adjValue(wi.type, oVal));
         else if(wi.val.getClass().isArray())
           for(int i = 0; i < Array.getLength(wi.val); i++)
-            sVals += "," + adjValue(wi.type, Array.get(wi.val, i));
+            sVals.add(adjValue(wi.type, Array.get(wi.val, i)));
         else if(wi.val instanceof String)
-          sVals = "," + adjValue(wi.type, wi.val.toString());
+          sVals.add(adjValue(wi.type, wi.val.toString()));
 
         if(!sVals.isEmpty())
-          whre += " AND (" + adjCampo(wi.type, wi.nomecampo) + " IN (" + sVals.substring(1) + "))";
+          whre.append(" AND (").append(adjCampo(wi.type, wi.nomecampo))
+             .append(" IN (").append(StringOper.join(sVals.iterator(), ',')).append("))");
       }
       else if(wi.val != null)
-        whre += " AND (" + adjCampo(wi.type, wi.nomecampo) + " " + wi.criteria + " " + adjValue(wi.type, wi.val) + ")";
+        whre.append(" AND (").append(adjCampo(wi.type, wi.nomecampo)).append(" ").append(wi.criteria).append(" ").append(adjValue(wi.type, wi.val)).append(")");
     }
 
-    Enumeration enum2 = fd.vBetween.elements();
-    while(enum2.hasMoreElements())
+    for(FiltroData.betweenInfo bi : fd.vBetween)
     {
-      FiltroData.betweenInfo bi = (FiltroData.betweenInfo) enum2.nextElement();
-
       String nomeCampo = adjCampo(bi.type, bi.nomecampo);
       String valMin = adjValue(bi.type, bi.val1);
       String valMax = adjValue(bi.type, bi.val2);
 
-      whre += " AND " + "((" + nomeCampo + " >= " + valMin + ") AND (" + nomeCampo + " <= " + valMax + "))";
+      whre.append(" AND ((").append(nomeCampo).append(" >= ").append(valMin).append(") AND (").append(nomeCampo).append(" <= ").append(valMax).append("))");
+    }
+
+    for(String stm : fd.vFreeWhere)
+    {
+      whre.append(" AND (").append(stm).append(")");
     }
 
     return whre.length() == 0 ? null : whre.substring(5);
@@ -412,11 +406,8 @@ abstract public class QueryBuilder implements Closeable
   {
     String orby = null;
 
-    Enumeration enum1 = fd.vOrderby.elements();
-    while(enum1.hasMoreElements())
+    for(FiltroData.orderbyInfo oi : fd.vOrderby)
     {
-      FiltroData.orderbyInfo oi = (FiltroData.orderbyInfo) enum1.nextElement();
-
       String ob = oi.nomecampo + " " + oi.dir;
 
       if(orby == null)

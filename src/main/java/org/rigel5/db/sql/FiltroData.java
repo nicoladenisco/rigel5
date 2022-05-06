@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -38,7 +38,7 @@ public class FiltroData
     public Object val;
   }
 
-  public Vector vUpdate = new Vector(10, 10);
+  public final ArrayList<updateInfo> vUpdate = new ArrayList<>();
 
   public void addUpdate(int type, String nomecampo, Object val)
   {
@@ -64,7 +64,7 @@ public class FiltroData
     addUpdate(cd, val);
   }
 
-  public Vector vSelect = new Vector(10, 10);
+  public final ArrayList<String> vSelect = new ArrayList<>();
 
   public void addSelect(String nomecampo)
   {
@@ -84,7 +84,7 @@ public class FiltroData
     public Object val;
   }
 
-  public Vector vWhere = new Vector(10, 10);
+  public final ArrayList<whereInfo> vWhere = new ArrayList<>();
 
   public void addWhere(int type, String nomecampo, SqlEnum criteria, Object val)
   {
@@ -109,7 +109,7 @@ public class FiltroData
     public Object val2;
   }
 
-  public Vector vBetween = new Vector(10, 10);
+  public final ArrayList<betweenInfo> vBetween = new ArrayList<>();
 
   public void addBetween(int type, String nomecampo, Object val1, Object val2)
   {
@@ -132,7 +132,7 @@ public class FiltroData
     public String dir;
   }
 
-  public Vector vOrderby = new Vector(10, 10);
+  public final ArrayList<orderbyInfo> vOrderby = new ArrayList<>();
 
   public void addOrderby(String nomecampo, String dir)
   {
@@ -149,11 +149,33 @@ public class FiltroData
 
   public boolean haveWhere()
   {
-    return !vWhere.isEmpty() || !vBetween.isEmpty();
+    return !vWhere.isEmpty() || !vBetween.isEmpty() || !vFreeWhere.isEmpty();
   }
 
   public boolean haveOrderby()
   {
     return !vOrderby.isEmpty();
+  }
+
+  public boolean haveUpdate()
+  {
+    return !vUpdate.isEmpty();
+  }
+
+  public boolean haveSelect()
+  {
+    return !vSelect.isEmpty();
+  }
+
+  public boolean isEmpty()
+  {
+    return !(haveSelect() || haveUpdate() || haveWhere() || haveOrderby());
+  }
+
+  public final ArrayList<String> vFreeWhere = new ArrayList<>();
+
+  public void addFreeWhere(String wherePart)
+  {
+    vFreeWhere.add(wherePart);
   }
 }
