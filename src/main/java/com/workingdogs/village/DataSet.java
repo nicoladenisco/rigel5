@@ -823,7 +823,6 @@ public abstract class DataSet implements Closeable
     if(primaryKeys.isEmpty())
       return null;
 
-    primaryKeys.sort((c1, c2) -> c1.getPrimaryIndex() - c2.getPrimaryIndex());
     KeyDef rv = new KeyDef();
     primaryKeys.forEach((c) -> rv.addAttrib(c.name()));
     return rv;
@@ -843,6 +842,10 @@ public abstract class DataSet implements Closeable
       if(col.isPrimaryKey())
         primaryKeys.add(col);
     }
+
+    if(primaryKeys.size() > 1)
+      primaryKeys.sort((c1, c2) -> c1.getPrimaryIndex() - c2.getPrimaryIndex());
+
     return primaryKeys;
   }
 
