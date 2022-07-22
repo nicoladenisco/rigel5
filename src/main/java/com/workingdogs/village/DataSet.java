@@ -331,7 +331,12 @@ public abstract class DataSet implements Closeable
    */
   public DataSet releaseRecords()
   {
-    records = null;
+    if(records != null)
+    {
+      records.clear();
+      records = null;
+    }
+
     recordRetrievedCount = 0;
     lastFetchSize = 0;
     setAllRecordsRetrieved(false);

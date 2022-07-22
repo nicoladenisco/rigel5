@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import org.commonlib5.lambda.ConsumerThrowException;
+import org.rigel5.db.DbUtils;
 
 /**
  * This class is used for doing select/insert/delete/update on the database. A TableDataSet cannot be used to join
@@ -628,5 +629,20 @@ public class TableDataSet
     }
 
     return "SELECT " + iss1.toString() + " FROM " + schema.tableName() + " WHERE " + iss2.toString();
+  }
+
+  public long getNextID()
+     throws Exception
+  {
+    KeyDef keydef = keydef();
+
+    if(keydef == null)
+      throw new Exception("Missing KeyDef for this table.");
+
+    if(keydef.size() != 1)
+      throw new Exception("KeyDef must have one and only one column.");
+
+    String campo = keydef.getAttrib(0);
+    return DbUtils.getMaxField(schema().tableName(), campo, null, conn) + 1;
   }
 }
