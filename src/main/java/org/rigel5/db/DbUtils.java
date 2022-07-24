@@ -360,7 +360,7 @@ public class DbUtils
    */
   public static List<ObjectKey> convertIntegerKeys(int[] pks)
   {
-    ArrayList<ObjectKey> lsPks = new ArrayList<ObjectKey>();
+    ArrayList<ObjectKey> lsPks = new ArrayList<>();
     for(int pk : pks)
       lsPks.add(SimpleKey.keyFor(pk));
     return lsPks;
@@ -374,7 +374,7 @@ public class DbUtils
    */
   public static List<ObjectKey> convertIntegerKeys(Collection<Integer> pks)
   {
-    ArrayList<ObjectKey> lsPks = new ArrayList<ObjectKey>();
+    ArrayList<ObjectKey> lsPks = new ArrayList<>();
     pks.forEach((idDoc) -> lsPks.add(SimpleKey.keyFor(idDoc)));
     return lsPks;
   }
@@ -387,7 +387,7 @@ public class DbUtils
    */
   public static List<ObjectKey> convertStringKeys(Collection<String> pks)
   {
-    ArrayList<ObjectKey> lsPks = new ArrayList<ObjectKey>();
+    ArrayList<ObjectKey> lsPks = new ArrayList<>();
     pks.forEach((idDoc) -> lsPks.add(SimpleKey.keyFor(idDoc)));
     return lsPks;
   }
@@ -400,7 +400,7 @@ public class DbUtils
    */
   public static List<ObjectKey> convertStringKeysApici(Collection<String> pks)
   {
-    ArrayList<ObjectKey> lsPks = new ArrayList<ObjectKey>();
+    ArrayList<ObjectKey> lsPks = new ArrayList<>();
     pks.forEach((idDoc) -> lsPks.add(SimpleKey.keyFor("'" + idDoc + "'")));
     return lsPks;
   }
@@ -512,7 +512,7 @@ public class DbUtils
    */
   public static List<ObjectKey> convertBaseObjectKeys(Collection<Persistent> objs)
   {
-    ArrayList<ObjectKey> lsPks = new ArrayList<ObjectKey>();
+    ArrayList<ObjectKey> lsPks = new ArrayList<>();
     objs.forEach((o) -> lsPks.add(o.getPrimaryKey()));
     return lsPks;
   }
@@ -654,7 +654,7 @@ public class DbUtils
   public static boolean existTableExact(Connection con, String nomeTabella)
      throws Exception
   {
-    try (ResultSet rs = con.getMetaData().getTables(null, null, null, TABLES_FILTER))
+    try ( ResultSet rs = con.getMetaData().getTables(null, null, null, TABLES_FILTER))
     {
       while(rs.next())
       {
@@ -687,7 +687,7 @@ public class DbUtils
      String nomeSchema, String nomeTabella, String nomeColonna)
      throws SQLException
   {
-    try (ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
+    try ( ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
     {
       while(rs.next())
       {
@@ -705,7 +705,7 @@ public class DbUtils
   {
     ArrayMap<String, Integer> rv = new ArrayMap<>();
 
-    try (ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
+    try ( ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
     {
       while(rs.next())
       {
@@ -792,7 +792,7 @@ public class DbUtils
   public static Schema schemaQuery(Connection con, String sSQL)
      throws Exception
   {
-    try (QueryDataSet qds = new QueryDataSet(con, sSQL))
+    try ( QueryDataSet qds = new QueryDataSet(con, sSQL))
     {
       return qds.schema();
     }
@@ -801,7 +801,7 @@ public class DbUtils
   public static Schema schemaTable(Connection con, String nomeTabella)
      throws Exception
   {
-    try (TableDataSet tds = new TableDataSet(con, nomeTabella))
+    try ( TableDataSet tds = new TableDataSet(con, nomeTabella))
     {
       return tds.schema();
     }
@@ -955,7 +955,7 @@ public class DbUtils
   {
     ArrayMap<String, Integer> rv = new ArrayMap<>();
 
-    try (ResultSet rs = con.getMetaData().getPrimaryKeys(con.getCatalog(), nomeSchema, nomeTabella))
+    try ( ResultSet rs = con.getMetaData().getPrimaryKeys(con.getCatalog(), nomeSchema, nomeTabella))
     {
       while(rs.next())
       {
@@ -1237,8 +1237,8 @@ public class DbUtils
       throw new TorqueException("connection is null");
     }
 
-    List<String> columnNames = new ArrayList<String>();
-    List<JdbcTypedValue> replacementObjects = new ArrayList<JdbcTypedValue>();
+    List<String> columnNames = new ArrayList<>();
+    List<JdbcTypedValue> replacementObjects = new ArrayList<>();
     for(Map.Entry<org.apache.torque.Column, JdbcTypedValue> columnValue : insertValues.entrySet())
     {
       org.apache.torque.Column column = columnValue.getKey();
@@ -1261,7 +1261,7 @@ public class DbUtils
     }
     query.append(")");
 
-    try (PreparedStatement ps = connection.prepareStatement(query.toString()))
+    try ( PreparedStatement ps = connection.prepareStatement(query.toString()))
     {
       populatePreparedStatement(replacementObjects, ps, 1);
 
@@ -1301,7 +1301,7 @@ public class DbUtils
     query.setType(Query.Type.UPDATE);
     query.getSelectClause().clear();
 
-    List<JdbcTypedValue> replacementObjects = new ArrayList<JdbcTypedValue>();
+    List<JdbcTypedValue> replacementObjects = new ArrayList<>();
     for(Map.Entry<org.apache.torque.Column, JdbcTypedValue> updateValue : updateValues.entrySet())
     {
       org.apache.torque.Column column = updateValue.getKey();
@@ -1309,7 +1309,7 @@ public class DbUtils
       replacementObjects.add(updateValue.getValue());
     }
 
-    try (PreparedStatement ps = connection.prepareStatement(query.toString()))
+    try ( PreparedStatement ps = connection.prepareStatement(query.toString()))
     {
       int position = populatePreparedStatement(replacementObjects, ps, 1);
 
@@ -1407,7 +1407,7 @@ public class DbUtils
 
           if(!sSQL.isEmpty())
           {
-            try (PreparedStatement ps = con.prepareStatement(sSQL))
+            try ( PreparedStatement ps = con.prepareStatement(sSQL))
             {
               count += ps.executeUpdate();
             }
@@ -1443,7 +1443,7 @@ public class DbUtils
       StringBuilder sb1 = new StringBuilder(1024);
       StringBuilder sb2 = new StringBuilder(1024);
 
-      try (ResultSet rs = con.getMetaData().getColumns(conp.getCatalog(), nomeSchemap, nomeTabellap, null))
+      try ( ResultSet rs = con.getMetaData().getColumns(conp.getCatalog(), nomeSchemap, nomeTabellap, null))
       {
         for(int i = 0; rs.next(); i++)
         {
