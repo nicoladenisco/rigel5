@@ -23,6 +23,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import org.commonlib5.lambda.ConsumerThrowException;
 import org.rigel5.db.DbUtils;
@@ -644,5 +645,22 @@ public class TableDataSet
 
     String campo = keydef.getAttrib(0);
     return DbUtils.getMaxField(schema().tableName(), campo, null, conn) + 1;
+  }
+
+  public static Record fetchOneRecord(String tableName, String where, Connection con)
+     throws Exception
+  {
+    TableDataSet tds = new TableDataSet(con, tableName);
+    tds.where(where);
+    tds.fetchRecords(1);
+    return tds.lastFetchSize() == 1 ? tds.getRecord(0) : null;
+  }
+
+  public static List<Record> fetchAllRecords(String tableName, String where, Connection con)
+     throws Exception
+  {
+    TableDataSet tds = new TableDataSet(con, tableName);
+    tds.where(where);
+    return tds.fetchAllRecords();
   }
 }
