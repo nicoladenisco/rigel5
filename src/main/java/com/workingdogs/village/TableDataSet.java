@@ -650,17 +650,21 @@ public class TableDataSet
   public static Record fetchOneRecord(String tableName, String where, Connection con)
      throws Exception
   {
-    TableDataSet tds = new TableDataSet(con, tableName);
-    tds.where(where);
-    tds.fetchRecords(1);
-    return tds.lastFetchSize() == 1 ? tds.getRecord(0) : null;
+    try ( TableDataSet tds = new TableDataSet(con, tableName))
+    {
+      tds.where(where);
+      tds.fetchRecords(1);
+      return tds.lastFetchSize() == 1 ? tds.getRecord(0) : null;
+    }
   }
 
   public static List<Record> fetchAllRecords(String tableName, String where, Connection con)
      throws Exception
   {
-    TableDataSet tds = new TableDataSet(con, tableName);
-    tds.where(where);
-    return tds.fetchAllRecords();
+    try ( TableDataSet tds = new TableDataSet(con, tableName))
+    {
+      tds.where(where);
+      return tds.fetchAllRecords();
+    }
   }
 }
