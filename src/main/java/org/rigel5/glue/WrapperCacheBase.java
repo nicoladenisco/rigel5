@@ -26,6 +26,7 @@ import org.rigel5.RigelI18nInterface;
 import org.rigel5.RigelXmlSetupInterface;
 import org.rigel5.db.sql.QueryBuilder;
 import org.rigel5.exceptions.MissingListException;
+import org.rigel5.exceptions.MissingSectionException;
 import org.rigel5.glue.pager.PeerPagerAppMaint;
 import org.rigel5.glue.pager.PeerTablePagerEditApp;
 import org.rigel5.glue.pager.SqlPagerAppMaint;
@@ -698,7 +699,7 @@ abstract public class WrapperCacheBase
       if((objCache = getListaPeer(type)) != null)
         return objCache;
     }
-    catch(MissingListException e)
+    catch(MissingListException | MissingSectionException e)
     {
     }
 
@@ -708,7 +709,7 @@ abstract public class WrapperCacheBase
       if((objCache = getListaSql(type)) != null)
         return objCache;
     }
-    catch(MissingListException e)
+    catch(MissingListException | MissingSectionException e)
     {
     }
 
@@ -718,7 +719,7 @@ abstract public class WrapperCacheBase
       if((objCache = getListaTmap(type)) != null)
         return objCache;
     }
-    catch(MissingListException e)
+    catch(MissingListException | MissingSectionException e)
     {
     }
 

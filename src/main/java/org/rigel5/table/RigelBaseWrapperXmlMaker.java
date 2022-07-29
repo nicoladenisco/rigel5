@@ -51,6 +51,7 @@ import org.rigel5.table.html.wrapper.*;
 public class RigelBaseWrapperXmlMaker
 {
   protected Document doc = null;
+
   public static final String XML_LISTE_PEER = "liste";
   public static final String XML_EDIT_PEER = "listeEdit";
   public static final String XML_FORMS_PEER = "forms";
