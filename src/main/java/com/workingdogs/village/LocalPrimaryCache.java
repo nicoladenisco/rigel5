@@ -25,6 +25,8 @@ import java.util.Map;
 import org.commonlib5.utils.StringOper;
 
 /**
+ * Cache delle chiavi primarie.
+ * Viene utilizzata in Schema per stabilire se una colonna è chiave primaria.
  *
  * @author Nicola De Nisco
  */
@@ -50,7 +52,7 @@ public class LocalPrimaryCache
     if(tablepks == null)
     {
       tablepks = new HashMap<>();
-      try (ResultSet dbPrimary = dbMeta.getPrimaryKeys(catalog, metaSchemaName, metaTableName))
+      try ( ResultSet dbPrimary = dbMeta.getPrimaryKeys(catalog, metaSchemaName, metaTableName))
       {
         while(dbPrimary.next())
         {

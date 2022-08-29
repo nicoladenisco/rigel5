@@ -839,19 +839,7 @@ public abstract class DataSet implements Closeable
    */
   public List<Column> getPrimaryKeys()
   {
-    ArrayList<Column> primaryKeys = new ArrayList<>();
-    Column[] cols = schema.getColumns();
-    for(int i = 1; i < cols.length; i++)
-    {
-      Column col = cols[i];
-      if(col.isPrimaryKey())
-        primaryKeys.add(col);
-    }
-
-    if(primaryKeys.size() > 1)
-      primaryKeys.sort((c1, c2) -> c1.getPrimaryIndex() - c2.getPrimaryIndex());
-
-    return primaryKeys;
+    return schema.getPrimaryKeys();
   }
 
   /**

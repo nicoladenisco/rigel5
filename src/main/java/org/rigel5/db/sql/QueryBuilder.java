@@ -67,7 +67,7 @@ abstract public class QueryBuilder implements Closeable
   /** Logging */
   private static final Log log = LogFactory.getLog(QueryBuilder.class);
   public final static int MAX_RECORDS = 500;
-  protected String select;
+  protected String select = "*";
   protected String from;
   protected String where;
   protected String orderby;
@@ -478,7 +478,7 @@ abstract public class QueryBuilder implements Closeable
 
     long rv = -1;
     String sSQL = getTotalRecordsQueryAddFilter((FiltroData) (fl.getOggFiltro()));
-    try (Statement st = con.createStatement(); ResultSet rs = st.executeQuery(sSQL))
+    try ( Statement st = con.createStatement();  ResultSet rs = st.executeQuery(sSQL))
     {
       if(rs.next())
         rv = rs.getLong(1);
@@ -500,7 +500,7 @@ abstract public class QueryBuilder implements Closeable
   {
     long rv = -1;
     String sSQL = getTotalRecordsQueryAddFilter(null);
-    try (Statement st = con.createStatement(); ResultSet rs = st.executeQuery(sSQL))
+    try ( Statement st = con.createStatement();  ResultSet rs = st.executeQuery(sSQL))
     {
       if(rs.next())
         rv = rs.getLong(1);
@@ -528,7 +528,7 @@ abstract public class QueryBuilder implements Closeable
       return rv;
 
     long count;
-    try (Statement st = con.createStatement(); ResultSet rs = st.executeQuery(sSQL))
+    try ( Statement st = con.createStatement();  ResultSet rs = st.executeQuery(sSQL))
     {
       count = rs.next() ? rs.getLong(1) : 0;
     }
@@ -612,7 +612,7 @@ abstract public class QueryBuilder implements Closeable
       return rv;
 
     rv = new ArrayList<>();
-    try (Statement st = con.createStatement(); ResultSet rs = st.executeQuery(sSQL))
+    try ( Statement st = con.createStatement();  ResultSet rs = st.executeQuery(sSQL))
     {
       int numCol = rs.getMetaData().getColumnCount();
       ForeignDataHolder zero = null;
@@ -817,7 +817,7 @@ abstract public class QueryBuilder implements Closeable
       return rv;
 
     rv = new ArrayList<>();
-    try (Statement st = con.createStatement(); ResultSet rs = st.executeQuery(sSQL))
+    try ( Statement st = con.createStatement();  ResultSet rs = st.executeQuery(sSQL))
     {
       int numCol = rs.getMetaData().getColumnCount();
       ForeignDataHolder zero = null;
@@ -955,7 +955,7 @@ abstract public class QueryBuilder implements Closeable
       return rv;
 
     rv = new ArrayList<>();
-    try (Statement st = con.createStatement(); ResultSet rs = st.executeQuery(sSQL))
+    try ( Statement st = con.createStatement();  ResultSet rs = st.executeQuery(sSQL))
     {
       while(rs.next())
       {
@@ -1094,7 +1094,7 @@ abstract public class QueryBuilder implements Closeable
       nomeTabella = nomeTabella.substring(pos + 1);
     }
 
-    try (ResultSet rSet = con.getMetaData().getTables(con.getCatalog(), null, null, TABLES_FILTER))
+    try ( ResultSet rSet = con.getMetaData().getTables(con.getCatalog(), null, null, TABLES_FILTER))
     {
       while(rSet.next())
       {
@@ -1142,7 +1142,7 @@ abstract public class QueryBuilder implements Closeable
   {
     DatabaseMetaData databaseMetaData = con.getMetaData();
     ArrayList<String> viewNames = new ArrayList<String>();
-    try (ResultSet rSet = databaseMetaData.getTables(con.getCatalog(), null, null, VIEWS_FILTER))
+    try ( ResultSet rSet = databaseMetaData.getTables(con.getCatalog(), null, null, VIEWS_FILTER))
     {
       while(rSet.next())
       {
@@ -1172,7 +1172,7 @@ abstract public class QueryBuilder implements Closeable
   {
     DatabaseMetaData databaseMetaData = con.getMetaData();
     ArrayList<String> tableNames = new ArrayList<String>();
-    try (ResultSet rSet = databaseMetaData.getTables(con.getCatalog(), null, null, TABLES_FILTER))
+    try ( ResultSet rSet = databaseMetaData.getTables(con.getCatalog(), null, null, TABLES_FILTER))
     {
       while(rSet.next())
       {

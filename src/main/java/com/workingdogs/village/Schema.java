@@ -91,7 +91,7 @@ public final class Schema
   {
     DatabaseMetaData databaseMetaData = conn.getMetaData();
     String connURL = databaseMetaData.getURL();
-    try (ResultSet allCol = databaseMetaData.getColumns(conn.getCatalog(), null, null, null))
+    try ( ResultSet allCol = databaseMetaData.getColumns(conn.getCatalog(), null, null, null))
     {
       while(true)
       {
@@ -129,7 +129,7 @@ public final class Schema
    * @exception SQLException
    * @exception DataSetException
    */
-  public Schema schema(Connection conn, String tableName)
+  public static Schema schema(Connection conn, String tableName)
      throws SQLException, DataSetException
   {
     return schema(conn, tableName, "*");
@@ -147,7 +147,7 @@ public final class Schema
    * @exception SQLException
    * @exception DataSetException
    */
-  public Schema schema(Connection conn, String tableName, String columnsAttribute)
+  public static Schema schema(Connection conn, String tableName, String columnsAttribute)
      throws SQLException, DataSetException
   {
     if(columnsAttribute == null)
@@ -167,12 +167,12 @@ public final class Schema
       {
         String sql = "SELECT " + columnsAttribute + " FROM " + tableName + " WHERE 1 = -1";
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql))
+        try ( PreparedStatement stmt = conn.prepareStatement(sql))
         {
           if(stmt != null)
           {
             stmt.executeQuery();
-            tableSchema = this;
+            tableSchema = new Schema();
             tableSchema.setTableName(tableName);
             tableSchema.setAttributes(columnsAttribute);
             tableSchema.populate(stmt.getMetaData(), tableName, conn);
@@ -766,5 +766,29 @@ public final class Schema
     throw new DataSetException(String.format(
        "Field %s not found.",
        nomeColonna));
+  }
+
+  /**
+   * Return the primary keys in this schema.
+   * @return primary keys
+   */
+  public List<Column> getPrimaryKeys()
+  {
+    ArrayList<Column> primaryKeys = new ArrayList<>();
+
+    if(columns != null && columns.length > 1)
+    {
+      for(int i = 1; i < columns.length; i++)
+      {
+        Column col = columns[i];
+        if(col.isPrimaryKey())
+          primaryKeys.add(col);
+      }
+
+      if(primaryKeys.size() > 1)
+        primaryKeys.sort((c1, c2) -> c1.getPrimaryIndex() - c2.getPrimaryIndex());
+    }
+
+    return primaryKeys;
   }
 }
