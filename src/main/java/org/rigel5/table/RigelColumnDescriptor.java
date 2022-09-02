@@ -29,6 +29,7 @@ import org.commonlib5.utils.StringOper;
 import org.rigel5.HtmlUtils;
 import org.rigel5.RigelI18nInterface;
 import org.rigel5.SetupHolder;
+import org.rigel5.SqlUtils;
 import org.rigel5.exceptions.InvalidForeignModeException;
 import org.rigel5.table.html.wrapper.CustomButtonInfo;
 
@@ -730,6 +731,12 @@ abstract public class RigelColumnDescriptor extends TableColumn
           return invalid ? new NumberKey() : new NumberKey(value);
         case PDT_STRING:
         case PDT_FILE:
+          // test per prevenzione SQL injection
+          if(SqlUtils.checkForSqlInjection(value))
+          {
+            log.debug("[RigelColumnDescriptor.parseValue]; detect SQL Injection; value=" + value);
+            return null;
+          }
           return invalid ? "" : value;
       }
       return value;

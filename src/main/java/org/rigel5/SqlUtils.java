@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -18,7 +18,9 @@
 package org.rigel5;
 
 import java.sql.Statement;
+import java.util.regex.Pattern;
 import org.apache.torque.criteria.SqlEnum;
+import org.commonlib5.utils.StringOper;
 
 /**
  * Funzioni di utilità per SQL.
@@ -39,7 +41,7 @@ public class SqlUtils
   {
     return SetupHolder.getConProd().functionConnection((con) ->
     {
-      try (Statement stm = con.createStatement())
+      try ( Statement stm = con.createStatement())
       {
         return stm.executeUpdate(sSQL);
       }
@@ -211,5 +213,26 @@ public class SqlUtils
     }
 
     return null;
+  }
+
+  public static final Pattern p1 = Pattern.compile("SELECT.+FROM.+");
+  public static final Pattern p2 = Pattern.compile("UPDATE.+SET.+");
+  public static final Pattern p3 = Pattern.compile("DELETE.+FROM.+");
+  public static final Pattern p4 = Pattern.compile("UNION.+\\(");
+
+  public static boolean checkForSqlInjection(String val)
+  {
+    String test = StringOper.okStr(val).toUpperCase();
+
+    if(p1.matcher(test).find())
+      return true;
+    if(p2.matcher(test).find())
+      return true;
+    if(p3.matcher(test).find())
+      return true;
+    if(p4.matcher(test).find())
+      return true;
+
+    return false;
   }
 }

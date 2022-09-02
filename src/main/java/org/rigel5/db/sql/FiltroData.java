@@ -19,6 +19,7 @@ package org.rigel5.db.sql;
 
 import java.util.*;
 import org.apache.torque.criteria.SqlEnum;
+import org.commonlib5.utils.StringOper;
 import org.rigel5.table.RigelColumnDescriptor;
 
 /**
@@ -98,7 +99,11 @@ public class FiltroData
 
   public void addWhere(RigelColumnDescriptor cd, SqlEnum criteria, Object val)
   {
-    addWhere(cd.getDataType(), cd.getName(), criteria, val);
+    String sVal = StringOper.okStrNull(val);
+    if(sVal == null)
+      throw new RuntimeException("Where component can not be empty.");
+
+    addWhere(cd.getDataType(), cd.getName(), criteria, cd.parseValue(sVal));
   }
 
   public static class betweenInfo
