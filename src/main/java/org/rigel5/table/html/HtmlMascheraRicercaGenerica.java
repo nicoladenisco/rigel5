@@ -24,6 +24,8 @@ import org.commonlib5.utils.StringOper;
 import org.rigel5.HtmlUtils;
 import org.rigel5.RigelI18nInterface;
 import org.rigel5.SetupHolder;
+import org.rigel5.SqlUtils;
+import org.rigel5.exceptions.InjectionDetectedException;
 import org.rigel5.table.BuilderRicercaGenerica;
 import org.rigel5.table.MascheraRicercaGenerica;
 import org.rigel5.table.RigelColumnDescriptor;
@@ -179,6 +181,11 @@ public class HtmlMascheraRicercaGenerica implements MascheraRicercaGenerica
       int idx = StringOper.parse(params.get("OP" + fieldName), 0);
       String val = StringOper.okStrNull(params.get("VL" + fieldName));
       String vaf = StringOper.okStrNull(params.get("VF" + fieldName));
+
+      if(HtmlUtils.checkForJavascriptInjection(val) || SqlUtils.checkForSqlInjection(val))
+        throw new InjectionDetectedException();
+      if(HtmlUtils.checkForJavascriptInjection(vaf) || SqlUtils.checkForSqlInjection(vaf))
+        throw new InjectionDetectedException();
 
       cd.setFiltroTipo(0); // non significativo
 

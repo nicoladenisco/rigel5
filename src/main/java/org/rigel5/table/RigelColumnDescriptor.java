@@ -737,6 +737,11 @@ abstract public class RigelColumnDescriptor extends TableColumn
             log.debug("[RigelColumnDescriptor.parseValue]; detect SQL Injection; value=" + value);
             return null;
           }
+          if(HtmlUtils.checkForJavascriptInjection(value))
+          {
+            log.debug("[RigelColumnDescriptor.parseValue]; detect Javascript Injection; value=" + value);
+            return null;
+          }
           return invalid ? "" : value;
       }
       return value;

@@ -22,6 +22,7 @@ import java.net.URLEncoder;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.commonlib5.utils.StringOper;
 
@@ -419,5 +420,17 @@ public class HtmlUtils
   public static String aggiustaDescrizione(String descrizione)
   {
     return StringUtils.abbreviate(StringOper.okStr(descrizione, "&nbsp;"), SetupHolder.getComboDescLimit());
+  }
+
+  public static final Pattern p1 = Pattern.compile("\\<.*SCRIPT.*\\>");
+
+  public static boolean checkForJavascriptInjection(String val)
+  {
+    String test = StringOper.okStr(val).toUpperCase();
+
+    if(p1.matcher(test).find())
+      return true;
+
+    return false;
   }
 }
