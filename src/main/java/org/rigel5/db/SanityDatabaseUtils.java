@@ -37,23 +37,13 @@ import org.apache.commons.logging.LogFactory;
 public class SanityDatabaseUtils
 {
   private Log log = LogFactory.getLog(SanityDatabaseUtils.class);
-  //
-  // tabelle da non inserire in ID_TABLE (solo MAIUSCOLO per confronto case insensitive)
-  public static final String[] skipTableIdTable =
-  {
-    "ID_TABLE"
-  };
-  //
-  // tabelle in cui non va inserito il record 0  (solo MAIUSCOLO per confronto case insensitive)
-  public static final String[] skipTableInsZero =
-  {
-    "TURBINE_SCHEDULED_JOB", "ID_TABLE"
-  };
-  //
-  public static final String NESSUNO_INDEFINITO = "'Nessuno/indefinito'";
-  //
+
+  protected final HashSet<String> skipTableIdTable = new HashSet<>();
+  protected final HashSet<String> skipTableInsZero = new HashSet<>();
   protected Date today = new Date();
   protected Timestamp todayts = new Timestamp(today.getTime());
+
+  public static final String NESSUNO_INDEFINITO = "Nessuno/indefinito";
 
   // alcuni database (ORACLE) hanno bisogno di convertire i nomi tabella in maiuscolo
   protected boolean needUppercase = false;
@@ -62,13 +52,30 @@ public class SanityDatabaseUtils
 
   public SanityDatabaseUtils()
   {
+    // tabelle da non inserire in ID_TABLE (solo MAIUSCOLO per confronto case insensitive)
+    skipTableIdTable.add("ID_TABLE");
+
+    // tabelle in cui non va inserito il record 0  (solo MAIUSCOLO per confronto case insensitive)
+    skipTableInsZero.add("TURBINE_SCHEDULED_JOB");
+    skipTableInsZero.add("ID_TABLE");
   }
 
   public SanityDatabaseUtils(boolean needUppercase, boolean verbose, boolean disableForeign)
   {
+    this();
     this.needUppercase = needUppercase;
     this.verbose = verbose;
     this.disableForeign = disableForeign;
+  }
+
+  public void addSkipTableInsZero(String tableName)
+  {
+    skipTableInsZero.add(tableName);
+  }
+
+  public void addSkipTableIdTable(String tableName)
+  {
+    skipTableIdTable.add(tableName);
   }
 
   public Date getToday()
@@ -117,7 +124,7 @@ public class SanityDatabaseUtils
     List<String> tables = DbUtils.getAllTables(con);
 
     // elenco di tabelle da ignorare
-    HashSet<String> skipSet = new HashSet<>(Arrays.asList(skipTableInsZero));
+    HashSet<String> skipSet = new HashSet<>(skipTableInsZero);
     HashMap<String, SQLException> errorsMap = new HashMap<>();
 
     int num;
@@ -145,7 +152,7 @@ public class SanityDatabaseUtils
             out.write(sSQL + "\n");
 
           String fatto = "OK!!";
-          try (Statement st = con.createStatement())
+          try ( Statement st = con.createStatement())
           {
             st.executeUpdate(sSQL);
             skipSet.add(table);
@@ -201,10 +208,10 @@ public class SanityDatabaseUtils
       nomeTabella = nomeTabella.toUpperCase();
     }
 
-    int nsize = NESSUNO_INDEFINITO.length() - 2;
+    int nsize = NESSUNO_INDEFINITO.length();
     StringBuilder sb1 = new StringBuilder(1024);
     StringBuilder sb2 = new StringBuilder(1024);
-    try (ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
+    try ( ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
     {
       for(int i = 0; rs.next(); i++)
       {
@@ -254,7 +261,7 @@ public class SanityDatabaseUtils
             if(tn == ResultSetMetaData.columnNoNulls)
             {
               if(size > nsize)
-                sb2.append(NESSUNO_INDEFINITO);
+                sb2.append("'").append(NESSUNO_INDEFINITO).append("'");
               else
                 sb2.append("'0'");
             }
@@ -300,7 +307,7 @@ public class SanityDatabaseUtils
     }
 
     out.write(String.format("\n\n=== ESEGUO %s ===\n", toRun.getAbsolutePath()));
-    try (InputStream is = new FileInputStream(toRun))
+    try ( InputStream is = new FileInputStream(toRun))
     {
       BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
 
@@ -321,7 +328,7 @@ public class SanityDatabaseUtils
           if(verbose)
             out.write(sSQL + "\n");
 
-          try (Statement st = con.createStatement())
+          try ( Statement st = con.createStatement())
           {
             st.executeUpdate(sSQL);
           }

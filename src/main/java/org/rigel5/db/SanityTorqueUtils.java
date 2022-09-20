@@ -80,8 +80,8 @@ public class SanityTorqueUtils extends SanityDatabaseUtils
     }
 
     // marca quelle che sono da ignorare comunque
-    for(int i = 0; i < skipTableIdTable.length; i++)
-      htTables.put(skipTableIdTable[i].toUpperCase(), "I");
+    for(String tname : skipTableIdTable)
+      htTables.put(tname.toUpperCase(), "I");
 
     // aggiunge le tabelle mancanti
     TableMap[] arMaps = dbMap.getTables();
@@ -228,7 +228,7 @@ public class SanityTorqueUtils extends SanityDatabaseUtils
     stkTableNames.clear();
 
     // marca quelle che sono da ignorare comunque
-    htTableNames.addAll(Arrays.asList(skipTableInsZero));
+    htTableNames.addAll(skipTableInsZero);
 
     Connection con = Torque.getConnection();
     try
