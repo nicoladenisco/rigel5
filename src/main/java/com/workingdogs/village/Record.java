@@ -195,6 +195,15 @@ public class Record
     {
       returnValue = saveWithDelete(connection);
     }
+    else
+    {
+      // comportamento di default: se il record è modificato ma non è nuovo cerca di salvarlo con una update
+      if(!recordIsClean() && getSaveType() == Enums.UNKNOWN)
+      {
+        markForUpdate();
+        returnValue = saveWithUpdate(connection);
+      }
+    }
 
     return returnValue;
   }
@@ -212,7 +221,7 @@ public class Record
   public int saveWithDelete(Connection connection)
      throws DataSetException, SQLException
   {
-    try (PreparedStatement stmt = connection.prepareStatement(getSaveString()))
+    try ( PreparedStatement stmt = connection.prepareStatement(getSaveString()))
     {
       int ps = 1;
 
@@ -256,7 +265,7 @@ public class Record
   public int saveWithUpdate(Connection connection)
      throws DataSetException, SQLException
   {
-    try (PreparedStatement stmt = connection.prepareStatement(getSaveString()))
+    try ( PreparedStatement stmt = connection.prepareStatement(getSaveString()))
     {
       int ps = 1;
 
@@ -313,7 +322,7 @@ public class Record
   public int saveWithInsert(Connection connection)
      throws DataSetException, SQLException
   {
-    try (PreparedStatement stmt = connection.prepareStatement(getSaveString()))
+    try ( PreparedStatement stmt = connection.prepareStatement(getSaveString()))
     {
       int ps = 1;
 
@@ -1417,7 +1426,7 @@ public class Record
       throw new DataSetException("You can only perform a refresh on Records created with a TableDataSet.");
     }
 
-    try (PreparedStatement stmt = connection.prepareStatement(getRefreshQueryString()))
+    try ( PreparedStatement stmt = connection.prepareStatement(getRefreshQueryString()))
     {
       int ps = 1;
       for(int i = 1; i <= dataset().keydef().size(); i++)
@@ -1432,7 +1441,7 @@ public class Record
         val.setPreparedStatementValue(stmt, ps++);
       }
 
-      try (ResultSet rs = stmt.executeQuery())
+      try ( ResultSet rs = stmt.executeQuery())
       {
         rs.next();
         initializeRecord();

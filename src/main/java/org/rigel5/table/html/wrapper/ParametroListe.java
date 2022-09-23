@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -18,6 +18,9 @@
 package org.rigel5.table.html.wrapper;
 
 import org.apache.torque.criteria.SqlEnum;
+import org.commonlib5.utils.StringOper;
+import org.rigel5.HtmlUtils;
+import org.rigel5.SqlUtils;
 import org.rigel5.table.RigelColumnDescriptor;
 
 /**
@@ -50,16 +53,26 @@ public class ParametroListe
   {
   }
 
-  public static String adjValue(int tipo, String val)
+  /**
+   * Effettua il parsing della stringa valore nel tipo appropriato.
+   * Questo serve principalmente a prevenire attacchi di sql injection.
+   * @param tipo
+   * @param val
+   * @return
+   */
+  public String adjValue(int tipo, String val)
   {
     String qryVal;
 
     switch(tipo)
     {
-      default:
       case RigelColumnDescriptor.PDT_BOOLEAN:
-        qryVal = val.trim();
+      {
+        qryVal = StringOper.checkTrueFalse(val, false) ? "true" : "false";
         break;
+      }
+
+      default:
       case RigelColumnDescriptor.PDT_DATE:
       case RigelColumnDescriptor.PDT_TIMESTAMP_CMPDATEONLY:
       case RigelColumnDescriptor.PDT_TIMESTAMP_CMPHOURONLY:
@@ -67,19 +80,32 @@ public class ParametroListe
       case RigelColumnDescriptor.PDT_TIMESTAMP_CMPTOMIN:
       case RigelColumnDescriptor.PDT_TIMESTAMP:
       case RigelColumnDescriptor.PDT_TIME:
+      case RigelColumnDescriptor.PDT_STRINGKEY:
+      case RigelColumnDescriptor.PDT_STRING:
+      {
+        if(HtmlUtils.checkForJavascriptInjection(val) || SqlUtils.checkForSqlInjection(val))
+          throw new RuntimeException("illegal value in parameter");
+
         qryVal = "'" + val.trim() + "'";
         break;
+      }
+
       case RigelColumnDescriptor.PDT_INTEGER:
+      case RigelColumnDescriptor.PDT_NUMBERKEY:
+      {
+        int ival = StringOper.parse(val, 0);
+        qryVal = Integer.toString(ival);
+        break;
+      }
+
       case RigelColumnDescriptor.PDT_FLOAT:
       case RigelColumnDescriptor.PDT_DOUBLE:
       case RigelColumnDescriptor.PDT_MONEY:
-      case RigelColumnDescriptor.PDT_NUMBERKEY:
-        qryVal = val.trim();
+      {
+        double dval = StringOper.parse(val, 0.0);
+        qryVal = Double.toString(dval);
         break;
-      case RigelColumnDescriptor.PDT_STRINGKEY:
-      case RigelColumnDescriptor.PDT_STRING:
-        qryVal = "'" + val.trim() + "'";
-        break;
+      }
     }
 
     return qryVal;
