@@ -1524,4 +1524,31 @@ public class DbUtils
       return "INSERT INTO " + nomeTabellap + " (" + sb1.toString() + ") VALUES (" + sb2.toString() + ")";
     });
   }
+
+  public static Record findRecord(Collection<Record> lsRecs, int id, String columnName)
+     throws Exception
+  {
+    for(Record r : lsRecs)
+    {
+      if(id == r.getValue(columnName).asInt())
+        return r;
+    }
+    return null;
+  }
+
+  public static Record findRecord(Collection<Record> lsRecs, String id, String columnName)
+     throws Exception
+  {
+    final String ids = StringOper.okStrNull(id);
+    if(ids == null)
+      return null;
+
+    for(Record r : lsRecs)
+    {
+      if(ids.equals(StringOper.okStr(r.getValue(columnName).asString())))
+        return r;
+    }
+
+    return null;
+  }
 }
