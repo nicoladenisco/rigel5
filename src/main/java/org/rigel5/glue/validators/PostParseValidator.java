@@ -20,7 +20,6 @@ package org.rigel5.glue.validators;
 import java.sql.Connection;
 import java.util.Map;
 import javax.servlet.http.HttpSession;
-import org.apache.torque.om.*;
 import org.jdom2.Element;
 import org.rigel5.RigelI18nInterface;
 import org.rigel5.table.RigelTableModel;
@@ -68,8 +67,8 @@ public interface PostParseValidator
    * @return vero se il contenuto dell'oggetto è valido e si può proseguire con il salvataggio
    * @throws Exception
    */
-  public boolean validate(Persistent obj,
+  public boolean validate(Object obj,
      RigelTableModel tableModel, hEditTable table, int row, HttpSession session, Map param,
-     RigelI18nInterface i18n, Connection dbCon, Object custom)
+     RigelI18nInterface i18n, Connection dbCon, Map custom)
      throws Exception;
 }

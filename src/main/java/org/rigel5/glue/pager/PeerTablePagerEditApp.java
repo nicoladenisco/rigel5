@@ -143,7 +143,7 @@ public class PeerTablePagerEditApp extends AbstractHtmlTablePager
    * @throws Exception
    */
   public void aggiornaDati(HttpSession session, Map param,
-     boolean nuovo, boolean saveDB, Object custom)
+     boolean nuovo, boolean saveDB, Map custom)
      throws Exception
   {
     aggiornaDati(session, param, nuovo, saveDB, custom, mdLinkParams);
@@ -165,7 +165,7 @@ public class PeerTablePagerEditApp extends AbstractHtmlTablePager
    * @throws Exception
    */
   public void aggiornaDati(HttpSession session, Map param,
-     boolean nuovo, boolean saveDB, Object custom, Map linkParams)
+     boolean nuovo, boolean saveDB, Map custom, Map linkParams)
      throws Exception
   {
     PeerTableModel ptm = ((PeerTableModel) (wl.getPtm()));
@@ -226,7 +226,7 @@ public class PeerTablePagerEditApp extends AbstractHtmlTablePager
    * @throws Exception
    */
   protected synchronized void saveData(final HttpSession session,
-     final Map param, final Object custom)
+     final Map param, final Map custom)
      throws Exception
   {
     final PeerTableModel ptm = ((PeerTableModel) (wl.getPtm()));
@@ -281,7 +281,7 @@ public class PeerTablePagerEditApp extends AbstractHtmlTablePager
    */
   protected void saveObject(Connection dbCon, Persistent obj,
      RigelTableModel tableModel, int row,
-     HttpSession session, Map param, Object custom, int statoRec)
+     HttpSession session, Map param, Map custom, int statoRec)
      throws Exception
   {
     if(!Validator.postParseValidate(wl.getEleXml(), obj, tableModel, (hEditTable) wl.getTbl(), row,

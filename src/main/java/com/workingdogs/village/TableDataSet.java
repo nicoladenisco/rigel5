@@ -581,6 +581,50 @@ public class TableDataSet
     return this;
   }
 
+  public DataSet fetchByPrimaryKeysValues(Map<Column, Value> keyValues)
+     throws DataSetException
+  {
+    try
+    {
+      return fetchByPrimaryKeysValues(keyValues, 0, ALL_RECORDS, null);
+    }
+    catch(DataSetException ex)
+    {
+      throw ex;
+    }
+    catch(Exception ex)
+    {
+      throw new DataSetException("Error fetching records.", ex);
+    }
+  }
+
+  public DataSet fetchByPrimaryKeysValues(Map<Column, Value> keyValues,
+     int start, int max, ConsumerThrowException<Record> consumer)
+     throws Exception
+  {
+    clear();
+    String sSQL = buildSelectStringKeydef();
+    PreparedStatement lstm = conn.prepareStatement(sSQL);
+
+    int ps = 1;
+    for(int i = 1; i <= keydef().size(); i++)
+    {
+      String colName = keydef().getAttrib(i);
+      Column col = schema.column(colName);
+      Value val = keyValues.get(col);
+
+      if(val.isNull())
+        throw new DataSetException("Missing primary key value for " + tableName() + "." + colName + ".");
+
+      val.setPreparedStatementValue(lstm, ps++);
+    }
+
+    this.stmt = lstm;
+    this.resultSet = lstm.executeQuery();
+    populateRecords(start, max, consumer);
+    return this;
+  }
+
   protected String buildSelectStringKeydef()
      throws DataSetException
   {

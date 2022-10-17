@@ -23,7 +23,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import org.commonlib5.utils.ArrayMap;
 
 /**
  * A Record represents a row in the database. It contains a collection of <a href="Value.html">Values</A> which are the
@@ -97,12 +100,21 @@ public class Record
    * @throws DataSetException TODO: DOCUMENT ME!
    * @throws SQLException TODO: DOCUMENT ME!
    */
+  @SuppressWarnings("OverridableMethodCallInConstructor")
   public Record(DataSet ds, boolean addRecord)
      throws DataSetException, SQLException
   {
     setParentDataSet(ds);
     initializeRecord();
     createValues(null);
+  }
+
+  public Record(Record origin)
+     throws DataSetException, SQLException
+  {
+    setParentDataSet(origin.dataset());
+    initializeRecord();
+    createValuesClone(origin);
   }
 
   /**
@@ -140,6 +152,25 @@ public class Record
     for(int i = 1; i <= size(); i++)
     {
       Value val = new Value(rs, i, schema().column(i).typeEnum());
+      this.values[i] = val;
+    }
+  }
+
+  /**
+   * Creates the value objects for this Record. It is 1 based
+   *
+   * @param rs TODO: DOCUMENT ME!
+   *
+   * @exception DataSetException
+   * @exception SQLException
+   */
+  private void createValuesClone(Record origin)
+     throws SQLException
+  {
+    for(int i = 1; i <= size(); i++)
+    {
+      Value valOrigin = origin.values[i];
+      Value val = new Value(valOrigin.columnNumber(), valOrigin.type(), valOrigin.getValue());
       this.values[i] = val;
     }
   }
@@ -1632,5 +1663,326 @@ public class Record
     }
 
     return this;
+  }
+
+  /**
+   * sets the value at column name with a BigDecimal
+   *
+   * @param columnName TODO: DOCUMENT ME!
+   * @param value TODO: DOCUMENT ME!
+   *
+   * @return TODO: DOCUMENT ME!
+   *
+   * @throws DataSetException TODO: DOCUMENT ME!
+   */
+  public boolean setValueQuiet(String columnName, BigDecimal value)
+     throws DataSetException
+  {
+    Column c = schema().findInSchemaIgnoreCaseQuiet(columnName);
+    if(c == null)
+      return false;
+
+    setValue(schema().index(c.name()), value);
+    return true;
+  }
+
+  /**
+   * sets the value at column name with a boolean
+   *
+   * @param columnName TODO: DOCUMENT ME!
+   * @param value TODO: DOCUMENT ME!
+   *
+   * @return TODO: DOCUMENT ME!
+   *
+   * @throws DataSetException TODO: DOCUMENT ME!
+   */
+  public boolean setValueQuiet(String columnName, boolean value)
+     throws DataSetException
+  {
+    Column c = schema().findInSchemaIgnoreCaseQuiet(columnName);
+    if(c == null)
+      return false;
+
+    setValue(schema().index(c.name()), value);
+    return true;
+  }
+
+  /**
+   * sets the value at column name with a byte[]
+   *
+   * @param columnName TODO: DOCUMENT ME!
+   * @param value TODO: DOCUMENT ME!
+   *
+   * @return TODO: DOCUMENT ME!
+   *
+   * @throws DataSetException TODO: DOCUMENT ME!
+   */
+  public boolean setValueQuiet(String columnName, byte[] value)
+     throws DataSetException
+  {
+    Column c = schema().findInSchemaIgnoreCaseQuiet(columnName);
+    if(c == null)
+      return false;
+
+    setValue(schema().index(c.name()), value);
+    return true;
+  }
+
+  /**
+   * sets the value at column name with a java.util.Date
+   *
+   * @param columnName TODO: DOCUMENT ME!
+   * @param value TODO: DOCUMENT ME!
+   *
+   * @return TODO: DOCUMENT ME!
+   *
+   * @throws DataSetException TODO: DOCUMENT ME!
+   */
+  public boolean setValueQuiet(String columnName, java.util.Date value)
+     throws DataSetException
+  {
+    Column c = schema().findInSchemaIgnoreCaseQuiet(columnName);
+    if(c == null)
+      return false;
+
+    setValue(schema().index(c.name()), value);
+    return true;
+  }
+
+  /**
+   * sets the value at column name with a java.sql.Date
+   *
+   * @param columnName TODO: DOCUMENT ME!
+   * @param value TODO: DOCUMENT ME!
+   *
+   * @return TODO: DOCUMENT ME!
+   *
+   * @throws DataSetException TODO: DOCUMENT ME!
+   */
+  public boolean setValueQuiet(String columnName, java.sql.Date value)
+     throws DataSetException
+  {
+    Column c = schema().findInSchemaIgnoreCaseQuiet(columnName);
+    if(c == null)
+      return false;
+
+    setValue(schema().index(c.name()), value);
+    return true;
+  }
+
+  /**
+   * sets the value at column name with a double
+   *
+   * @param columnName TODO: DOCUMENT ME!
+   * @param value TODO: DOCUMENT ME!
+   *
+   * @return TODO: DOCUMENT ME!
+   *
+   * @throws DataSetException TODO: DOCUMENT ME!
+   */
+  public boolean setValueQuiet(String columnName, double value)
+     throws DataSetException
+  {
+    Column c = schema().findInSchemaIgnoreCaseQuiet(columnName);
+    if(c == null)
+      return false;
+
+    setValue(schema().index(c.name()), value);
+    return true;
+  }
+
+  /**
+   * sets the value at column name with a float
+   *
+   * @param columnName TODO: DOCUMENT ME!
+   * @param value TODO: DOCUMENT ME!
+   *
+   * @return TODO: DOCUMENT ME!
+   *
+   * @throws DataSetException TODO: DOCUMENT ME!
+   */
+  public boolean setValueQuiet(String columnName, float value)
+     throws DataSetException
+  {
+    Column c = schema().findInSchemaIgnoreCaseQuiet(columnName);
+    if(c == null)
+      return false;
+
+    setValue(schema().index(c.name()), value);
+    return true;
+  }
+
+  /**
+   * sets the value at column name with a int
+   *
+   * @param columnName TODO: DOCUMENT ME!
+   * @param value TODO: DOCUMENT ME!
+   *
+   * @return TODO: DOCUMENT ME!
+   *
+   * @throws DataSetException TODO: DOCUMENT ME!
+   */
+  public boolean setValueQuiet(String columnName, int value)
+     throws DataSetException
+  {
+    Column c = schema().findInSchemaIgnoreCaseQuiet(columnName);
+    if(c == null)
+      return false;
+
+    setValue(schema().index(c.name()), value);
+    return true;
+  }
+
+  /**
+   * sets the value at column name with a long
+   *
+   * @param columnName TODO: DOCUMENT ME!
+   * @param value TODO: DOCUMENT ME!
+   *
+   * @return TODO: DOCUMENT ME!
+   *
+   * @throws DataSetException TODO: DOCUMENT ME!
+   */
+  public boolean setValueQuiet(String columnName, long value)
+     throws DataSetException
+  {
+    Column c = schema().findInSchemaIgnoreCaseQuiet(columnName);
+    if(c == null)
+      return false;
+
+    setValue(schema().index(c.name()), value);
+    return true;
+  }
+
+  /**
+   * sets the value at column name with a String
+   *
+   * @param columnName TODO: DOCUMENT ME!
+   * @param value TODO: DOCUMENT ME!
+   *
+   * @return TODO: DOCUMENT ME!
+   *
+   * @throws DataSetException TODO: DOCUMENT ME!
+   */
+  public boolean setValueQuiet(String columnName, String value)
+     throws DataSetException
+  {
+    Column c = schema().findInSchemaIgnoreCaseQuiet(columnName);
+    if(c == null)
+      return false;
+
+    setValue(schema().index(c.name()), value);
+    return true;
+  }
+
+  /**
+   * sets the value at column name with a java.sql.Time
+   *
+   * @param columnName TODO: DOCUMENT ME!
+   * @param value TODO: DOCUMENT ME!
+   *
+   * @return TODO: DOCUMENT ME!
+   *
+   * @throws DataSetException TODO: DOCUMENT ME!
+   */
+  public boolean setValueQuiet(String columnName, java.sql.Time value)
+     throws DataSetException
+  {
+    Column c = schema().findInSchemaIgnoreCaseQuiet(columnName);
+    if(c == null)
+      return false;
+
+    setValue(schema().index(c.name()), value);
+    return true;
+  }
+
+  /**
+   * sets the value at column name with a java.sql.Timestamp
+   *
+   * @param columnName TODO: DOCUMENT ME!
+   * @param value TODO: DOCUMENT ME!
+   *
+   * @return TODO: DOCUMENT ME!
+   *
+   * @throws DataSetException TODO: DOCUMENT ME!
+   */
+  public boolean setValueQuiet(String columnName, java.sql.Timestamp value)
+     throws DataSetException
+  {
+    Column c = schema().findInSchemaIgnoreCaseQuiet(columnName);
+    if(c == null)
+      return false;
+
+    setValue(schema().index(c.name()), value);
+    return true;
+  }
+
+  /**
+   * sets the value at column name with a Value
+   *
+   * @param columnName TODO: DOCUMENT ME!
+   * @param value TODO: DOCUMENT ME!
+   *
+   * @return TODO: DOCUMENT ME!
+   *
+   * @throws DataSetException TODO: DOCUMENT ME!
+   */
+  public boolean setValueQuiet(String columnName, Value value)
+     throws DataSetException
+  {
+    Column c = schema().findInSchemaIgnoreCaseQuiet(columnName);
+    if(c == null)
+      return false;
+
+    setValue(schema().index(c.name()), value);
+    return true;
+  }
+
+  public Record setValuesQuiet(Map<String, Object> values)
+     throws DataSetException
+  {
+    for(Map.Entry<String, Object> entry : values.entrySet())
+    {
+      String fname = entry.getKey();
+      Object value = entry.getValue();
+      Column c = schema().findInSchemaIgnoreCaseQuiet(fname);
+
+      if(c != null)
+      {
+        int pos = schema().index(c.name());
+        this.values[pos].setValue(value);
+        markValueDirty(pos);
+      }
+    }
+
+    return this;
+  }
+
+  public Map<Column, Value> getPrimaryKeyValues()
+     throws DataSetException
+  {
+    List<Column> primaryKeys = schema().getPrimaryKeys();
+    if(primaryKeys.isEmpty())
+      return Collections.EMPTY_MAP;
+
+    ArrayMap<Column, Value> rv = new ArrayMap<>();
+    for(Column c : primaryKeys)
+      rv.put(c, getValue(c.name()));
+
+    return rv;
+  }
+
+  public Map<String, Object> getPrimaryKey()
+     throws DataSetException
+  {
+    List<Column> primaryKeys = schema().getPrimaryKeys();
+    if(primaryKeys.isEmpty())
+      return Collections.EMPTY_MAP;
+
+    ArrayMap<String, Object> rv = new ArrayMap<>();
+    for(Column c : primaryKeys)
+      rv.put(c.name(), getValue(c.name()).getValue());
+
+    return rv;
   }
 }

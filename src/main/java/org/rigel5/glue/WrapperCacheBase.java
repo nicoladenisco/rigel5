@@ -34,6 +34,7 @@ import org.rigel5.glue.table.AlternateColorTableAppBase;
 import org.rigel5.glue.table.HeditTableApp;
 import org.rigel5.glue.table.PeerAppMaintDispTable;
 import org.rigel5.glue.table.PeerAppMaintFormTable;
+import org.rigel5.glue.table.SqlAppMaintFormTable;
 import org.rigel5.table.RigelTableModel;
 import org.rigel5.table.html.AbstractHtmlTablePager;
 import org.rigel5.table.html.FormTable;
@@ -43,6 +44,7 @@ import org.rigel5.table.html.wrapper.MasterDetailInfo;
 import org.rigel5.table.peer.html.PeerWrapperEditHtml;
 import org.rigel5.table.peer.html.PeerWrapperFormHtml;
 import org.rigel5.table.peer.html.PeerWrapperListaHtml;
+import org.rigel5.table.sql.html.SqlWrapperFormHtml;
 import org.rigel5.table.sql.html.SqlWrapperListaHtml;
 
 /**
@@ -145,9 +147,13 @@ abstract public class WrapperCacheBase
 
   abstract public HeditTableApp buildDefaultTableEdit();
 
-  abstract public PeerAppMaintFormTable buildDefaultTableForm();
+  abstract public PeerAppMaintFormTable buildDefaultPeerTableForm();
 
-  abstract public PeerObjectSaver buildDefaultSaver();
+  abstract public SqlAppMaintFormTable buildDefaultSqlTableForm();
+
+  abstract public PeerObjectSaver buildDefaultPeerSaver();
+
+  abstract public RecordObjectSaver buildDefaultRecordSaver();
 
   abstract public void populateTableModelProperties(RigelTableModel tm);
 
@@ -172,7 +178,7 @@ abstract public class WrapperCacheBase
     if(tbl instanceof RigelXmlSetupInterface)
       ((RigelXmlSetupInterface) tbl).setEleXml(wl.getEleXml());
 
-    pager.init(wl, type, buildDefaultSaver());
+    pager.init(wl, type, buildDefaultPeerSaver());
     pager.setI18n(i18n);
 
     if(pager instanceof RigelXmlSetupInterface)
@@ -231,7 +237,7 @@ abstract public class WrapperCacheBase
     if(tbl instanceof RigelXmlSetupInterface)
       ((RigelXmlSetupInterface) tbl).setEleXml(wl.getEleXml());
 
-    pager.init(wl, type, buildDefaultSaver());
+    pager.init(wl, type, buildDefaultPeerSaver());
     pager.setI18n(i18n);
 
     if(pager instanceof RigelXmlSetupInterface)
@@ -289,11 +295,11 @@ abstract public class WrapperCacheBase
 
     FormTable tbl = (FormTable) getTableCustom(wf.getEleXml());
     if(tbl == null)
-      tbl = buildDefaultTableForm();
+      tbl = buildDefaultPeerTableForm();
 
     if(tbl instanceof PeerAppMaintFormTable)
     {
-      ((PeerAppMaintFormTable) tbl).init("FP", wf, buildDefaultSaver());
+      ((PeerAppMaintFormTable) tbl).init("FP", wf, buildDefaultPeerSaver());
     }
     else if(tbl instanceof PeerAppMaintDispTable)
     {
@@ -320,7 +326,7 @@ abstract public class WrapperCacheBase
    * Utilizza una cache locale per recuperare un
    * wrapper form precedentemente creato. Se non e' stato
    * creato ne instanzia uno nuovo attraverso creaFormPeer()
-   * e lo salva nella global cache.
+   * e lo salva nella cache.
    * @param type tipo di lista richiesta
    * @return oggetto wrapper lista relativo
    * @throws Exception
@@ -348,9 +354,9 @@ abstract public class WrapperCacheBase
      throws Exception
   {
     PeerWrapperFormHtml wf = wrpBuilder.getFormTmap(type);
-    PeerAppMaintFormTable table = buildDefaultTableForm();
+    PeerAppMaintFormTable table = buildDefaultPeerTableForm();
 
-    table.init("FT", wf, buildDefaultSaver());
+    table.init("FT", wf, buildDefaultPeerSaver());
     table.setTableStatement(tagTabelleForm);
     table.setI18n(i18n);
 
@@ -368,7 +374,7 @@ abstract public class WrapperCacheBase
    * Utilizza una cache locale per recuperare un
    * wrapper form precedentemente creato. Se non e' stato
    * creato ne instanzia uno nuovo attraverso creaFormPeer()
-   * e lo salva nella global cache.
+   * e lo salva nella cache.
    * @param type tipo di lista richiesta
    * @return oggetto wrapper lista relativo
    * @throws Exception
@@ -381,6 +387,59 @@ abstract public class WrapperCacheBase
     if(wl == null)
     {
       wl = creaFormTmap(type);
+      htForms.put(cacheKey, wl);
+    }
+    return wl;
+  }
+
+  /**
+   * Crea un nuovo oggetto wrapper lista dai modelli XML.
+   * @param type tipo di lista richiesta
+   * @return oggetto wrapper lista relativo
+   * @throws Exception
+   */
+  protected SqlWrapperFormHtml creaFormSql(String type)
+     throws Exception
+  {
+    SqlWrapperFormHtml wf = wrpBuilder.getFormSql(type);
+    SqlAppMaintFormTable table = buildDefaultSqlTableForm();
+
+    table.init("FT", wf, buildDefaultRecordSaver());
+    table.setTableStatement(tagTabelleForm);
+    table.setI18n(i18n);
+
+    // crea il query builder con il macro resolver: qui deve avvenire prima di wl.init()
+    QueryBuilder qb = wf.getPtm().makeQueryBuilder();
+    wf.getPtm().setQuery(qb);
+    populateTableModelProperties(wf.getPtm());
+
+    wf.setTableStatement(tagTabelleForm);
+    wf.setTbl(table);
+    wf.init(qb);
+
+    populateTableModelProperties(wf.getPtm());
+
+    log.debug("Creato nuovo SqlWrapperFormHtml " + type);
+    return wf;
+  }
+
+  /**
+   * Utilizza una cache locale per recuperare un
+   * wrapper form precedentemente creato. Se non e' stato
+   * creato ne instanzia uno nuovo attraverso creaFormSql()
+   * e lo salva nella cache.
+   * @param type tipo di lista richiesta
+   * @return oggetto wrapper lista relativo
+   * @throws Exception
+   */
+  protected SqlWrapperFormHtml getFormSql(String type)
+     throws Exception
+  {
+    String cacheKey = CACHE_FORM_SQL + type;
+    SqlWrapperFormHtml wl = (SqlWrapperFormHtml) (htForms.get(cacheKey));
+    if(wl == null)
+    {
+      wl = creaFormSql(type);
       htForms.put(cacheKey, wl);
     }
     return wl;
@@ -425,7 +484,7 @@ abstract public class WrapperCacheBase
    * Utilizza una cache locale per recuperare un
    * wrapper form precedentemente creato. Se non e' stato
    * creato ne instanzia uno nuovo attraverso creaDispPeer()
-   * e lo salva nella global cache.
+   * e lo salva nella cache.
    * @param type tipo di lista richiesta
    * @return oggetto wrapper lista relativo
    * @throws Exception
@@ -473,7 +532,7 @@ abstract public class WrapperCacheBase
    * Utilizza una cache locale per recuperare un
    * wrapper form precedentemente creato. Se non e' stato
    * creato ne instanzia uno nuovo attraverso creaFormPeer()
-   * e lo salva nella global cache.
+   * e lo salva nella cache.
    * @param type tipo di lista richiesta
    * @return oggetto wrapper lista relativo
    * @throws Exception
@@ -620,7 +679,7 @@ abstract public class WrapperCacheBase
    * Utilizza una cache locale per recuperare un
    * wrapper lista precedentemente creato. Se non e' stato
    * creato ne instanzia uno nuovo attraverso creaLista()
-   * e lo salva nella global cache.
+   * e lo salva nella cache.
    * @param type tipo di lista richiesta
    * @return oggetto wrapper lista relativo
    * @throws Exception

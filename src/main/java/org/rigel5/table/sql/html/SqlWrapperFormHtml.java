@@ -42,7 +42,7 @@ public class SqlWrapperFormHtml extends HtmlSqlWrapperBase
     ptm = new org.rigel5.table.sql.html.SqlTableModel();
   }
 
-  private org.rigel5.table.sql.html.SqlTableModel getTM()
+  public org.rigel5.table.sql.html.SqlTableModel getTM()
   {
     return ((org.rigel5.table.sql.html.SqlTableModel) (ptm));
   }

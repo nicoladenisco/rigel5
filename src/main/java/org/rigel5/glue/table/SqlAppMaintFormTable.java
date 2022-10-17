@@ -17,22 +17,24 @@
  */
 package org.rigel5.glue.table;
 
-import java.lang.reflect.Method;
+import com.workingdogs.village.Record;
+import com.workingdogs.village.TableDataSet;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpSession;
-import org.apache.torque.criteria.Criteria;
-import org.apache.torque.om.Persistent;
+import org.rigel5.db.sql.FiltroData;
+import org.rigel5.db.sql.QueryBuilder;
 import org.rigel5.db.torque.PeerTransactAgent;
-import org.rigel5.glue.PeerObjectSaver;
+import org.rigel5.glue.RecordObjectSaver;
 import org.rigel5.glue.validators.Validator;
 import org.rigel5.table.RigelTableModel;
 import org.rigel5.table.html.FormTable;
 import org.rigel5.table.html.RigelHtmlPage;
 import org.rigel5.table.html.hEditTable;
 import org.rigel5.table.peer.html.PeerTableModel;
-import org.rigel5.table.peer.html.PeerWrapperFormHtml;
+import org.rigel5.table.sql.html.SqlTableModel;
+import org.rigel5.table.sql.html.SqlWrapperFormHtml;
 
 /**
  * Tabella per la visualizzazione di forms.
@@ -40,42 +42,43 @@ import org.rigel5.table.peer.html.PeerWrapperFormHtml;
  * @author Nicola De Nisco
  * @version 1.0
  */
-public class PeerAppMaintFormTable extends FormTable
+public class SqlAppMaintFormTable extends FormTable
 {
-  protected PeerObjectSaver pos = null;
-  protected PeerWrapperFormHtml wf;
-  protected Persistent objInEdit;
+  protected SqlWrapperFormHtml wf;
+  protected Record objInEdit;
+  protected RecordObjectSaver ros;
 
   /**
    * Costruttore protetto solo per classi derivate.
    * La classe derivata userà il metodo init() per l'inizializzazione.
    */
-  public PeerAppMaintFormTable()
+  public SqlAppMaintFormTable()
   {
     super(null);
   }
 
-  public void init(String sID, PeerWrapperFormHtml wf, PeerObjectSaver pos)
+  public void init(String sID, SqlWrapperFormHtml wf, RecordObjectSaver ros)
      throws Exception
   {
     this.id = sID;
     this.wf = wf;
+    this.ros = ros;
 
     // imposta numero colonne
     if(wf.getNumColonne() != 0)
       setColonne(wf.getNumColonne());
 
-    this.pos = pos;
-    pos.init(wf.getObjectClass(), wf.getPeerClass());
+    String tableName = wf.getTM().getQuery().getDeleteFrom();
+    PeerTransactAgent.executeReadonly((con) -> ros.init(tableName, con));
   }
 
   public void setUserInfo(int idUser, boolean isAdmin)
      throws Exception
   {
-    pos.setUserInfo(idUser, isAdmin);
+    ros.setUserInfo(idUser, isAdmin);
   }
 
-  public Persistent findElementoEdit(HttpSession session, Map param)
+  public Record findElementoEdit(HttpSession session, Map param)
      throws Exception
   {
     String newType = (String) param.get("new");
@@ -87,26 +90,37 @@ public class PeerAppMaintFormTable extends FormTable
       return objInEdit;
 
     // produce i parametri di selezione
-    Criteria c = wf.makeCriteriaEditRiga(param);
+    FiltroData c = wf.makeCriteriaEditRiga(param);
 
-    List v = getRecords(c);
-    return v == null || v.isEmpty() ? null : (Persistent) (v.get(0));
+    List<Record> v = getRecords(c);
+    return v == null || v.isEmpty() ? null : v.get(0);
   }
 
-  public Persistent findElemento(HttpSession session, Map param)
+  public Record findElemento(HttpSession session, Map param)
      throws Exception
   {
     // produce i parametri di selezione
-    Criteria c = wf.makeCriteriaEditRiga(param);
+    FiltroData c = wf.makeCriteriaEditRiga(param);
 
-    List v = getRecords(c);
-    return v == null || v.isEmpty() ? null : (Persistent) (v.get(0));
+    List<Record> v = getRecords(c);
+    return v == null || v.isEmpty() ? null : v.get(0);
   }
 
-  public List getRecords(Criteria c)
+  public List<Record> getRecords(FiltroData c)
      throws Exception
   {
-    return wf.doSelect(c);
+    SqlTableModel tm = (SqlTableModel) getTM();
+    QueryBuilder qb = tm.getQuery();
+    String tableName = qb.getDeleteFrom();
+
+    return PeerTransactAgent.executeReturnReadonly((con) ->
+    {
+      try ( TableDataSet td = new TableDataSet(con, tableName))
+      {
+        td.where(qb.makeFiltroWhere(c));
+        return td.fetchAllRecords();
+      }
+    });
   }
 
   /**
@@ -146,7 +160,7 @@ public class PeerAppMaintFormTable extends FormTable
 
         // se l'oggetto e' nuovo modifica il valore
         // del parametro new per segnalare oggetto creato e in cache
-        if(objInEdit.isNew())
+        if(objInEdit.toBeSavedWithInsert())
           param.put("new", "2");
       }
     }
@@ -190,44 +204,50 @@ public class PeerAppMaintFormTable extends FormTable
       doHtmlUnico(page);
 
       // crea campi hidden con i parametri di richiesta
-      if(objInEdit.isNew())
+      if(objInEdit.toBeSavedWithInsert())
         html.append("<input type=\"hidden\" name=\"new\" value=\"2\">\r\n");
       else
         html.append(wf.makeHiddenEditParametri(0));
     }
   }
 
-  protected Persistent newObject(HttpSession sessione, Map param)
+  protected Record newObject(HttpSession sessione, Map param)
      throws Exception
   {
-    Persistent newObj = null;
+    Record newObj = null;
     String dupType = (String) param.get("dup");
 
     if(dupType != null && dupType.equals("1"))
     {
       // oggetto duplicato di uno gia' esistente
-      Persistent parentObj = findElemento(sessione, param);
+      Record parentObj = findElemento(sessione, param);
       if(parentObj != null)
       {
-        Method new_obj_m = wf.getObjectClass().getMethod("copy", boolean.class);
-        newObj = (Persistent) new_obj_m.invoke(parentObj, false);
-        if(newObj != null)
-        {
-          // pulisce dal nuovo oggetto tutti i campi controllati dal saver
-          pos.clearNewObject(newObj);
-          return newObj;
-        }
+        newObj = new Record(parentObj);
+        // pulisce dal nuovo oggetto tutti i campi controllati dal saver
+        ros.clearNewObject(newObj);
+        return newObj;
       }
     }
 
     // oggetto completamente nuovo
-    newObj = (Persistent) (wf.getObjectClass().newInstance());
+    SqlTableModel tm = (SqlTableModel) getTM();
+    QueryBuilder qb = tm.getQuery();
+    String tableName = qb.getDeleteFrom();
+
+    newObj = PeerTransactAgent.executeReturnReadonly((con) ->
+    {
+      try ( TableDataSet td = new TableDataSet(con, tableName))
+      {
+        return td.addRecord();
+      }
+    });
     caricaDefaultsNuovoOggetto(newObj, param, wf.getNome());
 
     return newObj;
   }
 
-  protected synchronized void saveObject(final Persistent obj,
+  protected synchronized void saveObject(final Record obj,
      final RigelTableModel tableModel, final hEditTable table, final int row,
      final HttpSession session, final Map param, final Map custom)
      throws Exception
@@ -242,8 +262,8 @@ public class PeerAppMaintFormTable extends FormTable
            session, param, i18n, dbCon, custom))
         {
           // avvia salvataggio con apposito gestore
-          if(obj.isModified())
-            pos.salva(obj, dbCon, 0);
+          if(obj.needsToBeSaved())
+            ros.salva(obj, dbCon, 0);
 
           return true; // transazione confermata
         }
@@ -256,10 +276,10 @@ public class PeerAppMaintFormTable extends FormTable
 
   public boolean isNewObject()
   {
-    return objInEdit == null || objInEdit.isNew();
+    return objInEdit == null || objInEdit.toBeSavedWithInsert();
   }
 
-  public Persistent getLastObjectInEdit()
+  public Record getLastObjectInEdit()
   {
     return objInEdit;
   }

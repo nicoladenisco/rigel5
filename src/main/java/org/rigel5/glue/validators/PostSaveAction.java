@@ -19,7 +19,6 @@ package org.rigel5.glue.validators;
 
 import java.util.Map;
 import javax.servlet.http.HttpSession;
-import org.apache.torque.om.Persistent;
 import org.jdom2.Element;
 import org.rigel5.RigelI18nInterface;
 import org.rigel5.table.RigelTableModel;
@@ -59,8 +58,8 @@ public interface PostSaveAction
    * @throws Exception
    * @return the boolean
    */
-  public boolean action(Persistent obj,
-     RigelTableModel tableModel, hEditTable table, int row, HttpSession session,
-     Map param, RigelI18nInterface i18n, Object custom)
+  public boolean action(Object obj,
+     RigelTableModel tableModel, hEditTable table,
+     int row, HttpSession session, Map param, RigelI18nInterface i18n, Map custom)
      throws Exception;
 }

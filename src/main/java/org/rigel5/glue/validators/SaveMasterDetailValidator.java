@@ -21,7 +21,6 @@ import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpSession;
-import org.apache.torque.om.Persistent;
 import org.jdom2.Element;
 import org.rigel5.RigelI18nInterface;
 import org.rigel5.table.RigelTableModel;
@@ -67,10 +66,10 @@ public interface SaveMasterDetailValidator
    * @return true indica successo
    * @throws Exception
    */
-  public boolean validate(Persistent obj,
+  public boolean validate(Object obj,
      RigelTableModel tableModelMaster, hEditTable tableMaster, int rowMaster,
-     List<Persistent> detail, RigelTableModel tableModelDetail, hEditTable tableDetail,
+     List detail, RigelTableModel tableModelDetail, hEditTable tableDetail,
      HttpSession session, Map param,
-     RigelI18nInterface i18n, Connection dbCon, Object custom)
+     RigelI18nInterface i18n, Connection dbCon, Map custom)
      throws Exception;
 }

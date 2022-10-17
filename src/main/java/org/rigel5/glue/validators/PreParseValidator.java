@@ -19,7 +19,6 @@ package org.rigel5.glue.validators;
 
 import java.util.Map;
 import javax.servlet.http.HttpSession;
-import org.apache.torque.om.*;
 import org.jdom2.Element;
 import org.rigel5.RigelI18nInterface;
 import org.rigel5.table.RigelTableModel;
@@ -71,9 +70,9 @@ public interface PreParseValidator
    * @return vero se si può proseguire, falso per abortire il salvataggio
    * @throws Exception
    */
-  public boolean validate(Persistent obj,
+  public boolean validate(Object obj,
      RigelTableModel tableModel, hEditTable table, int row,
-     HttpSession session, Map param, RigelI18nInterface i18n, Object custom)
+     HttpSession session, Map param, RigelI18nInterface i18n, Map custom)
      throws Exception;
 
   /**

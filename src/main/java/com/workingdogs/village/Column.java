@@ -21,6 +21,7 @@ package com.workingdogs.village;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.Objects;
 
 /**
  * This class represents a Column in the database and its associated meta information. A
@@ -491,5 +492,24 @@ public class Column
   public String toString()
   {
     return "Column{" + "name=" + name + ", columnType=" + type() + ", tableName=" + tableName + ", nullAllowed=" + nullAllowed + ", readOnly=" + readOnly + '}';
+  }
+
+  @Override
+  public int hashCode()
+  {
+    return name == null ? super.hashCode() : name.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object obj)
+  {
+    if(this == obj)
+      return true;
+    if(obj == null)
+      return false;
+    if(getClass() != obj.getClass())
+      return false;
+    final Column other = (Column) obj;
+    return Objects.equals(this.name, other.name);
   }
 }

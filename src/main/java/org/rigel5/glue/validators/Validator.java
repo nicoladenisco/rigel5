@@ -20,7 +20,6 @@ package org.rigel5.glue.validators;
 import java.sql.Connection;
 import java.util.*;
 import javax.servlet.http.HttpSession;
-import org.apache.torque.om.Persistent;
 import org.commonlib5.utils.StringOper;
 import org.jdom2.*;
 import org.rigel5.RigelCacheManager;
@@ -89,9 +88,9 @@ public class Validator
    * @return true per indicare dati validi
    * @throws Exception
    */
-  public static boolean postParseValidate(Element eleXml, Persistent obj,
+  public static boolean postParseValidate(Element eleXml, Object obj,
      RigelTableModel tableModel, hEditTable table, int row, HttpSession session, Map param,
-     RigelI18nInterface i18n, Connection con, Object custom)
+     RigelI18nInterface i18n, Connection con, Map custom)
      throws Exception
   {
     if(eleXml != null)
@@ -154,9 +153,9 @@ public class Validator
    * @return true per indicare dati validi
    * @throws Exception
    */
-  public static boolean preParseValidate(Element eleXml, Persistent obj,
+  public static boolean preParseValidate(Element eleXml, Object obj,
      RigelTableModel tableModel, hEditTable table, int row, HttpSession session, Map param,
-     RigelI18nInterface i18n, Object custom, StopParse stopParsing)
+     RigelI18nInterface i18n, Map custom, StopParse stopParsing)
      throws Exception
   {
     if(eleXml != null)
@@ -196,9 +195,9 @@ public class Validator
   }
 
   public static boolean postSaveMasterDetail(
-     Element eleXml, Persistent obj, RigelTableModel tableModelMaster, hEditTable tableMaster, int rowMaster,
-     List<Persistent> detail, RigelTableModel tableModelDetail, hEditTable tableDetail,
-     HttpSession session, Map param, RigelI18nInterface i18n, Connection dbCon, Object custom)
+     Element eleXml, Object obj, RigelTableModel tableModelMaster, hEditTable tableMaster, int rowMaster,
+     List<Object> detail, RigelTableModel tableModelDetail, hEditTable tableDetail,
+     HttpSession session, Map param, RigelI18nInterface i18n, Connection dbCon, Map custom)
      throws Exception
   {
     if(eleXml != null)
@@ -239,8 +238,8 @@ public class Validator
   }
 
   public static boolean postSaveAction(
-     Element eleXml, Persistent obj, RigelTableModel tableModel, hEditTable table, int row,
-     HttpSession session, Map param, RigelI18nInterface i18n, Object custom)
+     Element eleXml, Object obj, RigelTableModel tableModel, hEditTable table, int row,
+     HttpSession session, Map param, RigelI18nInterface i18n, Map custom)
      throws Exception
   {
     if(eleXml != null)

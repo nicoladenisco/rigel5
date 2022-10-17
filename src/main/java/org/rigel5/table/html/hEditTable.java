@@ -17,6 +17,7 @@
  */
 package org.rigel5.table.html;
 
+import com.workingdogs.village.Record;
 import java.net.URLEncoder;
 import java.util.Date;
 import java.util.Map;
@@ -29,6 +30,7 @@ import org.rigel5.table.ForeignDataHolder;
 import org.rigel5.table.RigelColumnDescriptor;
 import org.rigel5.table.RigelTableModel;
 import org.rigel5.table.peer.html.PeerTableModel;
+import org.rigel5.table.sql.html.SqlTableModel;
 
 /**
  * Tabella con edit dei campi.
@@ -1205,6 +1207,40 @@ public class hEditTable extends hTable
      throws Exception
   {
     PeerTableModel ptm = (PeerTableModel) (getModel());
+    for(int i = 0; i < ptm.getColumnCount(); i++)
+    {
+      RigelColumnDescriptor cd = ptm.getColumn(i);
+      if(cd.getDefVal() != null)
+      {
+        String sVal = cd.getDefVal();
+        if(sVal.equals("@today"))
+          sVal = cd.formatValue(new Date());
+        cd.setValueAscii(newObj, sVal);
+      }
+
+      String key = cd.getDefValParam();
+      if(key != null)
+      {
+        Object defVal = param.get(key);
+        if(defVal == null)
+          defVal = param.get(radiceNomeParametri + key);
+        if(defVal != null)
+          cd.setValueAscii(newObj, defVal.toString());
+      }
+    }
+  }
+
+  /**
+   * Carica eventuali valori di default per il nuovo oggetto.
+   * @param newObj nuovo oggetto creato
+   * @param param parametri della richiesta
+   * @param radiceNomeParametri radice del nome da cercare nei parametri (generlamente wrapper.getNome())
+   * @throws Exception
+   */
+  public void caricaDefaultsNuovoOggetto(Record newObj, Map param, String radiceNomeParametri)
+     throws Exception
+  {
+    SqlTableModel ptm = (SqlTableModel) (getModel());
     for(int i = 0; i < ptm.getColumnCount(); i++)
     {
       RigelColumnDescriptor cd = ptm.getColumn(i);
