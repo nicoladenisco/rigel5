@@ -32,7 +32,6 @@ import org.rigel5.table.RigelTableModel;
 import org.rigel5.table.html.FormTable;
 import org.rigel5.table.html.RigelHtmlPage;
 import org.rigel5.table.html.hEditTable;
-import org.rigel5.table.peer.html.PeerTableModel;
 import org.rigel5.table.sql.html.SqlTableModel;
 import org.rigel5.table.sql.html.SqlWrapperFormHtml;
 
@@ -68,7 +67,7 @@ public class SqlAppMaintFormTable extends FormTable
     if(wf.getNumColonne() != 0)
       setColonne(wf.getNumColonne());
 
-    String tableName = wf.getTM().getQuery().getDeleteFrom();
+    String tableName = wf.getNomeTabella();
     PeerTransactAgent.executeReadonly((con) -> ros.init(tableName, con));
   }
 
@@ -111,7 +110,7 @@ public class SqlAppMaintFormTable extends FormTable
   {
     SqlTableModel tm = (SqlTableModel) getTM();
     QueryBuilder qb = tm.getQuery();
-    String tableName = qb.getDeleteFrom();
+    String tableName = wf.getNomeTabella();
 
     return PeerTransactAgent.executeReturnReadonly((con) ->
     {
@@ -149,7 +148,7 @@ public class SqlAppMaintFormTable extends FormTable
       {
         if(!stopParsing.stopParsing)
         {
-          ((PeerTableModel) (getModel())).rebind(objInEdit);
+          ((SqlTableModel) (getModel())).rebind(objInEdit);
           salvaDati(param);
         }
 
@@ -198,7 +197,7 @@ public class SqlAppMaintFormTable extends FormTable
       }
 
       // collega l'oggetto al table model
-      ((PeerTableModel) (getModel())).rebind(objInEdit);
+      ((SqlTableModel) (getModel())).rebind(objInEdit);
 
       // estrae l'HTML per tutto il form
       doHtmlUnico(page);

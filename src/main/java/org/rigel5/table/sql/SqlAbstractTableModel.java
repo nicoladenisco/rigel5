@@ -274,6 +274,14 @@ abstract public class SqlAbstractTableModel extends RigelObjectTableModel
           {
             cd.setCIndex(i);
             cd.setName(col.name()); // per avere il case esatto
+
+            // se non specificato esplicitamente ricava un default ragionevole in base al tipo di dato
+            if(cd.getDataType() == RigelColumnDescriptor.PDT_UNDEFINED)
+            {
+              cd.setDataType(retTipoSql(col.typeEnum()));
+              cd.setValClass(retObjTipoClass(cd.getDataType()));
+            }
+
             found = true;
             break;
           }
@@ -391,7 +399,7 @@ abstract public class SqlAbstractTableModel extends RigelObjectTableModel
 
     int rv = SetupHolder.getConProd().functionConnection((con) ->
     {
-      try (PreparedStatement ps = con.prepareStatement(sSQL))
+      try ( PreparedStatement ps = con.prepareStatement(sSQL))
       {
         int fld = 1;
         StringTokenizer stok = new StringTokenizer(sKey, "!");
@@ -496,7 +504,7 @@ abstract public class SqlAbstractTableModel extends RigelObjectTableModel
       String sSQL = qb.queryForUpdate(fd);
       log.info("Delete sSQL=" + sSQL);
 
-      try (Statement st = con.createStatement())
+      try ( Statement st = con.createStatement())
       {
         return st.executeUpdate(sSQL);
       }
@@ -630,6 +638,34 @@ abstract public class SqlAbstractTableModel extends RigelObjectTableModel
         return Types.VARCHAR;
       case RigelColumnDescriptor.PDT_NUMBERKEY:
         return Types.INTEGER;
+    }
+  }
+
+  public static int retTipoSql(int tipo)
+  {
+    switch(tipo)
+    {
+      default:
+      case Types.VARCHAR:
+        return RigelColumnDescriptor.PDT_STRING;
+
+      case Types.BOOLEAN:
+        return RigelColumnDescriptor.PDT_BOOLEAN;
+
+      case Types.INTEGER:
+        return RigelColumnDescriptor.PDT_INTEGER;
+
+      case Types.FLOAT:
+        return RigelColumnDescriptor.PDT_FLOAT;
+
+      case Types.DOUBLE:
+        return RigelColumnDescriptor.PDT_DOUBLE;
+
+      case Types.NUMERIC:
+        return RigelColumnDescriptor.PDT_MONEY;
+
+      case Types.DATE:
+        return RigelColumnDescriptor.PDT_DATE;
     }
   }
 

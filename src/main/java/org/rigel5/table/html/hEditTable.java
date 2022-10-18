@@ -150,7 +150,7 @@ public class hEditTable extends hTable
       }
     }
 
-    for(int col = 0; col < tableModel.getColumnCount(); col++)
+    for(int col = 0, num = tableModel.getColumnCount(); col < num; col++)
       salvaDatiCella(row, col, params);
   }
 
@@ -1207,7 +1207,7 @@ public class hEditTable extends hTable
      throws Exception
   {
     PeerTableModel ptm = (PeerTableModel) (getModel());
-    for(int i = 0; i < ptm.getColumnCount(); i++)
+    for(int i = 0, num = ptm.getColumnCount(); i < num; i++)
     {
       RigelColumnDescriptor cd = ptm.getColumn(i);
       if(cd.getDefVal() != null)
@@ -1241,7 +1241,7 @@ public class hEditTable extends hTable
      throws Exception
   {
     SqlTableModel ptm = (SqlTableModel) (getModel());
-    for(int i = 0; i < ptm.getColumnCount(); i++)
+    for(int i = 0, num = ptm.getColumnCount(); i < num; i++)
     {
       RigelColumnDescriptor cd = ptm.getColumn(i);
       if(cd.getDefVal() != null)

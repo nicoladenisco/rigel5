@@ -76,7 +76,9 @@ public class SqlColumnDescriptor extends RigelColumnDescriptor
   public void setValue(Object bean, Object value)
      throws java.lang.Exception
   {
-    ((Record) (bean)).getValue(cIndex).setValue(value);
+    Record r = (Record) bean;
+    r.getValue(cIndex).setValue(value);
+    r.markValueDirty(cIndex);
   }
 
   @Override

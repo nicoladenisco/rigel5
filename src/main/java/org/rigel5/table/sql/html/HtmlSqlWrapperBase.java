@@ -50,6 +50,7 @@ abstract public class HtmlSqlWrapperBase extends HtmlWrapperBase
   public void setFrom(String string)
   {
     ssp.setFrom(string);
+    setNomeTabella(string);
   }
 
   public void setWhere(String string)
@@ -75,6 +76,17 @@ abstract public class HtmlSqlWrapperBase extends HtmlWrapperBase
   public void setDeleteFrom(String deleteFrom)
   {
     ssp.setDeleteFrom(deleteFrom);
+    setNomeTabella(deleteFrom);
+  }
+
+  @Override
+  public String getNomeTabella()
+  {
+    if(nomeTabella == null)
+      nomeTabella = ssp.getDeleteFrom();
+    if(nomeTabella == null)
+      nomeTabella = ssp.getFrom();
+    return super.getNomeTabella();
   }
 
   /**

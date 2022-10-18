@@ -57,7 +57,7 @@ public class SqlWrapperListaHtml extends HtmlSqlWrapperBase
     qb.setSelect(ssp.getSelect());
     qb.setFrom(ssp.getFrom());
     qb.setWhere(ssp.getWhere());
-    qb.setOrderby(getOrderby());
+    qb.setOrderby(ssp.getOrderby());
     qb.setGroupby(ssp.makeGroupBySelect());
     qb.setHaving(ssp.getHaving());
     qb.setDeleteFrom(ssp.getDeleteFrom());

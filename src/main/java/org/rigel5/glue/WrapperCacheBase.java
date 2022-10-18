@@ -738,6 +738,7 @@ abstract public class WrapperCacheBase
    * e di che tipo di lista sia (sql o peer)
    * @param type nome della lista
    * @return la lista se esiste altrimenti null
+   * @throws java.lang.Exception
    */
   public synchronized HtmlWrapperBase getListaCache(String type)
      throws Exception
@@ -790,6 +791,7 @@ abstract public class WrapperCacheBase
    * e di che tipo di lista sia (sql o peer)
    * @param type nome della lista
    * @return la lista se esiste altrimenti null
+   * @throws java.lang.Exception
    */
   public synchronized HtmlWrapperBase getListaEditCache(String type)
      throws Exception
@@ -827,15 +829,17 @@ abstract public class WrapperCacheBase
     throw new MissingListException(i18n.msg("Lista edit %s non trovata o non inizializzabile.", type));
   }
 
-  public synchronized PeerWrapperFormHtml getFormCache(String type)
+  public synchronized HtmlWrapperBase getFormCache(String type)
      throws Exception
   {
-    PeerWrapperFormHtml objCache = null;
+    HtmlWrapperBase objCache = null;
 
     // cerca la lista nella cache
     if((objCache = (PeerWrapperFormHtml) htListe.get(CACHE_FORM_PEER + type)) != null)
       return objCache;
     if((objCache = (PeerWrapperFormHtml) htListe.get(CACHE_FORM_TMAP + type)) != null)
+      return objCache;
+    if((objCache = (PeerWrapperFormHtml) htListe.get(CACHE_FORM_SQL + type)) != null)
       return objCache;
 
     // tenta costruzione come PEER
@@ -852,6 +856,16 @@ abstract public class WrapperCacheBase
     try
     {
       if((objCache = getFormTmap(type)) != null)
+        return objCache;
+    }
+    catch(MissingListException e)
+    {
+    }
+
+    // tenta costruzione come SQL
+    try
+    {
+      if((objCache = getFormSql(type)) != null)
         return objCache;
     }
     catch(MissingListException e)

@@ -19,7 +19,6 @@ package org.rigel5.table.sql;
 
 import java.util.*;
 import org.jdom2.*;
-import org.rigel5.exceptions.MissingParameterException;
 import org.rigel5.exceptions.XmlSyntaxException;
 import org.rigel5.table.RigelBaseWrapperXmlMaker;
 import org.rigel5.table.RigelColumnDescriptor;
@@ -80,11 +79,10 @@ public class SqlWrapperXmlMaker extends RigelBaseWrapperXmlMaker
       if(removeCaratt && cd.isCaratteristiche())
         continue;
 
-      if(!cd.isCalcolato() && cd.getDataType() == RigelColumnDescriptor.PDT_UNDEFINED)
-        throw new MissingParameterException("[" + nomeLista + "]["
-           + cd.getCaption() + "] parametro obbligatorio 'tipo' non presente!");
-
-      if(!cd.isCalcolato())
+//      if(!cd.isCalcolato() && cd.getDataType() == RigelColumnDescriptor.PDT_UNDEFINED)
+//        throw new MissingParameterException("[" + nomeLista + "]["
+//           + cd.getCaption() + "] parametro obbligatorio 'tipo' non presente!");
+      if(!cd.isCalcolato() && cd.getDataType() != RigelColumnDescriptor.PDT_UNDEFINED)
         cd.setValClass(SqlAbstractTableModel.retObjTipoClass(cd.getDataType()));
 
       addColumn(item, wl.getPtm(), cd);
