@@ -41,40 +41,53 @@ public class FiltroData
 
   public final ArrayList<updateInfo> vUpdate = new ArrayList<>();
 
-  public void addUpdate(int type, String nomecampo, Object val)
+  public FiltroData addUpdate(String nomecampo, Object val)
+  {
+    return addUpdate(0, nomecampo, val);
+  }
+
+  public FiltroData addUpdate(int type, String nomecampo, Object val)
   {
     updateInfo ui = new updateInfo();
     ui.type = type;
     ui.nomecampo = nomecampo;
     ui.val = val;
     vUpdate.add(ui);
+    return this;
   }
 
-  public void addUpdate(RigelColumnDescriptor cd, Object val)
+  public FiltroData addUpdate(RigelColumnDescriptor cd, Object val)
   {
-    addUpdate(cd.getDataType(), cd.getName(), val);
+    return addUpdate(cd.getDataType(), cd.getName(), val);
   }
 
-  public void addInsert(int type, String nomecampo, Object val)
+  public FiltroData addInsert(String nomecampo, Object val)
   {
-    addUpdate(type, nomecampo, val);
+    return addInsert(0, nomecampo, val);
   }
 
-  public void addInsert(RigelColumnDescriptor cd, Object val)
+  public FiltroData addInsert(int type, String nomecampo, Object val)
   {
-    addUpdate(cd, val);
+    return addUpdate(type, nomecampo, val);
+  }
+
+  public FiltroData addInsert(RigelColumnDescriptor cd, Object val)
+  {
+    return addUpdate(cd, val);
   }
 
   public final ArrayList<String> vSelect = new ArrayList<>();
 
-  public void addSelect(String nomecampo)
+  public FiltroData addSelect(String nomecampo)
   {
     vSelect.add(nomecampo);
+    return this;
   }
 
-  public void addSelect(RigelColumnDescriptor cd)
+  public FiltroData addSelect(RigelColumnDescriptor cd)
   {
     vSelect.add(cd.getName());
+    return this;
   }
 
   public static class whereInfo
@@ -87,7 +100,20 @@ public class FiltroData
 
   public final ArrayList<whereInfo> vWhere = new ArrayList<>();
 
-  public void addWhere(int type, String nomecampo, SqlEnum criteria, Object val)
+  public FiltroData addWhere(String nomecampo, SqlEnum criteria)
+  {
+    if(criteria.equals(SqlEnum.ISNULL) || criteria.equals(SqlEnum.ISNOTNULL))
+      return addWhere(nomecampo, criteria, null);
+
+    throw new RuntimeException("Valore non valido per criteria: deve essere ISNULL o ISNOTNULL");
+  }
+
+  public FiltroData addWhere(String nomecampo, SqlEnum criteria, Object val)
+  {
+    return addWhere(0, nomecampo, criteria, val);
+  }
+
+  public FiltroData addWhere(int type, String nomecampo, SqlEnum criteria, Object val)
   {
     whereInfo wi = new whereInfo();
     wi.type = type;
@@ -95,15 +121,16 @@ public class FiltroData
     wi.criteria = criteria;
     wi.val = val;
     vWhere.add(wi);
+    return this;
   }
 
-  public void addWhere(RigelColumnDescriptor cd, SqlEnum criteria, Object val)
+  public FiltroData addWhere(RigelColumnDescriptor cd, SqlEnum criteria, Object val)
   {
     String sVal = StringOper.okStrNull(val);
     if(sVal == null)
       throw new RuntimeException("Where component can not be empty.");
 
-    addWhere(cd.getDataType(), cd.getName(), criteria, cd.parseValue(sVal));
+    return addWhere(cd.getDataType(), cd.getName(), criteria, cd.parseValue(sVal));
   }
 
   public static class betweenInfo
@@ -116,7 +143,12 @@ public class FiltroData
 
   public final ArrayList<betweenInfo> vBetween = new ArrayList<>();
 
-  public void addBetween(int type, String nomecampo, Object val1, Object val2)
+  public FiltroData addBetween(String nomecampo, Object val1, Object val2)
+  {
+    return addBetween(0, nomecampo, val1, val2);
+  }
+
+  public FiltroData addBetween(int type, String nomecampo, Object val1, Object val2)
   {
     betweenInfo bi = new betweenInfo();
     bi.type = type;
@@ -124,11 +156,12 @@ public class FiltroData
     bi.val1 = val1;
     bi.val2 = val2;
     vBetween.add(bi);
+    return this;
   }
 
-  public void addBetween(RigelColumnDescriptor cd, Object val1, Object val2)
+  public FiltroData addBetween(RigelColumnDescriptor cd, Object val1, Object val2)
   {
-    addBetween(cd.getDataType(), cd.getName(), val1, val2);
+    return addBetween(cd.getDataType(), cd.getName(), val1, val2);
   }
 
   public static class orderbyInfo
@@ -139,17 +172,23 @@ public class FiltroData
 
   public final ArrayList<orderbyInfo> vOrderby = new ArrayList<>();
 
-  public void addOrderby(String nomecampo, String dir)
+  public FiltroData addOrderby(String nomecampo)
+  {
+    return addOrderby(nomecampo, null);
+  }
+
+  public FiltroData addOrderby(String nomecampo, String dir)
   {
     orderbyInfo oi = new orderbyInfo();
     oi.nomecampo = nomecampo;
     oi.dir = dir;
     vOrderby.add(oi);
+    return this;
   }
 
-  public void addOrderby(RigelColumnDescriptor cd, String dir)
+  public FiltroData addOrderby(RigelColumnDescriptor cd, String dir)
   {
-    addOrderby(cd.getName(), dir);
+    return addOrderby(cd.getName(), dir);
   }
 
   public boolean haveWhere()
@@ -179,8 +218,9 @@ public class FiltroData
 
   public final ArrayList<String> vFreeWhere = new ArrayList<>();
 
-  public void addFreeWhere(String wherePart)
+  public FiltroData addFreeWhere(String wherePart)
   {
     vFreeWhere.add(wherePart);
+    return this;
   }
 }

@@ -20,16 +20,19 @@ package com.workingdogs.village;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.torque.criteria.SqlEnum;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.rigel5.db.sql.FiltroData;
 
 /**
  * Test per QueryDataSet.
@@ -80,7 +83,7 @@ public class QueryDataSetTest
   private void inserisciDati()
      throws SQLException, DataSetException
   {
-    try (Statement stm = dbe.getConn().createStatement())
+    try ( Statement stm = dbe.getConn().createStatement())
     {
       stm.executeUpdate("DELETE FROM mic_antibiotici");
       stm.executeUpdate("DELETE FROM mic_batteri");
@@ -181,5 +184,60 @@ public class QueryDataSetTest
     String sSQL = "SELECT * FROM mic_batteri";
     List<Record> result = QueryDataSet.fetchAllRecords(dbCon, sSQL);
     assertEquals(2, result.size());
+  }
+
+  @Test
+  public void testCaseInsensitiveColumnName()
+     throws Exception
+  {
+    System.out.println("testCaseInsensitiveColumnName");
+    Connection dbCon = dbe.getConn();
+    String sSQL = "SELECT * FROM mic_batteri ORDER BY idbatteri";
+    List<Record> result = QueryDataSet.fetchAllRecords(dbCon, sSQL);
+    assertEquals(2, result.size());
+    assertEquals(1, result.get(0).getValue("idbatteri").asInt());
+    assertEquals(1, result.get(0).getValue("IDBATTERI").asInt());
+  }
+
+  @Test
+  public void testFiltroData1()
+     throws Exception
+  {
+    System.out.println("testFiltroData");
+    Connection dbCon = dbe.getConn();
+    FiltroData fd = new FiltroData();
+    fd.addWhere("IDBATTERI", SqlEnum.GREATER_EQUAL, 1);
+    fd.addSelect("IDBATTERI");
+    fd.addOrderby("IDBATTERI");
+    try ( QueryDataSet qds = new QueryDataSet(dbCon, "codice", "mic_batteri", fd))
+    {
+      System.out.println("sSQL=" + qds.getSelectString());
+      List<Record> result = qds.fetchAllRecords();
+      assertEquals(2, result.size());
+      assertEquals(1, result.get(0).getValue("idbatteri").asInt());
+      assertEquals(1, result.get(0).getValue("IDBATTERI").asInt());
+    }
+  }
+
+  @Test
+  public void testFiltroData2()
+     throws Exception
+  {
+    System.out.println("testFiltroData");
+    Connection dbCon = dbe.getConn();
+    FiltroData fd = new FiltroData();
+    fd.addWhere("IDBATTERI", SqlEnum.GREATER_EQUAL, 1);
+    fd.addWhere("IDBATTERI", SqlEnum.IN, Arrays.asList(1, 2));
+    fd.addWhere("codice", SqlEnum.ISNOTNULL);
+    fd.addSelect("IDBATTERI");
+    fd.addOrderby("IDBATTERI");
+    try ( QueryDataSet qds = new QueryDataSet(dbCon, "codice", "mic_batteri", fd))
+    {
+      System.out.println("sSQL=" + qds.getSelectString());
+      List<Record> result = qds.fetchAllRecords();
+      assertEquals(2, result.size());
+      assertEquals(1, result.get(0).getValue("idbatteri").asInt());
+      assertEquals(1, result.get(0).getValue("IDBATTERI").asInt());
+    }
   }
 }

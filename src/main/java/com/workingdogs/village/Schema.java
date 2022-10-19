@@ -30,7 +30,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import org.commonlib5.utils.StringOper;
 
 /**
  * The Schema object represents the <a href="Column.html">Columns</a> in a database table.
@@ -700,15 +699,8 @@ public final class Schema
   public Column findInSchemaIgnoreCaseQuiet(String nomeTabella, String nomeColonna)
      throws DataSetException
   {
-    for(int i = 1; i <= numberOfColumns(); i++)
-    {
-      Column col = column(i);
-      if(StringOper.isEquNocase(nomeTabella, col.getTableName())
-         && StringOper.isEquNocase(nomeColonna, col.name()))
-        return col;
-    }
-
-    return null;
+    Integer i = columnNumberByName.get(nomeTabella + "." + nomeColonna);
+    return i == null ? null : columns[i];
   }
 
   /**
@@ -722,24 +714,8 @@ public final class Schema
   public Column findInSchemaIgnoreCaseQuiet(String nomeColonna)
      throws DataSetException
   {
-    int dot = nomeColonna.indexOf('.');
-
-    if(dot > 0)
-    {
-      String table = nomeColonna.substring(0, dot);
-      String col = nomeColonna.substring(dot + 1);
-
-      return findInSchemaIgnoreCaseQuiet(table, col);
-    }
-
-    for(int i = 1; i <= numberOfColumns(); i++)
-    {
-      Column col = column(i);
-      if(StringOper.isEquNocase(nomeColonna, col.name()))
-        return col;
-    }
-
-    return null;
+    Integer i = columnNumberByName.get(nomeColonna);
+    return i == null ? null : columns[i];
   }
 
   /**
