@@ -823,9 +823,14 @@ public class DbUtils
   public static java.sql.Timestamp cvtTimestampNotNull(java.util.Date d)
   {
     if(d == null)
-      return new java.sql.Timestamp(System.currentTimeMillis());
+      return currentTimestamp();
 
     return new java.sql.Timestamp(d.getTime());
+  }
+
+  public static java.sql.Timestamp currentTimestamp()
+  {
+    return new java.sql.Timestamp(System.currentTimeMillis());
   }
 
   /**
