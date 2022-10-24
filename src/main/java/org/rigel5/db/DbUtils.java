@@ -112,7 +112,7 @@ public class DbUtils
     qb.setSelect("COUNT(*)");
     qb.setFrom(tableName);
     String campo = qb.adjCampo(RigelColumnDescriptor.PDT_INTEGER, "stato_rec");
-    String where = "(" + campo + " IS NULL) OR (" + campo + " < 10)";
+    String where = "((" + campo + " IS NULL) OR (" + campo + " < 10))";
     if(extraWhere != null)
       where += " AND (" + extraWhere + ")";
     qb.setWhere(where);
