@@ -1020,6 +1020,28 @@ public class DbUtils
   }
 
   /**
+   * Esegue una query ritornando l'array di interi del primo campo.
+   * Di solito utilizzata per estrarre le chiavi di una tabella secondaria.
+   * ES: SELECT idcollegata FROM tabellaCollegata WHERE idmaster=100
+   * @param numField numero di campo da estrarre (1=primo campo)
+   * @param rs ResultSet appositamente creato
+   * @return array di interi del primo campo della query
+   * @throws Exception
+   */
+  public static int[] queryForID(int numField, ResultSet rs)
+     throws Exception
+  {
+    ArrayList<Integer> rv = new ArrayList<>(128);
+    while(rs.next())
+      rv.add(rs.getInt(numField));
+
+    return rv.stream()
+       .mapToInt((i) -> i)
+       .filter((i) -> i != 0)
+       .sorted().distinct().toArray();
+  }
+
+  /**
    * Returns numberOfResults records in a QueryDataSet as a List
    * of Record objects. Starting at record start. Used for
    * functionality like util.LargeSelect.
