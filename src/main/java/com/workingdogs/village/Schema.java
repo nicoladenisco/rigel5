@@ -32,8 +32,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * The Schema object represents the <a href="Column.html">Columns</a> in a database table.
- * It contains a collection of <a href="Column.html">Column</a> objects.
+ * The Schema object represents the <a href="Column.html">Columns</a> in a database table. It contains a collection of <a
+ * href="Column.html">Column</a> objects.
  *
  * @author <a href="mailto:jon@latchkey.com">Jon S. Stevens</a>
  * @author John D. McNally
@@ -53,18 +53,18 @@ public final class Schema
   /** TODO: DOCUMENT ME! */
   private Column[] columns;
 
-  /** a map of column name to position of each columen (see index()) */
+  /** a map of column name to position of each columen (see index()) NOTE: it is case insensitive */
   private final Map<String, Integer> columnNumberByName = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
   /** a permanent cache of all built schemas */
-  private static final HashMap<String, Schema> schemaCache = new HashMap<>();
+  private static final HashMap<String, Schema> schemaCache = new HashMap<>(256);
 
   /**
    * This attribute is used to complement columns in the event that this schema represents more than one table. Its keys
    * are
    * String contains table names and its elements are HashMaps containing columns.
    */
-  private final HashMap<String, Map<String, Column>> tableHash = new HashMap<>();
+  private final HashMap<String, Map<String, Column>> tableHash = new HashMap<>(256);
 
   /** TODO: DOCUMENT ME! */
   private boolean singleTable = true;
@@ -102,7 +102,7 @@ public final class Schema
 
         if(schema.numberOfColumns > 0)
         {
-          String keyValue = connURL + schema.tableName;
+          String keyValue = makeKeyHash(connURL, schema.tableName);
 
           synchronized(schemaCache)
           {
@@ -115,6 +115,11 @@ public final class Schema
         }
       }
     }
+  }
+
+  public static String makeKeyHash(String connURL, String tableName)
+  {
+    return connURL + "|" + tableName;
   }
 
   /**
@@ -156,7 +161,7 @@ public final class Schema
 
     Schema tableSchema = null;
     DatabaseMetaData dbMeta = conn.getMetaData();
-    String keyValue = dbMeta.getURL() + tableName;
+    String keyValue = makeKeyHash(dbMeta.getURL(), tableName);
 
     synchronized(schemaCache)
     {
@@ -436,10 +441,11 @@ public final class Schema
       if(metaTableName.length() > 0 && connURL != null)
       {
         Schema tableSchema = null;
+        String keyValue = makeKeyHash(connURL, metaTableName);
 
         synchronized(schemaCache)
         {
-          tableSchema = (Schema) schemaCache.get(connURL + metaTableName);
+          tableSchema = (Schema) schemaCache.get(keyValue);
         }
 
         if(tableSchema != null)
@@ -459,8 +465,9 @@ public final class Schema
       if(col == null)
       {
         col = new Column();
-        col.populate(meta, i, metaTableName, metaColumnName,
-           lpc.findInPrimary(metaSchemaName, metaTableName, metaColumnName));
+
+        int primaryInfo = tableName == null ? 0 : lpc.findInPrimary(metaSchemaName, metaTableName, metaColumnName);
+        col.populate(meta, i, metaTableName, metaColumnName, primaryInfo);
       }
 
       columns[i] = col;

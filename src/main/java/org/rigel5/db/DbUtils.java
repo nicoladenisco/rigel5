@@ -127,6 +127,36 @@ public class DbUtils
   }
 
   /**
+   * Calcola il numero di record totali di una tabella/vista.
+   * Vengono esclusi quelli cancellati logicamente.
+   * @param tableName nome della tabella
+   * @param extraWhere eventuale clausola where aggiuntiva (puo' essere null)
+   * @param con connessione al db
+   * @return numero di record in tabella
+   * @throws java.lang.Exception
+   */
+  public static long getRecordCount(String tableName, String extraWhere, Connection con)
+     throws Exception
+  {
+    QueryBuilder qb = getQueryBuilder();
+    qb.setSelect("COUNT(*)");
+    qb.setFrom(tableName);
+    String campo = qb.adjCampo(RigelColumnDescriptor.PDT_INTEGER, "stato_rec");
+    String where = "(" + campo + " IS NULL) OR (" + campo + " < 10)";
+    if(extraWhere != null)
+      where += " AND (" + extraWhere + ")";
+    qb.setWhere(where);
+    qb.setLimit(1);
+    String sSQL = qb.makeSQLstring();
+    List records = executeQuery(sSQL, con);
+    if(records.isEmpty())
+      return 0;
+
+    Record rec = (Record) (records.get(0));
+    return rec.getValue(1).asLong();
+  }
+
+  /**
    * Calcola il numero di record totali di un Criteria.
    * Vengono conteggiati tutti i record selezionabili dal criteria specificato.
    * @param c criteria da conteggiare
@@ -421,6 +451,7 @@ public class DbUtils
        .mapToInt(LEU.rethrowFunctionInt(fun))
        .filter((i) -> i != 0)
        .distinct()
+       .sorted()
        .toArray();
   }
 
@@ -440,6 +471,7 @@ public class DbUtils
        .map(LEU.rethrowFunction(fun))
        .filter((s) -> s != null && !s.isEmpty())
        .distinct()
+       .sorted()
        .toArray(String[]::new);
   }
 
@@ -458,6 +490,7 @@ public class DbUtils
     int[] ids = objs.stream()
        .mapToInt(LEU.rethrowFunctionInt(fun))
        .distinct()
+       .sorted()
        .toArray();
 
     return convertIntegerKeys(ids);
@@ -478,6 +511,7 @@ public class DbUtils
     List<String> keys = objs.stream()
        .map(LEU.rethrowFunction(fun))
        .distinct()
+       .sorted()
        .collect(Collectors.toList());
 
     return convertStringKeys(keys);
@@ -499,6 +533,7 @@ public class DbUtils
     List<String> keys = objs.stream()
        .map(LEU.rethrowFunction(fun))
        .distinct()
+       .sorted()
        .collect(Collectors.toList());
 
     return convertStringKeysApici(keys);

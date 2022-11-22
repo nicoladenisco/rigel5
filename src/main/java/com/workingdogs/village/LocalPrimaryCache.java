@@ -32,20 +32,22 @@ import org.commonlib5.utils.StringOper;
  */
 public class LocalPrimaryCache
 {
-  private final String catalog;
+  private final String catalog, connURL;
   private final DatabaseMetaData dbMeta;
-  private final HashMap<String, Map<String, Integer>> pkCache = new HashMap<>();
+  private static final HashMap<String, Map<String, Integer>> pkCache = new HashMap<>(256);
 
   public LocalPrimaryCache(String catalog, DatabaseMetaData dbMeta)
+     throws SQLException
   {
     this.dbMeta = dbMeta;
     this.catalog = catalog;
+    this.connURL = dbMeta.getURL();
   }
 
   public int findInPrimary(String metaSchemaName, String metaTableName, String metaColumnName)
      throws SQLException
   {
-    String key = StringOper.okStr(metaSchemaName, "NO_SCHEMA") + "|" + metaTableName;
+    String key = connURL + "|" + StringOper.okStr(metaSchemaName, "NO_SCHEMA") + "|" + metaTableName;
 
     Map<String, Integer> tablepks = pkCache.get(key);
 

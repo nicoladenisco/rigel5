@@ -18,6 +18,7 @@
 package org.rigel5.db;
 
 import com.workingdogs.village.Record;
+import com.workingdogs.village.Schema;
 import java.sql.Connection;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -479,6 +480,25 @@ public class SanityTorqueUtils extends SanityDatabaseUtils
     catch(TorqueException ex)
     {
       log.error(sSQL, ex);
+    }
+  }
+
+  public void prefetchSchema()
+  {
+    Connection con = null;
+    try
+    {
+      con = Torque.getConnection();
+      Schema.initSchemas(con);
+    }
+    catch(Throwable t)
+    {
+      log.error("Fatal error loading all schema.", t);
+    }
+    finally
+    {
+      if(con != null)
+        Torque.closeConnection(con);
     }
   }
 }

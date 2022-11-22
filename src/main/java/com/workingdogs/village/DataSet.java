@@ -18,6 +18,7 @@ package com.workingdogs.village;
  * specific language governing permissions and limitations
  * under the License.
  */
+import static com.workingdogs.village.Schema.makeKeyHash;
 import java.io.Closeable;
 import java.io.IOException;
 import java.sql.Connection;
@@ -25,6 +26,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import org.commonlib5.lambda.ConsumerThrowException;
 
@@ -74,6 +76,9 @@ public abstract class DataSet implements Closeable
   /** the Statement for this DataSet */
   protected Statement stmt;
 
+  /** cache definizione chiavi primarie */
+  protected static final HashMap<String, KeyDef> keydefCache = new HashMap<>(256);
+
   /**
    * Per classi derivate.
    *
@@ -100,7 +105,16 @@ public abstract class DataSet implements Closeable
     this.conn = conn;
     this.columns = "*";
     this.schema = new Schema().schema(conn, tableName);
-    this.keyDefValue = buildFromSchema();
+
+    String keyValue = makeKeyHash(conn.getMetaData().getURL(), tableName);
+    synchronized(keydefCache)
+    {
+      if((keyDefValue = keydefCache.get(keyValue)) == null)
+      {
+        keyDefValue = buildFromSchema();
+        keydefCache.put(keyValue, keyDefValue);
+      }
+    }
   }
 
   /**
@@ -171,7 +185,6 @@ public abstract class DataSet implements Closeable
     this.conn = conn;
     this.columns = columns;
     this.schema = new Schema().schema(conn, tableName, columns);
-    this.keyDefValue = buildFromSchema();
   }
 
   /**

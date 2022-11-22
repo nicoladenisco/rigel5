@@ -31,6 +31,7 @@ import org.apache.torque.criteria.SqlEnum;
 import org.apache.torque.om.NumberKey;
 import org.apache.torque.om.StringKey;
 import org.commonlib5.utils.ArrayMap;
+import org.commonlib5.utils.SimpleTimer;
 import org.commonlib5.utils.StringOper;
 import org.rigel5.SetupHolder;
 import org.rigel5.db.DbUtils;
@@ -62,7 +63,7 @@ abstract public class SqlAbstractTableModel extends RigelObjectTableModel
 {
   /** Logging */
   private static Log log = LogFactory.getLog(SqlAbstractTableModel.class);
-  private boolean fetchAllField = false, initialized = false;
+  private boolean initialized = false;
   public static final String ORACLETIMESTAMP = "oracle.sql.TIMESTAMP";
 
   public SqlAbstractTableModel()
@@ -239,6 +240,7 @@ abstract public class SqlAbstractTableModel extends RigelObjectTableModel
   {
     SetupHolder.getConProd().runConnection((con) ->
     {
+      SimpleTimer st = new SimpleTimer();
       List<Record> lsRecs = query.executeQuery(con, fetchRecords);
       Schema qSchema = query.getSchema();
       fetchStructureFromQuery(qSchema);
@@ -246,7 +248,10 @@ abstract public class SqlAbstractTableModel extends RigelObjectTableModel
       clear();
 
       if(fetchRecords)
+      {
         super.rebind(lsRecs);
+        log.debug("Query e prelievo records in " + st.getElapsed() + " millisecondi.");
+      }
     });
   }
 
@@ -667,15 +672,5 @@ abstract public class SqlAbstractTableModel extends RigelObjectTableModel
       case Types.DATE:
         return RigelColumnDescriptor.PDT_DATE;
     }
-  }
-
-  public void setFetchAllField(boolean fetchAllField)
-  {
-    this.fetchAllField = fetchAllField;
-  }
-
-  public boolean isFetchAllField()
-  {
-    return fetchAllField;
   }
 }
