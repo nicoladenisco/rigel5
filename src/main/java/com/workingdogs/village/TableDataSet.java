@@ -144,16 +144,17 @@ public class TableDataSet
    * Creates a new TableDataSet object.
    *
    * @param conn TODO: DOCUMENT ME!
+   * @param schemaName
    * @param tableName TODO: DOCUMENT ME!
    * @param columns TODO: DOCUMENT ME!
    *
    * @throws SQLException TODO: DOCUMENT ME!
    * @throws DataSetException TODO: DOCUMENT ME!
    */
-  public TableDataSet(Connection conn, String tableName, String columns)
+  public TableDataSet(Connection conn, String schemaName, String tableName, String columns)
      throws SQLException, DataSetException
   {
-    super(conn, tableName, columns);
+    super(conn, schemaName, tableName, columns);
   }
 
   /**

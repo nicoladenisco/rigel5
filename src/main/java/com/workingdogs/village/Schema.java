@@ -30,6 +30,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import org.commonlib5.utils.StringOper;
+import static org.rigel5.db.DbUtils.TABLES_FILTER;
 
 /**
  * The Schema object represents the <a href="Column.html">Columns</a> in a database table. It contains a collection of <a
@@ -42,7 +44,7 @@ import java.util.TreeMap;
 public final class Schema
 {
   /** TODO: DOCUMENT ME! */
-  private String tableName;
+  private String schemaName, tableName;
 
   /** TODO: DOCUMENT ME! */
   private String columnsAttribute;
@@ -65,6 +67,11 @@ public final class Schema
    * String contains table names and its elements are HashMaps containing columns.
    */
   private final HashMap<String, Map<String, Column>> tableHash = new HashMap<>(256);
+
+  /**
+   * Una cache per mantenere una corrispondenza fra nome tabella e nome schema
+   */
+  private static final Map<String, String> cacheSchemaTable = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
   /** TODO: DOCUMENT ME! */
   private boolean singleTable = true;
@@ -90,36 +97,65 @@ public final class Schema
   {
     DatabaseMetaData databaseMetaData = conn.getMetaData();
     String connURL = databaseMetaData.getURL();
-    try ( ResultSet allCol = databaseMetaData.getColumns(conn.getCatalog(), null, null, null))
+
+    try ( ResultSet rsTables = databaseMetaData.getTables(conn.getCatalog(), null, null, TABLES_FILTER))
     {
-      while(true)
+      while(rsTables.next())
       {
-        Schema schema = new Schema();
+        String schemaName = StringOper.okStr(rsTables.getString("TABLE_SCHEM"));
+        String tableName = StringOper.okStr(rsTables.getString("TABLE_NAME"));
+        cacheSchemaTable.put(tableName, schemaName);
 
-        schema.setAttributes("*");
-        schema.singleTable = true;
-        schema.populate(allCol, conn.getCatalog(), databaseMetaData);
-
-        if(schema.numberOfColumns > 0)
+        try ( ResultSet rsColumns = databaseMetaData.getColumns(conn.getCatalog(), schemaName, tableName, null))
         {
-          String keyValue = makeKeyHash(connURL, schema.tableName);
+          Schema schema = new Schema();
 
-          synchronized(schemaCache)
+          schema.setSchemaName(schemaName);
+          schema.setTableName(tableName);
+          schema.setAttributes("*");
+          schema.singleTable = true;
+          schema.populate(rsColumns, conn.getCatalog(), databaseMetaData);
+
+          if(schema.numberOfColumns > 0)
           {
-            schemaCache.put(keyValue, schema);
+            String keyValue = makeKeyHash(connURL, schema.schemaName, schema.tableName);
+
+            synchronized(schemaCache)
+            {
+              schemaCache.put(keyValue, schema);
+            }
           }
-        }
-        else
-        {
-          break;
         }
       }
     }
   }
 
-  public static String makeKeyHash(String connURL, String tableName)
+  public static String makeKeyHash(String connURL, String schemaName, String tableName)
   {
-    return connURL + "|" + tableName;
+    return connURL + "|" + schemaName + "|" + tableName;
+  }
+
+  public static String getSchemaFromTable(Connection conn, String tableName)
+     throws SQLException, DataSetException
+  {
+    String schemaName = cacheSchemaTable.get(tableName);
+
+    if(schemaName == null && cacheSchemaTable.isEmpty())
+    {
+      DatabaseMetaData databaseMetaData = conn.getMetaData();
+
+      try ( ResultSet rsTables = databaseMetaData.getTables(conn.getCatalog(), null, null, TABLES_FILTER))
+      {
+        while(rsTables.next())
+        {
+          cacheSchemaTable.put(rsTables.getString(3), StringOper.okStr(rsTables.getString(2)));
+        }
+      }
+
+      schemaName = cacheSchemaTable.getOrDefault(tableName, "");
+    }
+
+    return schemaName == null ? "" : schemaName;
   }
 
   /**
@@ -136,13 +172,14 @@ public final class Schema
   public static Schema schema(Connection conn, String tableName)
      throws SQLException, DataSetException
   {
-    return schema(conn, tableName, "*");
+    return schema(conn, getSchemaFromTable(conn, tableName), tableName, "*");
   }
 
   /**
    * Creates a Schema with the named columns in the columnsAttribute
    *
    * @param conn
+   * @param schemaName
    * @param tableName
    * @param columnsAttribute
    *
@@ -151,7 +188,7 @@ public final class Schema
    * @exception SQLException
    * @exception DataSetException
    */
-  public static Schema schema(Connection conn, String tableName, String columnsAttribute)
+  public static Schema schema(Connection conn, String schemaName, String tableName, String columnsAttribute)
      throws SQLException, DataSetException
   {
     if(columnsAttribute == null)
@@ -161,7 +198,7 @@ public final class Schema
 
     Schema tableSchema = null;
     DatabaseMetaData dbMeta = conn.getMetaData();
-    String keyValue = makeKeyHash(dbMeta.getURL(), tableName);
+    String keyValue = makeKeyHash(dbMeta.getURL(), schemaName, tableName);
 
     synchronized(schemaCache)
     {
@@ -177,6 +214,7 @@ public final class Schema
           {
             stmt.executeQuery();
             tableSchema = new Schema();
+            tableSchema.setSchemaName(schemaName);
             tableSchema.setTableName(tableName);
             tableSchema.setAttributes(columnsAttribute);
             tableSchema.populate(stmt.getMetaData(), tableName, conn);
@@ -412,14 +450,14 @@ public final class Schema
    * Internal method which populates this Schema object with Columns.
    *
    * @param meta The meta data of the ResultSet used to build this Schema.
-   * @param tableName The name of the table referenced in this schema, or null if unknown or multiple tables are
+   * @param tname The name of the table referenced in this schema, or null if unknown or multiple tables are
    * involved.
    * @param con database connection
    *
    * @exception SQLException
    * @exception DataSetException
    */
-  public void populate(ResultSetMetaData meta, String tableName, Connection con)
+  public void populate(ResultSetMetaData meta, String tname, Connection con)
      throws SQLException, DataSetException
   {
     numberOfColumns = meta.getColumnCount();
@@ -433,15 +471,20 @@ public final class Schema
     for(int i = 1; i <= numberOfColumns(); i++)
     {
       String metaSchemaName = getSecureSchemaName(meta, i, null);
-      String metaTableName = getSecureTableName(meta, i, tableName);
+      String metaTableName = getSecureTableName(meta, i, tname);
       String metaColumnName = meta.getColumnName(i);
+
+      if(tableName == null)
+        setTableName(metaTableName);
+      if(schemaName == null)
+        setSchemaName(metaSchemaName);
 
       Column col = null;
 
       if(metaTableName.length() > 0 && connURL != null)
       {
         Schema tableSchema = null;
-        String keyValue = makeKeyHash(connURL, metaTableName);
+        String keyValue = makeKeyHash(connURL, metaSchemaName, metaTableName);
 
         synchronized(schemaCache)
         {
@@ -466,7 +509,7 @@ public final class Schema
       {
         col = new Column();
 
-        int primaryInfo = tableName == null ? 0 : lpc.findInPrimary(metaSchemaName, metaTableName, metaColumnName);
+        int primaryInfo = tname == null ? 0 : lpc.findInPrimary(metaSchemaName, metaTableName, metaColumnName);
         col.populate(meta, i, metaTableName, metaColumnName, primaryInfo);
       }
 
@@ -486,9 +529,9 @@ public final class Schema
     if(singleTable)
     {
       // If available, use a the caller supplied table name.
-      if((tableName != null) && (tableName.length() > 0))
+      if((tname != null) && (tname.length() > 0))
       {
-        setTableName(tableName);
+        setTableName(tname);
       }
       else
       {
@@ -583,23 +626,11 @@ public final class Schema
      throws SQLException
   {
     List cols = new ArrayList();
-    String tableName = null;
     columnNumberByName.clear();
     LocalPrimaryCache lpc = new LocalPrimaryCache(catalog, databaseMetaData);
 
     while(dbMeta.next())
     {
-      if(tableName == null)
-      {
-        tableName = dbMeta.getString(3); // table name
-        setTableName(tableName);
-      }
-      else if(!tableName.equals(dbMeta.getString(3))) // not same table name
-      {
-        dbMeta.previous(); // reset result set pointer
-        break;
-      }
-
       Column c = new Column();
 
       c.populate(tableName,
@@ -618,7 +649,7 @@ public final class Schema
 
     if(!cols.isEmpty())
     {
-      this.numberOfColumns = cols.size();
+      numberOfColumns = cols.size();
       columns = new Column[numberOfColumns() + 1];
 
       int i = 1;
@@ -660,6 +691,16 @@ public final class Schema
      throws DataSetException
   {
     return getTableName();
+  }
+
+  public String getSchemaName()
+  {
+    return schemaName;
+  }
+
+  public void setSchemaName(String schemaName)
+  {
+    this.schemaName = schemaName;
   }
 
   /**

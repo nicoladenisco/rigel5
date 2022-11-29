@@ -38,7 +38,7 @@ public class DerbyTestEnvironment implements Closeable
   private File temp, dbFile;
   private String connectionURL;
   private Connection conn;
-  private static DerbyTestEnvironment theInstance = new DerbyTestEnvironment();
+  private static final DerbyTestEnvironment theInstance = new DerbyTestEnvironment();
 
   private DerbyTestEnvironment()
   {
@@ -106,7 +106,7 @@ public class DerbyTestEnvironment implements Closeable
        + ")";
 
     // Table/View 'MIC_BATTERI' already exists in Schema 'APP'.
-    try (Statement stm = conn.createStatement())
+    try ( Statement stm = conn.createStatement())
     {
       stm.executeUpdate(sSQL1);
     }
@@ -136,7 +136,7 @@ public class DerbyTestEnvironment implements Closeable
        + "    CONSTRAINT idx_mic_antibiotici_1 UNIQUE (codice)\n"
        + ")";
 
-    try (Statement stm = conn.createStatement())
+    try ( Statement stm = conn.createStatement())
     {
       stm.executeUpdate(sSQL2);
     }

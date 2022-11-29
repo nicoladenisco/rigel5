@@ -155,9 +155,6 @@ public class QueryDataSetTest
     antibiotici.save();
   }
 
-  /**
-   * Test of getSelectResults method, of class QueryDataSet.
-   */
   @Test
   public void testGetSelectResults()
      throws Exception
@@ -167,14 +164,13 @@ public class QueryDataSetTest
     int numberOfResults = -1;
     Connection dbCon = dbe.getConn();
     String sSQL = "SELECT * FROM mic_antibiotici";
-    QueryDataSet instance = new QueryDataSet(dbCon, sSQL);
-    List<Record> result = instance.getSelectResults(start, numberOfResults);
-    assertEquals(2, result.size());
+    try ( QueryDataSet instance = new QueryDataSet(dbCon, sSQL))
+    {
+      List<Record> result = instance.getSelectResults(start, numberOfResults);
+      assertEquals(2, result.size());
+    }
   }
 
-  /**
-   * Test of fetchAllRecords method, of class QueryDataSet.
-   */
   @Test
   public void testFetchAllRecords()
      throws Exception

@@ -18,7 +18,6 @@ package com.workingdogs.village;
  * specific language governing permissions and limitations
  * under the License.
  */
-import static com.workingdogs.village.Schema.makeKeyHash;
 import java.io.Closeable;
 import java.io.IOException;
 import java.sql.Connection;
@@ -102,11 +101,27 @@ public abstract class DataSet implements Closeable
   public DataSet(Connection conn, String tableName)
      throws DataSetException, SQLException
   {
+    this(conn, Schema.getSchemaFromTable(conn, tableName), tableName);
+  }
+
+  /**
+   * Create a new DataSet with a connection and a Table name
+   *
+   * @param conn
+   * @param schemaName
+   * @param tableName
+   *
+   * @exception DataSetException
+   * @exception SQLException
+   */
+  public DataSet(Connection conn, String schemaName, String tableName)
+     throws DataSetException, SQLException
+  {
     this.conn = conn;
     this.columns = "*";
-    this.schema = new Schema().schema(conn, tableName);
+    this.schema = Schema.schema(conn, schemaName, tableName, "*");
 
-    String keyValue = makeKeyHash(conn.getMetaData().getURL(), tableName);
+    String keyValue = Schema.makeKeyHash(conn.getMetaData().getURL(), schemaName, tableName);
     synchronized(keydefCache)
     {
       if((keyDefValue = keydefCache.get(keyValue)) == null)
@@ -166,25 +181,26 @@ public abstract class DataSet implements Closeable
     this.conn = conn;
     this.keyDefValue = keydef;
     this.columns = "*";
-    this.schema = new Schema().schema(conn, tableName);
+    this.schema = Schema.schema(conn, tableName);
   }
 
   /**
    * Create a new DataSet with a connection, tablename and list of columns
    *
    * @param conn
+   * @param schemaName
    * @param tableName
    * @param columns
    *
    * @exception SQLException
    * @exception DataSetException
    */
-  public DataSet(Connection conn, String tableName, String columns)
+  public DataSet(Connection conn, String schemaName, String tableName, String columns)
      throws SQLException, DataSetException
   {
     this.conn = conn;
     this.columns = columns;
-    this.schema = new Schema().schema(conn, tableName, columns);
+    this.schema = Schema.schema(conn, schemaName, tableName, columns);
   }
 
   /**
@@ -204,7 +220,7 @@ public abstract class DataSet implements Closeable
     this.conn = conn;
     this.columns = columns;
     this.keyDefValue = keyDef;
-    this.schema = new Schema().schema(conn, tableName, columns);
+    this.schema = Schema.schema(conn, Schema.getSchemaFromTable(conn, tableName), tableName, columns);
   }
 
   /**
