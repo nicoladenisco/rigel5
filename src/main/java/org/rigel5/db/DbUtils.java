@@ -19,6 +19,7 @@ package org.rigel5.db;
 
 import com.workingdogs.village.*;
 import com.workingdogs.village.Column;
+import java.io.PrintWriter;
 import java.io.Reader;
 import java.sql.*;
 import java.util.*;
@@ -1612,5 +1613,16 @@ public class DbUtils
     }
 
     return null;
+  }
+
+  public static void dumpResultSet(ResultSet rs, PrintWriter out)
+     throws Exception
+  {
+    ResultSetMetaData rm = rs.getMetaData();
+
+    for(int i = 1; i <= rm.getColumnCount(); i++)
+    {
+      out.println(rm.getColumnName(i) + "=" + rs.getObject(i));
+    }
   }
 }
