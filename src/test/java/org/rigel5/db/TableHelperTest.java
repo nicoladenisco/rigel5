@@ -96,20 +96,33 @@ public class TableHelperTest
     System.out.println("--- IMPORTATE --------------------------------");
     instance.dumpImportate(System.out);
 
-    int[] primaryKeys =
-    {
-      150800, 150801, 150802, 150803, 150804, 150805, 150806, 150807, 150808, 150809
-    };
-
-    instance.prepareDeleteCascade("in_accettazioni_id", primaryKeys);
-
-    System.out.println("Relazioni circolari: " + instance.getRecurse());
-
-    instance.executeDelete();
-
+//    int[] primaryKeys =
+//    {
+//      150800, 150801, 150802, 150803, 150804, 150805, 150806, 150807, 150808, 150809
+//    };
+//
+//    instance.prepareDeleteCascade("in_accettazioni_id", primaryKeys);
+//
+//    System.out.println("Relazioni circolari: " + instance.getRecurse());
+//
+//    instance.executeDelete();
     // TODO review the generated test code and remove the default call to fail.
     if(false)
       fail("The test case is a prototype.");
   }
 
+  @Test
+  public void testDumpRelation2()
+     throws Exception
+  {
+    System.out.println("dumpRelation2");
+    String schemaName = "inf";
+    String tableName = "in_parametri";
+    TableHelperDelete instance = new TableHelperDelete(con, false);
+    instance.loadData(schemaName, tableName);
+    System.out.println("--- ESPORTATE --------------------------------");
+    instance.dumpEsportate(System.out);
+    System.out.println("--- IMPORTATE --------------------------------");
+    instance.dumpImportate(System.out);
+  }
 }
