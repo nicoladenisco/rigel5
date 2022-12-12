@@ -81,34 +81,39 @@ public class TableHelper
     }
   }
 
-  public String makeKey(RelazioniBean b)
+  protected String makeKey(RelazioniBean b)
   {
     return b.pktable_schem + "." + b.pktable_name + " -> " + b.fktable_schem + "." + b.fktable_name;
   }
 
-  public String makeKey(String schemaName, String tableName)
+  protected String makeKeyEsportate(String schemaName, String tableName)
   {
     return this.schemaName + "." + this.tableName + " -> " + schemaName + "." + tableName;
   }
 
+  protected String makeKeyImportate(String schemaName, String tableName)
+  {
+    return schemaName + "." + tableName + " -> " + this.schemaName + "." + this.tableName;
+  }
+
   public boolean findEsportate(String schemaName, String tableName)
   {
-    return esportate.containsKey(makeKey(schemaName, tableName));
+    return esportate.containsKey(makeKeyEsportate(schemaName, tableName));
   }
 
   public boolean findEsportate(String tableName)
   {
-    return esportate.containsKey(makeKey(schemaName, tableName));
+    return esportate.containsKey(makeKeyEsportate(schemaName, tableName));
   }
 
   public boolean findImportate(String schemaName, String tableName)
   {
-    return importate.containsKey(makeKey(schemaName, tableName));
+    return importate.containsKey(makeKeyImportate(schemaName, tableName));
   }
 
   public boolean findImportate(String tableName)
   {
-    return importate.containsKey(makeKey(schemaName, tableName));
+    return importate.containsKey(makeKeyImportate(schemaName, tableName));
   }
 
   public void dumpImportate(PrintStream out)
