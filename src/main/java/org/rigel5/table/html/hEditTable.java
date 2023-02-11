@@ -315,7 +315,7 @@ public class hEditTable extends hTable
     {
       // colonna con generatore HTML custom per l'editing
       String nomeCampo = getNomeCampo(row, col);
-      String htmlCell = cd.getColedit().getHtmlEdit(cd, tableModel, row, col, cellText, nomeCampo, i18n);
+      String htmlCell = cd.getColedit().getHtmlEdit(cd, tableModel, row, col, cellText, cellHtml, nomeCampo, i18n);
 
       // se il custom edit ritorna null vuol dire che per questa colonna va bene il comportamento di default
       if(htmlCell != null)

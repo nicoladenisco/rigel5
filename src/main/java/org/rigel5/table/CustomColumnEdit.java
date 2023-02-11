@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -49,14 +49,15 @@ public interface CustomColumnEdit
    * @param model gestore dei dati della tabella
    * @param row riga richiesta
    * @param col colonna richiesta
-   * @param formattedValue valore formattato del campo in questione
+   * @param cellText valore formattato del campo in questione
+   * @param cellHtml html default per edit campo
    * @param nomeCampo nome del campo di default
    * @param i18n internazionalizzatore
    * @throws Exception
    * @return HTML del campo
    */
   public String getHtmlEdit(RigelColumnDescriptor cd, TableModel model,
-     int row, int col, String formattedValue, String nomeCampo, RigelI18nInterface i18n)
+     int row, int col, String cellText, String cellHtml, String nomeCampo, RigelI18nInterface i18n)
      throws Exception;
 
   /**
@@ -83,4 +84,3 @@ public interface CustomColumnEdit
      int row, int col, String formattedValue, String nomeCampo, String oldValue, Map params, RigelI18nInterface i18n)
      throws Exception;
 }
-
