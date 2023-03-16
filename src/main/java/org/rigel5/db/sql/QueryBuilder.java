@@ -382,7 +382,8 @@ abstract public class QueryBuilder implements Closeable
              .append(" IN (").append(StringOper.join(sVals.iterator(), ',')).append("))");
       }
       else if(wi.val != null)
-        whre.append(" AND (").append(adjCampo(wi.type, wi.nomecampo)).append(" ").append(wi.criteria).append(" ").append(adjValue(wi.type, wi.val)).append(")");
+        whre.append(" AND (").append(adjCampo(wi.type, wi.nomecampo)).append(" ").append(wi.criteria)
+           .append(" ").append(adjValue(wi.type, wi.val)).append(")");
     }
 
     for(FiltroData.betweenInfo bi : fd.vBetween)
@@ -391,7 +392,8 @@ abstract public class QueryBuilder implements Closeable
       String valMin = adjValue(bi.type, bi.val1);
       String valMax = adjValue(bi.type, bi.val2);
 
-      whre.append(" AND ((").append(nomeCampo).append(" >= ").append(valMin).append(") AND (").append(nomeCampo).append(" <= ").append(valMax).append("))");
+      whre.append(" AND ((").append(nomeCampo).append(" >= ").append(valMin)
+         .append(") AND (").append(nomeCampo).append(" <= ").append(valMax).append("))");
     }
 
     for(String stm : fd.vFreeWhere)
@@ -911,22 +913,26 @@ abstract public class QueryBuilder implements Closeable
    * Viene utilizzata per costruire un combo di ricerca con
    * i dati stessi del campo.
    * Il risultato viene passato nella cache.
+   * @param row riga corrente
+   * @param col colonna corrente
+   * @param rtm tableModel con i dati principali
    * @param cd colonna chiave per il recupero
    * @param nomeTabella nome della tabella
    * @param nomeCampo nome del campo
    * @return lista dati esterni
    * @throws Exception
    */
-  public List<ForeignDataHolder> getDataComboColonnaSelf(RigelColumnDescriptor cd,
+  public List<ForeignDataHolder> getDataComboColonnaSelf(int row, int col,
+     RigelTableModel rtm, RigelColumnDescriptor cd,
      String nomeTabella, String nomeCampo)
      throws Exception
   {
     List<ForeignDataHolder> rv;
-    String sSQL = getQueryComboColonnaSelf(cd, nomeTabella, nomeCampo);
+    String sSQL = getQueryComboColonnaSelf(row, col, rtm, cd, nomeTabella, nomeCampo);
     if(cd.isEnableCache() && (rv = SetupHolder.getCacheManager().getDataComboColonnaSelf(sSQL)) != null)
       return rv;
 
-    return SetupHolder.getConProd().functionConnection((con) -> getDataComboColonnaSelf(con, sSQL, cd, nomeTabella, nomeCampo));
+    return SetupHolder.getConProd().functionConnection((con) -> getDataComboColonnaSelf(con, sSQL, row, col, rtm, cd, nomeTabella, nomeCampo));
   }
 
   /**
@@ -936,6 +942,9 @@ abstract public class QueryBuilder implements Closeable
    * Il risultato viene passato nella cache.
    * @param con connessione al db
    * @param sSQL
+   * @param row riga corrente
+   * @param col colonna corrente
+   * @param rtm tableModel con i dati principali
    * @param cd colonna chiave per il recupero
    * @param nomeTabella nome della tabella
    * @param nomeCampo nome del campo
@@ -943,13 +952,13 @@ abstract public class QueryBuilder implements Closeable
    * @throws Exception
    */
   public List<ForeignDataHolder> getDataComboColonnaSelf(Connection con, String sSQL,
-     RigelColumnDescriptor cd, String nomeTabella, String nomeCampo)
+     int row, int col, RigelTableModel rtm, RigelColumnDescriptor cd, String nomeTabella, String nomeCampo)
      throws Exception
   {
     List<ForeignDataHolder> rv = null;
 
     if(sSQL == null)
-      sSQL = getQueryComboColonnaSelf(cd, nomeTabella, nomeCampo);
+      sSQL = getQueryComboColonnaSelf(row, col, rtm, cd, nomeTabella, nomeCampo);
 
     if(cd.isEnableCache() && (rv = SetupHolder.getCacheManager().getDataComboColonnaSelf(sSQL)) != null)
       return rv;
@@ -975,13 +984,17 @@ abstract public class QueryBuilder implements Closeable
 
   /**
    * Costruisce la query utilizzata da getDataComboColonnaSelf().
+   * @param row riga corrente
+   * @param col colonna corrente
+   * @param rtm tableModel con i dati principali
    * @param cd colonna chiave per il recupero
    * @param nomeTabella nome della tabella
    * @param nomeCampo nome del campo
    * @return la query SQL per ottenere la lista di valori possibili.
    * @throws Exception
    */
-  public String getQueryComboColonnaSelf(RigelColumnDescriptor cd,
+  public String getQueryComboColonnaSelf(int row, int col,
+     RigelTableModel rtm, RigelColumnDescriptor cd,
      String nomeTabella, String nomeCampo)
      throws Exception
   {
@@ -990,7 +1003,7 @@ abstract public class QueryBuilder implements Closeable
        + " WHERE " + nomeCampo + " IS NOT NULL";
 
     if(cd.getComboExtraWhere() != null)
-      sSQL += " AND " + cd.getComboExtraWhere();
+      sSQL += " AND " + rtm.getValueMacroInside(row, col, cd.getComboExtraWhere(), true, false);
 
     sSQL += " ORDER BY " + nomeCampo;
 

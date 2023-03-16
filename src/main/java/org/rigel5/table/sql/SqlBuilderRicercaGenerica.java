@@ -50,6 +50,7 @@ public class SqlBuilderRicercaGenerica implements BuilderRicercaGenerica
    * Analizza le informazioni di runtime del map builder
    * per rintracciare i nomi dei campi sulla tabella SQL.
    * Quindi costruisce il Criteria di select di conseguenza.
+   * @throws java.lang.Exception
    */
   @Override
   public Object buildCriteria()
@@ -154,7 +155,9 @@ public class SqlBuilderRicercaGenerica implements BuilderRicercaGenerica
         SqlEnum critItem = (idxCombo == 1) ? CriteriaRigel.EQUAL : criteriaItems[idxCombo];
 
         if(idxCombo == 9 || idxCombo == 10)
+        {
           fd.addWhere(cd, critItem, null);
+        }
         else
         {
           // parsing e riformattazione corretta del valore di filtro
@@ -212,8 +215,7 @@ public class SqlBuilderRicercaGenerica implements BuilderRicercaGenerica
     sOut = "<select name=\"" + nomeCombo + "\" onChange=\"" + setComboFunjs + "\">";
 
     if(cd.isComboSelf())
-      sOut += cd.getHtmlComboColonnaSelf(ptm,
-         nomeTabella, cd.getName(), defVal);
+      sOut += cd.getHtmlComboColonnaSelf(0, 0, ptm, nomeTabella, cd.getName(), defVal);
     else
       sOut += cd.getHtmlComboColonnaAttached(0, 0, ptm, defVal, i18n, false);
     sOut += "</select>";
@@ -241,7 +243,7 @@ public class SqlBuilderRicercaGenerica implements BuilderRicercaGenerica
       sOut.append("<option value=\"\">TUTTI</option>");
 
     if(cd.isComboSelf())
-      sOut.append(cd.getHtmlComboColonnaSelf(ptm, nomeTabella, cd.getName(), defVal));
+      sOut.append(cd.getHtmlComboColonnaSelf(0, 0, ptm, nomeTabella, cd.getName(), defVal));
     else
       sOut.append(cd.getHtmlComboColonnaAttached(0, 0, ptm, defVal, i18n, true));
 

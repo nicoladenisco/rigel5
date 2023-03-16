@@ -915,6 +915,8 @@ abstract public class RigelColumnDescriptor extends TableColumn
    * Restituisce un auto combo.
    * I valori vengono estratti con una SELECT DISTINCT dalla
    * tabella e colonna indicata.
+   * @param row the value of row
+   * @param col the value of col
    * @param ptm data model con i dati
    * @param nomeTabella tabella con i valori
    * @param nomeCampo colonna con i valori
@@ -922,14 +924,15 @@ abstract public class RigelColumnDescriptor extends TableColumn
    * @return HTML interno del combo (solo le option)
    * @throws Exception
    */
-  public String getHtmlComboColonnaSelf(RigelTableModel ptm,
-     String nomeTabella, String nomeCampo,
+  public String getHtmlComboColonnaSelf(int row, int col,
+     RigelTableModel ptm, String nomeTabella, String nomeCampo,
      String defVal)
      throws Exception
   {
     if(lForeignValues == null)
     {
-      List<ForeignDataHolder> lValues = ptm.getQuery().getDataComboColonnaSelf(this, nomeTabella, nomeCampo);
+      List<ForeignDataHolder> lValues
+         = ptm.getQuery().getDataComboColonnaSelf(row, col, ptm, this, nomeTabella, nomeCampo);
       return getHtmlComboFromForeignData(lValues, defVal, false);
     }
 

@@ -881,9 +881,8 @@ abstract public class AbstractGenListe extends ParseSchemaBase
       Element table = (Element) (iterTableDrop.next());
       String tableName = table.getAttributeValue("name").toLowerCase();
 
-      pw.print(
-         "DROP VIEW " + tableName.toUpperCase() + "_VIEW CASCADE;\n"
-      );
+      pw.print("DROP VIEW " + tableName.toUpperCase() + "_VIEW CASCADE;\n");
+      pw.print("DROP VIEW " + tableName.toUpperCase() + "_VIEW_ALL CASCADE;\n");
     }
 
     pw.print("\n\n");
@@ -914,6 +913,7 @@ abstract public class AbstractGenListe extends ParseSchemaBase
       Element table = (Element) (iterTableCreate.next());
       String tableName = table.getAttributeValue("name").toLowerCase();
 
+      int count = 0;
       boolean haveStatoRec = false;
       String primaryKey = null, strSelect = "";
       Iterator iterCol = table.getChildren("column", ns).iterator();
@@ -967,6 +967,7 @@ abstract public class AbstractGenListe extends ParseSchemaBase
           selin += "  " + buidlFieldList(ftable, talias) + ",\n";
       }
 
+      // tabelle primo livello join filtra STATO_REC ovvero esclude cancellati logicamente
       pw.print(
          "CREATE VIEW " + tableName.toUpperCase() + "_VIEW AS\n"
          + "SELECT \n"
@@ -988,6 +989,29 @@ abstract public class AbstractGenListe extends ParseSchemaBase
          + (haveStatoRec ? "WHERE (T.STATO_REC IS NULL OR T.STATO_REC < 10)\n" : "")
          + "ORDER BY " + primaryKey + ";\n\n\n"
       );
+
+      // tabelle primo livello join ignora STATO_REC ovvero include cancellati logicamente
+      pw.print(
+         "CREATE VIEW " + tableName.toUpperCase() + "_VIEW_ALL AS\n"
+         + "SELECT \n"
+      );
+
+      if(selin.isEmpty())
+      {
+        pw.print("  " + strSelect.substring(2) + "\n");
+      }
+      else
+      {
+        pw.print("  " + strSelect.substring(2) + ",\n");
+        pw.print(selin.substring(0, selin.length() - 2) + "\n");
+      }
+
+      pw.print(
+         "FROM " + prein + tableName.toUpperCase() + useAs + "T\n"
+         + inner
+         + "ORDER BY " + primaryKey + ";\n\n\n"
+      );
+
     }
   }
 
@@ -1076,7 +1100,7 @@ abstract public class AbstractGenListe extends ParseSchemaBase
       XMLOutputter xout = new XMLOutputter();
       xout.setFormat(Format.getPrettyFormat());
 
-      try (FileOutputStream fis = new FileOutputStream(ouputFile))
+      try ( FileOutputStream fis = new FileOutputStream(ouputFile))
       {
         xout.output(docOutput, fis);
       }
@@ -1084,11 +1108,13 @@ abstract public class AbstractGenListe extends ParseSchemaBase
 
     if(sqloutput != null)
     {
-      try (PrintStream ps = new PrintStream(sqloutput))
+      try ( PrintStream ps = new PrintStream(sqloutput))
       {
         genSqlfile(ps);
       }
     }
+    else
+      genSqlfile(System.out);
   }
 
   public void runArgs(String[] args)

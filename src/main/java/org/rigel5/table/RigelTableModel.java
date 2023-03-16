@@ -18,6 +18,7 @@
 package org.rigel5.table;
 
 import com.google.inject.internal.Iterators;
+import com.workingdogs.village.Record;
 import java.util.*;
 import javax.swing.table.*;
 import org.apache.commons.logging.*;
@@ -638,5 +639,41 @@ abstract public class RigelTableModel extends AbstractTableModel
   public Map<String, String> getAllProperties()
   {
     return Collections.unmodifiableMap(properties);
+  }
+
+  /**
+   * Ritorna un array con i valori di un campo per tutte le righe.
+   * @param campo campo di interesse
+   * @return un array di interi col il corrispettivo valore per la riga
+   * @throws Exception
+   */
+  public int[] getAllValuesInt(String campo)
+     throws Exception
+  {
+    int[] allPbr = new int[getRowCount()];
+    for(int i = 0; i < getRowCount(); i++)
+    {
+      Record r = (Record) getRowRecord(i);
+      allPbr[i] = r.getValue(campo).asInt();
+    }
+    return allPbr;
+  }
+
+  /**
+   * Ritorna un array con i valori di un campo per tutte le righe.
+   * @param campo campo di interesse
+   * @return un array di stringhe col il corrispettivo valore per la riga
+   * @throws Exception
+   */
+  public String[] getAllValuesString(String campo)
+     throws Exception
+  {
+    String[] allPbr = new String[getRowCount()];
+    for(int i = 0; i < getRowCount(); i++)
+    {
+      Record r = (Record) getRowRecord(i);
+      allPbr[i] = r.getValue(campo).asString();
+    }
+    return allPbr;
   }
 }

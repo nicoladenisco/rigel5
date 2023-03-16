@@ -625,6 +625,10 @@ public class HtmlMascheraRicercaGenerica implements MascheraRicercaGenerica
     {
       return buildCriteria(params);
     }
+    catch(InjectionDetectedException ex)
+    {
+      throw ex;
+    }
     catch(Exception ex)
     {
       log.error("RIGEL:", ex);
