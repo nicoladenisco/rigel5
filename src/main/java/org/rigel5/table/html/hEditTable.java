@@ -26,6 +26,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.torque.om.Persistent;
 import org.commonlib5.utils.StringOper;
 import org.rigel5.HtmlUtils;
+import org.rigel5.table.CustomColumnEdit;
 import org.rigel5.table.ForeignDataHolder;
 import org.rigel5.table.RigelColumnDescriptor;
 import org.rigel5.table.RigelTableModel;
@@ -310,12 +311,13 @@ public class hEditTable extends hTable
      throws Exception
   {
     RigelColumnDescriptor cd = getCD(col);
+    final CustomColumnEdit coledit = cd.getColedit();
+    final String nomeCampo = getNomeCampo(row, col);
 
-    if(cd.getColedit() != null && cd.getColedit().haveCustomHtml())
+    if(coledit != null && coledit.haveCustomHtml())
     {
       // colonna con generatore HTML custom per l'editing
-      String nomeCampo = getNomeCampo(row, col);
-      String htmlCell = cd.getColedit().getHtmlEdit(cd, tableModel, row, col, cellText, cellHtml, nomeCampo, i18n);
+      String htmlCell = coledit.getHtmlEdit(cd, tableModel, row, col, cellText, cellHtml, nomeCampo, i18n);
 
       // se il custom edit ritorna null vuol dire che per questa colonna va bene il comportamento di default
       if(htmlCell != null)
@@ -332,6 +334,20 @@ public class hEditTable extends hTable
       }
     }
 
+    String rigelHtml = buildHtml(cd, row, col, cellText, cellHtml);
+
+    if(coledit != null && coledit.haveAddHtml())
+    {
+      // eventuale controllo con html aggiunto
+      return coledit.addHtmlEdit(cd, tableModel, row, col, cellText, nomeCampo, rigelHtml, i18n);
+    }
+
+    return rigelHtml;
+  }
+
+  private String buildHtml(RigelColumnDescriptor cd, int row, int col, String cellText, String cellHtml)
+     throws Exception
+  {
     if(cd.useForeignAutoCombo(row, col, getTM()))
       return getForeignEditAutocombo(row, col, cellText, cellHtml);
 
