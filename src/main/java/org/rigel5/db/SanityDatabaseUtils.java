@@ -36,7 +36,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class SanityDatabaseUtils
 {
-  private Log log = LogFactory.getLog(SanityDatabaseUtils.class);
+  private final Log log = LogFactory.getLog(SanityDatabaseUtils.class);
 
   protected final HashSet<String> skipTableIdTable = new HashSet<>();
   protected final HashSet<String> skipTableInsZero = new HashSet<>();
@@ -57,6 +57,12 @@ public class SanityDatabaseUtils
 
     // tabelle in cui non va inserito il record 0  (solo MAIUSCOLO per confronto case insensitive)
     skipTableInsZero.add("TURBINE_SCHEDULED_JOB");
+    skipTableInsZero.add("TURBINE_USER");
+    skipTableInsZero.add("TURBINE_GROUP");
+    skipTableInsZero.add("TURBINE_ROLE");
+    skipTableInsZero.add("TURBINE_PERMISSION");
+    skipTableInsZero.add("TURBINE_USER_GROUP_ROLE");
+    skipTableInsZero.add("TURBINE_ROLE_PERMISSION");
     skipTableInsZero.add("ID_TABLE");
   }
 
@@ -152,7 +158,7 @@ public class SanityDatabaseUtils
             out.write(sSQL + "\n");
 
           String fatto = "OK!!";
-          try ( Statement st = con.createStatement())
+          try(Statement st = con.createStatement())
           {
             st.executeUpdate(sSQL);
             skipSet.add(table);
@@ -211,7 +217,7 @@ public class SanityDatabaseUtils
     int nsize = NESSUNO_INDEFINITO.length();
     StringBuilder sb1 = new StringBuilder(1024);
     StringBuilder sb2 = new StringBuilder(1024);
-    try ( ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
+    try(ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
     {
       for(int i = 0; rs.next(); i++)
       {
@@ -307,7 +313,7 @@ public class SanityDatabaseUtils
     }
 
     out.write(String.format("\n\n=== ESEGUO %s ===\n", toRun.getAbsolutePath()));
-    try ( InputStream is = new FileInputStream(toRun))
+    try(InputStream is = new FileInputStream(toRun))
     {
       BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
 
@@ -328,7 +334,7 @@ public class SanityDatabaseUtils
           if(verbose)
             out.write(sSQL + "\n");
 
-          try ( Statement st = con.createStatement())
+          try(Statement st = con.createStatement())
           {
             st.executeUpdate(sSQL);
           }
