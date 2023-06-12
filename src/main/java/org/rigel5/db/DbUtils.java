@@ -24,7 +24,7 @@ import java.io.Reader;
 import java.sql.*;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.torque.*;
@@ -35,7 +35,6 @@ import org.apache.torque.om.Persistent;
 import org.apache.torque.om.SimpleKey;
 import org.apache.torque.sql.Query;
 import org.apache.torque.sql.SqlBuilder;
-import org.apache.torque.util.BasePeer;
 import org.apache.torque.util.ColumnValues;
 import org.apache.torque.util.ExceptionMapper;
 import org.apache.torque.util.JdbcTypedValue;
@@ -46,7 +45,6 @@ import org.commonlib5.utils.Pair;
 import org.commonlib5.utils.StringOper;
 import org.rigel5.SetupHolder;
 import org.rigel5.db.sql.QueryBuilder;
-import org.rigel5.db.torque.PeerTransactAgent;
 import org.rigel5.table.RigelColumnDescriptor;
 
 /**
@@ -215,7 +213,7 @@ public class DbUtils
       subSQL = "DELETE " + subSQL.substring(subSQL.indexOf("FROM"));
     }
 
-    return BasePeer.executeStatement(subSQL);
+    return executeStatement(subSQL);
   }
 
   public static long deleteFromCriteria(Criteria c, Connection con)
@@ -228,7 +226,7 @@ public class DbUtils
       subSQL = "DELETE " + subSQL.substring(subSQL.indexOf("FROM"));
     }
 
-    return BasePeer.executeStatement(subSQL, con);
+    return executeStatement(subSQL, con);
   }
 
   /**
@@ -327,62 +325,6 @@ public class DbUtils
               : getMaxField(tableName, cmp.getColumnName(), dbCon);
   }
 
-//  /**
-//   * Cancella a cascata una record da una tabella, cancellando tutte le tabelle con chiavi esterne alla tabella
-//   * principale.
-//   *
-//   * @param tableName tabella da cancellare
-//   * @param recObj
-//   * @throws Exception
-//   */
-//  public static void deleteCascade(String tableName, BaseObject recObj)
-//     throws Exception
-//  {
-//    deleteCascadeWorker(new Stack(), tableName, recObj);
-//  }
-//
-//  private static void deleteCascadeWorker(Stack deepStack, String tableName, BaseObject recObj)
-//     throws Exception
-//  {
-//    // verifica per riferimento circolare
-//    if(deepStack.contains(tableName))
-//    {
-//      return;
-//    }
-//
-//    // aggiugne per controllo riferimento circolare
-//    deepStack.push(tableName);
-//
-//    // aggiunge le tabelle mancanti
-//    TableMap[] arMaps = Torque.getDatabaseMap().getTables();
-//    for(int i = 0; i < arMaps.length; i++)
-//    {
-//      TableMap tm = arMaps[i];
-//      if(StringOper.isEqu(tableName, tm.getName()))
-//      {
-//        continue;
-//      }
-//
-//      ColumnMap[] arCols = tm.getColumns();
-//      for(int j = 0; j < arCols.length; j++)
-//      {
-//        ColumnMap cm = arCols[j];
-//        if(StringOper.isEqu(tableName, cm.getRelatedTableName()))
-//        {
-//          // tabella con chiave esterna
-//          Object valKey = recObj.getByPeerName(cm.getRelatedName());
-//          if(valKey != null)
-//          {
-//            String classname = "";
-//            BaseObject relObj = null;
-//            deleteCascadeWorker(deepStack, tm.getName(), relObj);
-//          }
-//        }
-//      }
-//    }
-//
-//    deepStack.pop();
-//  }
   /**
    * Conversione da array di interi a chiave primaria.
    *
@@ -690,7 +632,7 @@ public class DbUtils
   public static boolean existTableExact(Connection con, String nomeTabella)
      throws Exception
   {
-    try ( ResultSet rs = con.getMetaData().getTables(null, null, null, TABLES_FILTER))
+    try (ResultSet rs = con.getMetaData().getTables(null, null, null, TABLES_FILTER))
     {
       while(rs.next())
       {
@@ -723,7 +665,7 @@ public class DbUtils
      String nomeSchema, String nomeTabella, String nomeColonna)
      throws SQLException
   {
-    try ( ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
+    try (ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
     {
       while(rs.next())
       {
@@ -741,7 +683,7 @@ public class DbUtils
   {
     ArrayMap<String, Integer> rv = new ArrayMap<>();
 
-    try ( ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
+    try (ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
     {
       while(rs.next())
       {
@@ -828,7 +770,7 @@ public class DbUtils
   public static Schema schemaQuery(Connection con, String sSQL)
      throws Exception
   {
-    try ( QueryDataSet qds = new QueryDataSet(con, sSQL))
+    try (QueryDataSet qds = new QueryDataSet(con, sSQL))
     {
       return qds.schema();
     }
@@ -837,7 +779,7 @@ public class DbUtils
   public static Schema schemaTable(Connection con, String nomeTabella)
      throws Exception
   {
-    try ( TableDataSet tds = new TableDataSet(con, nomeTabella))
+    try (TableDataSet tds = new TableDataSet(con, nomeTabella))
     {
       return tds.schema();
     }
@@ -1007,7 +949,7 @@ public class DbUtils
   {
     ArrayMap<String, Integer> rv = new ArrayMap<>();
 
-    try ( ResultSet rs = con.getMetaData().getPrimaryKeys(con.getCatalog(), nomeSchema, nomeTabella))
+    try (ResultSet rs = con.getMetaData().getPrimaryKeys(con.getCatalog(), nomeSchema, nomeTabella))
     {
       while(rs.next())
       {
@@ -1141,7 +1083,7 @@ public class DbUtils
   public static List<Record> executeQuery(String queryString)
      throws Exception
   {
-    return PeerTransactAgent.executeReturnReadonly((con) -> executeQuery(queryString, con));
+    return executeQuery(queryString, Torque.getDefaultDB());
   }
 
   public static List<Record> executeQuery(String queryString, String dbName)
@@ -1169,12 +1111,9 @@ public class DbUtils
     try
     {
       con = Torque.getConnection(dbName);
+
       // execute the query
-      results = executeQuery(
-         queryString,
-         start,
-         numberOfResults,
-         con);
+      results = executeQuery(queryString, start, numberOfResults, con);
     }
     finally
     {
@@ -1253,7 +1192,9 @@ public class DbUtils
   public static List<Record> doSelect(Criteria criteria, Connection con)
      throws Exception
   {
-    return BasePeer.doSelect(criteria, new VillageRecordMapper(), con);
+    Query query = SqlBuilder.buildQuery(criteria);
+    String sSQL = query.getDisplayString();
+    return QueryDataSet.fetchAllRecords(con, sSQL);
   }
 
   public static void doInsert(String fullTableName, ColumnValues insertValues)
@@ -1335,7 +1276,7 @@ public class DbUtils
     }
     query.append(")");
 
-    try ( PreparedStatement ps = connection.prepareStatement(query.toString()))
+    try (PreparedStatement ps = connection.prepareStatement(query.toString()))
     {
       populatePreparedStatement(replacementObjects, ps, 1);
 
@@ -1383,7 +1324,7 @@ public class DbUtils
       replacementObjects.add(updateValue.getValue());
     }
 
-    try ( PreparedStatement ps = connection.prepareStatement(query.toString()))
+    try (PreparedStatement ps = connection.prepareStatement(query.toString()))
     {
       int position = populatePreparedStatement(replacementObjects, ps, 1);
 
@@ -1445,13 +1386,29 @@ public class DbUtils
   public static int executeStatement(String sSQL)
      throws TorqueException
   {
-    return BasePeer.executeStatement(sSQL);
+    Connection con = null;
+    try
+    {
+      con = Torque.getConnection();
+      return executeStatement(sSQL, con);
+    }
+    finally
+    {
+      Torque.closeConnection(con);
+    }
   }
 
   public static int executeStatement(String sSQL, Connection con)
      throws TorqueException
   {
-    return BasePeer.executeStatement(sSQL, con);
+    try (Statement st = con.createStatement())
+    {
+      return st.executeUpdate(sSQL);
+    }
+    catch(SQLException ex)
+    {
+      throw new TorqueException(ex);
+    }
   }
 
   /**
@@ -1481,7 +1438,7 @@ public class DbUtils
 
           if(!sSQL.isEmpty())
           {
-            try ( PreparedStatement ps = con.prepareStatement(sSQL))
+            try (PreparedStatement ps = con.prepareStatement(sSQL))
             {
               count += ps.executeUpdate();
             }
@@ -1517,7 +1474,7 @@ public class DbUtils
       StringBuilder sb1 = new StringBuilder(1024);
       StringBuilder sb2 = new StringBuilder(1024);
 
-      try ( ResultSet rs = con.getMetaData().getColumns(conp.getCatalog(), nomeSchemap, nomeTabellap, null))
+      try (ResultSet rs = con.getMetaData().getColumns(conp.getCatalog(), nomeSchemap, nomeTabellap, null))
       {
         for(int i = 0; rs.next(); i++)
         {
@@ -1623,6 +1580,36 @@ public class DbUtils
     for(int i = 1; i <= rm.getColumnCount(); i++)
     {
       out.println(rm.getColumnName(i) + "=" + rs.getObject(i));
+    }
+  }
+
+  public static int compareField(Record d1, Record d2, String campo)
+  {
+    try
+    {
+      String s1 = d1.getValue(campo).asOkString();
+      String s2 = d2.getValue(campo).asOkString();
+
+      return s1.compareTo(s2);
+    }
+    catch(DataSetException ex)
+    {
+      throw new RuntimeException(ex);
+    }
+  }
+
+  public static int compareFieldIgnoreCase(Record d1, Record d2, String campo)
+  {
+    try
+    {
+      String s1 = d1.getValue(campo).asOkString();
+      String s2 = d2.getValue(campo).asOkString();
+
+      return s1.compareToIgnoreCase(s2);
+    }
+    catch(DataSetException ex)
+    {
+      throw new RuntimeException(ex);
     }
   }
 }

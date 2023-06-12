@@ -83,7 +83,7 @@ public class QueryDataSetTest
   private void inserisciDati()
      throws SQLException, DataSetException
   {
-    try ( Statement stm = dbe.getConn().createStatement())
+    try (Statement stm = dbe.getConn().createStatement())
     {
       stm.executeUpdate("DELETE FROM mic_antibiotici");
       stm.executeUpdate("DELETE FROM mic_batteri");
@@ -164,7 +164,7 @@ public class QueryDataSetTest
     int numberOfResults = -1;
     Connection dbCon = dbe.getConn();
     String sSQL = "SELECT * FROM mic_antibiotici";
-    try ( QueryDataSet instance = new QueryDataSet(dbCon, sSQL))
+    try (QueryDataSet instance = new QueryDataSet(dbCon, sSQL))
     {
       List<Record> result = instance.getSelectResults(start, numberOfResults);
       assertEquals(2, result.size());
@@ -205,7 +205,7 @@ public class QueryDataSetTest
     fd.addWhere("IDBATTERI", SqlEnum.GREATER_EQUAL, 1);
     fd.addSelect("IDBATTERI");
     fd.addOrderby("IDBATTERI");
-    try ( QueryDataSet qds = new QueryDataSet(dbCon, "codice", "mic_batteri", fd))
+    try (QueryDataSet qds = new QueryDataSet(dbCon, "codice", "mic_batteri", fd))
     {
       System.out.println("sSQL=" + qds.getSelectString());
       List<Record> result = qds.fetchAllRecords();
@@ -227,7 +227,7 @@ public class QueryDataSetTest
     fd.addWhere("codice", SqlEnum.ISNOTNULL);
     fd.addSelect("IDBATTERI");
     fd.addOrderby("IDBATTERI");
-    try ( QueryDataSet qds = new QueryDataSet(dbCon, "codice", "mic_batteri", fd))
+    try (QueryDataSet qds = new QueryDataSet(dbCon, "codice", "mic_batteri", fd))
     {
       System.out.println("sSQL=" + qds.getSelectString());
       List<Record> result = qds.fetchAllRecords();

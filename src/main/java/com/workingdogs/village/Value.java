@@ -371,6 +371,11 @@ public class Value
     return StringOper.okStr(asString());
   }
 
+  public String asOkStringNull()
+  {
+    return StringOper.okStrNull(asString());
+  }
+
   /**
    * Get the value as a BigDecimal
    *

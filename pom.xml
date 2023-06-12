@@ -18,14 +18,14 @@
     <dependency>
       <groupId>org.apache.torque</groupId>
       <artifactId>torque</artifactId>
-      <version>4.0</version>
+      <version>${torque.version}</version>
       <type>pom</type>
     </dependency>
     <!-- https://mvnrepository.com/artifact/org.apache.torque/torque-runtime -->
     <dependency>
       <groupId>org.apache.torque</groupId>
       <artifactId>torque-runtime</artifactId>
-      <version>4.0</version>
+      <version>${torque.version}</version>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
@@ -79,5 +79,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
+    <torque.version>5.1</torque.version>
+    <turbine.core>5.1</turbine.core>
   </properties>
 </project>

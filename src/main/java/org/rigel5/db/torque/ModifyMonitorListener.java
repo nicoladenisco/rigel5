@@ -16,8 +16,8 @@ package org.rigel5.db.torque;
 
 import java.sql.Connection;
 import org.apache.torque.TorqueException;
+import org.apache.torque.criteria.Criteria;
 import org.apache.torque.om.ObjectKey;
-import org.apache.torque.util.Criteria;
 
 /**
  * Ascoltatore cambiamenti su tabella.
@@ -37,7 +37,7 @@ public interface ModifyMonitorListener
    * @throws TorqueException
    */
   public void doInsert(String dbName, String tableName, ObjectKey primaryKey, Criteria criteria, Connection con)
-    throws TorqueException;
+     throws TorqueException;
 
   /**
    * Notifica aggiornamento record.
@@ -50,7 +50,7 @@ public interface ModifyMonitorListener
    * @throws TorqueException
    */
   public void doUpdate(String dbName, String tableName, Criteria selectCriteria, Criteria criteria, Connection con)
-    throws TorqueException;
+     throws TorqueException;
 
   /**
    * Notifica cancellazione record.
@@ -62,5 +62,5 @@ public interface ModifyMonitorListener
    * @throws TorqueException
    */
   public void doDelete(String dbName, String tableName, Criteria selectCriteria, Connection con)
-    throws TorqueException;
+     throws TorqueException;
 }

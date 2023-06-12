@@ -23,7 +23,7 @@ import com.workingdogs.village.Record;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.apache.torque.TorqueException;
-import org.apache.torque.criteria.CriteriaInterface;
+import org.apache.torque.criteria.Criteria;
 import org.apache.torque.om.mapper.RecordMapper;
 
 /**
@@ -36,7 +36,7 @@ public class VillageRecordMapper implements RecordMapper<Record>
   private QueryDataSet qds;
 
   @Override
-  public Record processRow(ResultSet resultSet, int rowOffset, CriteriaInterface<?> criteria)
+  public Record processRow(ResultSet resultSet, int rowOffset, Criteria criteria)
      throws TorqueException
   {
     try

@@ -394,7 +394,7 @@ public class SanityTorqueUtils extends SanityDatabaseUtils
   protected ColumnValues buildInsertZeroCriteria(DatabaseMap dbMap, TableMapHelper tm, boolean recurse)
      throws Exception
   {
-    ColumnValues cr = new ColumnValues(tm.getTmap(), databaseName);
+    ColumnValues cr = new ColumnValues();
     ColumnMap[] cs = tm.getColumns();
     ForeignKeyMap fk;
     int numPrimary = 0;

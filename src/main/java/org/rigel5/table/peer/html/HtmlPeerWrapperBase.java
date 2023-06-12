@@ -432,7 +432,7 @@ abstract public class HtmlPeerWrapperBase extends HtmlWrapperBase
       if(pl.getValore() != null)
       {
         String where = pl.getCampo() + pl.getOperazione() + pl.getValoreFmt();
-        c.and(nomeTabella + "." + pl.getCampo(), (Object) where, SqlEnum.CUSTOM);
+        c.andVerbatimSql("(" + where + ")", null);
       }
     }
 

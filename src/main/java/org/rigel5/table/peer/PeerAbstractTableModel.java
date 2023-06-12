@@ -22,7 +22,7 @@ import java.beans.*;
 import java.lang.reflect.*;
 import java.sql.*;
 import java.util.*;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.*;
 import org.apache.torque.criteria.Criteria;
 import org.apache.torque.map.ColumnMap;
@@ -586,7 +586,7 @@ abstract public class PeerAbstractTableModel extends RigelObjectTableModel
     for(int i = 0; i < arStr.length; i++)
     {
       String element = arStr[i];
-      out.append(org.apache.commons.lang.StringUtils.capitalise(element));
+      out.append(StringUtils.capitalize(element));
     }
     return out.toString();
   }

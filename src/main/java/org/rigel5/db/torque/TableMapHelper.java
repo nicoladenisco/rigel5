@@ -20,8 +20,8 @@ package org.rigel5.db.torque;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.WordUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.text.WordUtils;
 import org.apache.torque.Torque;
 import org.apache.torque.TorqueException;
 import org.apache.torque.adapter.IDMethod;
@@ -261,7 +261,7 @@ public class TableMapHelper
   public String getNomeCampo(String nomeColonna)
   {
     ColumnMap cmap = getCampo(nomeColonna);
-    return cmap == null ? nomeTabella + "." + nomeColonna : cmap.getFullyQualifiedName();
+    return cmap == null ? nomeTabella + "." + nomeColonna : cmap.getFullTableName() + "." + cmap.getColumnName();
   }
 
   public void setNomeTabella(String nomeTabella)

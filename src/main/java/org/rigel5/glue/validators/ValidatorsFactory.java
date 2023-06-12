@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -17,7 +17,7 @@
  */
 package org.rigel5.glue.validators;
 
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.commonlib5.utils.ClassOper;
 
 /**
@@ -118,7 +118,6 @@ public class ValidatorsFactory
 
     throw new Exception("Classe validator " + clname + " non trovata o non valida.");
   }
-
 
   public SaveMasterDetailValidator getSaveMasterDetailValidator(String clname)
      throws Exception

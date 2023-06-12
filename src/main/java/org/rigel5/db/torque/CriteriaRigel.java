@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -86,9 +86,7 @@ public class CriteriaRigel extends Criteria
    */
   static public void removeDeleted(Criteria c, String tableName)
   {
-    c.and(tableName + "." + STATO_REC,
-       (Object) filtro(tableName),
-       SqlEnum.CUSTOM);
+    c.andVerbatimSql(filtro(tableName), null);
   }
 
   /**
@@ -131,9 +129,7 @@ public class CriteriaRigel extends Criteria
    */
   public void addILike(String tableName, String columnName, String value)
   {
-    and(tableName + "." + columnName,
-       (Object) (tableName + "." + columnName + " ILIKE '" + value + "'"),
-       SqlEnum.CUSTOM);
+    andVerbatimSql("(" + tableName + "." + columnName + " ILIKE '" + value + "')", null);
   }
 
   /**
@@ -172,7 +168,7 @@ public class CriteriaRigel extends Criteria
    */
   public CriteriaRigel isNull(String columnname)
   {
-    super.and(columnname, (Object) (columnname + " is NULL"), SqlEnum.CUSTOM);
+    super.andVerbatimSql("(" + columnname + " is NULL)", null);
     return this;
   }
 
@@ -185,7 +181,7 @@ public class CriteriaRigel extends Criteria
    */
   public CriteriaRigel isNotNull(String columnname)
   {
-    super.and(columnname, (Object) (columnname + " is NOT NULL"), SqlEnum.CUSTOM);
+    super.andVerbatimSql("(" + columnname + " is NOT NULL)", null);
     return this;
   }
 

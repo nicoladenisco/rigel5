@@ -16,9 +16,9 @@ package org.rigel5.db.torque;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Stack;
+import org.apache.torque.criteria.Criteria;
 import org.apache.torque.om.ObjectKey;
 import org.apache.torque.om.Persistent;
-import org.apache.torque.util.Criteria;
 import org.commonlib5.lambda.ConsumerThrowException;
 
 /**

@@ -22,6 +22,7 @@ import java.io.*;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang3.StringUtils;
 import org.commonlib5.utils.LongOptExt;
 import org.commonlib5.utils.StringOper;
 import org.jdom2.CDATA;
@@ -1211,7 +1212,9 @@ abstract public class AbstractGenListe extends ParseSchemaBase
 
   /**
    * Remove Underscores from a string and replaces first
-   * Letters with Capitals. foo_bar becomes FooBar
+   * Letters with Capitals.foo_bar becomes FooBar
+   * @param data
+   * @return
    */
   public static String removeUnderScores(String data)
   {
@@ -1220,7 +1223,7 @@ abstract public class AbstractGenListe extends ParseSchemaBase
     for(int i = 0; i < arTok.length; i++)
     {
       String element = arTok[i];
-      out.append(org.apache.commons.lang.StringUtils.capitalise(element));
+      out.append(StringUtils.capitalize(element));
     }
     return out.toString();
   }

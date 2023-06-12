@@ -346,7 +346,7 @@ abstract public class SqlAbstractTableModel extends RigelObjectTableModel
     if(o instanceof java.util.Date)
       return new java.sql.Date(((java.util.Date) (o)).getTime());
     if(o instanceof NumberKey)
-      return ((NumberKey) (o)).getBigDecimal().intValue();
+      return ((NumberKey) (o)).getValue().intValue();
     if(o instanceof StringKey)
       return ((StringKey) (o)).toString();
     return o;
@@ -404,7 +404,7 @@ abstract public class SqlAbstractTableModel extends RigelObjectTableModel
 
     int rv = SetupHolder.getConProd().functionConnection((con) ->
     {
-      try ( PreparedStatement ps = con.prepareStatement(sSQL))
+      try (PreparedStatement ps = con.prepareStatement(sSQL))
       {
         int fld = 1;
         StringTokenizer stok = new StringTokenizer(sKey, "!");
@@ -509,7 +509,7 @@ abstract public class SqlAbstractTableModel extends RigelObjectTableModel
       String sSQL = qb.queryForUpdate(fd);
       log.info("Delete sSQL=" + sSQL);
 
-      try ( Statement st = con.createStatement())
+      try (Statement st = con.createStatement())
       {
         return st.executeUpdate(sSQL);
       }

@@ -17,7 +17,7 @@ package org.rigel5.db.torque;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 import org.apache.torque.Torque;
 import org.apache.torque.TorqueException;
 import org.apache.torque.adapter.AbstractAdapter;

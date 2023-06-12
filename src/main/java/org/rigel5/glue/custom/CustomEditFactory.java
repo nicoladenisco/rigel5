@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -17,7 +17,7 @@
  */
 package org.rigel5.glue.custom;
 
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.commonlib5.utils.ClassOper;
 import org.rigel5.table.CustomColumnEdit;
 

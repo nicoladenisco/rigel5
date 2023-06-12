@@ -41,7 +41,7 @@ public class SqlUtils
   {
     return SetupHolder.getConProd().functionConnection((con) ->
     {
-      try ( Statement stm = con.createStatement())
+      try (Statement stm = con.createStatement())
       {
         return stm.executeUpdate(sSQL);
       }
@@ -147,10 +147,11 @@ public class SqlUtils
     {
       return SqlEnum.NOT_IN;
     }
-    if(SqlEnum.CUSTOM.toString().equals(s))
-    {
-      return SqlEnum.CUSTOM;
-    }
+// in torque 5.0 non esiste piu CUSTOM
+//    if(SqlEnum.CUSTOM.toString().equals(s))
+//    {
+//      return SqlEnum.CUSTOM;
+//    }
     if(SqlEnum.JOIN.toString().equals(s))
     {
       return SqlEnum.JOIN;
