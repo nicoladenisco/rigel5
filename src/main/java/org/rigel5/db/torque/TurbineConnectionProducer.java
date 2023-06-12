@@ -38,11 +38,10 @@ import org.rigel5.db.ConnectionProducer;
  */
 public class TurbineConnectionProducer extends ConnectionProducer
 {
-  private Boolean transactionSupported = null;
   /** Logging */
-  private static Log log = LogFactory.getLog(TurbineConnectionProducer.class);
+  private static final Log log = LogFactory.getLog(TurbineConnectionProducer.class);
   private static final Object semaforo = new Object();
-  private static Hashtable htThread = new Hashtable();
+  private static final Hashtable htThread = new Hashtable();
 
   @Override
   public ConnectionHolder getConnectionHolder()
@@ -168,6 +167,7 @@ public class TurbineConnectionProducer extends ConnectionProducer
    * Viene testata la connessione di default.
    * @return
    */
+  @Override
   protected boolean supportTransaction()
   {
     if(transactionSupported == null)

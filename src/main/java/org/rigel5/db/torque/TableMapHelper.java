@@ -274,6 +274,11 @@ public class TableMapHelper
     return nomeTabella;
   }
 
+  public String getFullyQualifiedTableName()
+  {
+    return tmap.getFullyQualifiedTableName();
+  }
+
   public void setTmap(TableMap tmap)
   {
     this.tmap = tmap;
@@ -361,11 +366,34 @@ public class TableMapHelper
     };
   }
 
+  public boolean isForeignKey(ColumnMap campo)
+  {
+    return isForeignKey(campo.getColumnName());
+  }
+
+  public boolean isForeignKey(String colName)
+  {
+    for(ForeignKeyMap fk : tmap.getForeignKeys())
+    {
+      for(ForeignKeyMap.ColumnPair cp : fk.getColumns())
+      {
+        if(testNomeColonna(colName, cp.getLocal().getColumnName()))
+          return true;
+      }
+    }
+    return false;
+  }
+
   public Iterator<ColumnMap> getForeignKeys()
   {
     final ArrayList<ColumnMap> tmp = new ArrayList<>();
     tmap.getForeignKeys().forEach((fk) -> fk.getColumns().forEach((cp) -> tmp.add(cp.getLocal())));
     return tmp.iterator();
+  }
+
+  public ForeignKeyMap findForeignKeyByColumnName(ColumnMap campo)
+  {
+    return findForeignKeyByColumnName(campo.getColumnName());
   }
 
   public ForeignKeyMap findForeignKeyByColumnName(String colName)

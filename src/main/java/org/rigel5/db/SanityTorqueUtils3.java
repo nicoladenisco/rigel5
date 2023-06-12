@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Nicola De Nisco
+ * Copyright (C) 2016 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,8 +17,7 @@
  */
 package org.rigel5.db;
 
-import com.workingdogs.village.Record;
-import com.workingdogs.village.Schema;
+import com.workingdogs.village.*;
 import java.sql.Connection;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -32,6 +31,8 @@ import org.apache.torque.criteria.Criteria;
 import org.apache.torque.map.*;
 import org.apache.torque.util.ColumnValues;
 import org.apache.torque.util.JdbcTypedValue;
+import org.apache.torque.util.Transaction;
+import org.commonlib5.utils.SimpleTimer;
 import org.commonlib5.utils.StringOper;
 import org.rigel5.db.torque.TableMapHelper;
 
@@ -40,15 +41,14 @@ import org.rigel5.db.torque.TableMapHelper;
  *
  * @author Nicola De Nisco
  */
-public class SanityTorqueUtils extends SanityDatabaseUtils
+public class SanityTorqueUtils3 extends SanityDatabaseUtils
 {
-  private static final Log log = LogFactory.getLog(SanityTorqueUtils.class);
-  //
+  private static final Log log = LogFactory.getLog(SanityTorqueUtils3.class);
   protected final Stack<String> stkTableNames = new Stack<>();
   protected final HashSet<String> htTableNames = new HashSet<>();
   protected String databaseName;
 
-  public SanityTorqueUtils()
+  public SanityTorqueUtils3()
   {
   }
 
@@ -222,6 +222,23 @@ public class SanityTorqueUtils extends SanityDatabaseUtils
   public void sanityZero()
      throws Exception
   {
+    Connection con = null;
+    try
+    {
+      con = Transaction.begin();
+      sanityZero(con);
+      Transaction.commit(con);
+    }
+    catch(Exception e)
+    {
+      Transaction.safeRollback(con);
+    }
+  }
+
+  private void sanityZero(Connection con)
+     throws Exception
+  {
+    SimpleTimer st = new SimpleTimer();
     DatabaseMap dbMap = Torque.getDatabaseMap();
     TableMap[] arMaps = dbMap.getTables();
 
@@ -231,117 +248,17 @@ public class SanityTorqueUtils extends SanityDatabaseUtils
     // marca quelle che sono da ignorare comunque
     htTableNames.addAll(skipTableInsZero);
 
-    Connection con = Torque.getConnection();
-    try
-    {
-      for(int i = 0; i < arMaps.length; i++)
-      {
-        TableMap tm = arMaps[i];
-        String nomeTabella = tm.getName().toUpperCase();
+    for(TableMap tm : arMaps)
+      processTable(new TableMapHelper(tm), dbMap, con);
 
-        // scarta tutte le tabelle turbine; non vanno toccate
-        if(nomeTabella.startsWith("TURBINE_"))
-        {
-          htTableNames.add(nomeTabella);
-          continue;
-        }
+    htTableNames.clear();
+    stkTableNames.clear();
 
-        // salta tabelle già analizzate
-        if(htTableNames.contains(nomeTabella))
-          continue;
-
-        try
-        {
-          if(testZero(con, dbMap, tm))
-          {
-            htTableNames.add(nomeTabella);
-          }
-        }
-        catch(Throwable t)
-        {
-          // eccezione ignorata; scarica connessione potrebbe essere non riutilizzabile
-          Torque.closeConnection(con);
-          con = Torque.getConnection();
-        }
-      }
-    }
-    finally
-    {
-      Torque.closeConnection(con);
-    }
-
-    for(int i = 0; i < arMaps.length; i++)
-    {
-      TableMapHelper tm = new TableMapHelper(arMaps[i]);
-
-      try
-      {
-        insertZeroCriteria(dbMap, tm);
-      }
-      catch(Exception e)
-      {
-        log.error("Non riesco a caricare il record 0 per " + tm.getNomeTabella());
-      }
-    }
+    log.info("sanityZero eseguita in " + st.getElapsed() + " millisecondi.");
   }
 
-  /**
-   * Verifica se la tabella indicata ha già il record 0.
-   * @param con
-   * @param dbMap
-   * @param tm
-   * @return
-   * @throws Exception
-   */
-  protected boolean testZero(Connection con, DatabaseMap dbMap, TableMap tm)
-     throws Exception
+  private void processTable(TableMapHelper tm, DatabaseMap dbMap, Connection con)
   {
-    Criteria cr = new Criteria();
-    ColumnMap[] cs = tm.getColumns();
-    Column statoRec = null;
-    for(int i = 0; i < cs.length; i++)
-    {
-      ColumnMap c = cs[i];
-      if(c.isPrimaryKey())
-      {
-        if(c.getType() instanceof String)
-          cr.and(c, "0");
-        else if(c.getType() instanceof Timestamp)
-          cr.and(c, new Timestamp(today.getTime()));
-        else if(c.getType() instanceof Date)
-          cr.and(c, today);
-        else
-          cr.and(c, 0);
-
-        cr.addSelectColumn(c);
-      }
-
-      if(StringOper.isEquNocase("stato_rec", c.getColumnName()))
-        statoRec = c;
-    }
-
-    List values = DbUtils.doSelect(cr, con);
-    if(values.isEmpty())
-      return false;
-
-    if(statoRec != null)
-    {
-      ColumnValues upd = new ColumnValues();
-      upd.put(statoRec, new JdbcTypedValue(10, Types.INTEGER));
-      DbUtils.doUpdate(cr, upd, con);
-    }
-
-    return true;
-  }
-
-  /**
-   * Inserisce un record 0 per la tabella indicata.
-   * @param dbMap
-   * @param tm
-   */
-  protected void insertZeroCriteria(DatabaseMap dbMap, TableMapHelper tm)
-  {
-    boolean recurse = true;
     String nomeTabella = tm.getNomeTabella().toUpperCase();
 
     // verifica per tabella gia' considerata
@@ -351,53 +268,35 @@ public class SanityTorqueUtils extends SanityDatabaseUtils
     // controlla alluppamento causa refernza circolare
     if(stkTableNames.contains(nomeTabella))
     {
-      log.warn(
-         "Relazione circolare fra tabelle. Potrebbe dar luogo ad errori imprevisti:\n"
+      log.warn("Tabella " + nomeTabella + "\n"
+         + "Relazione circolare fra tabelle. Potrebbe dar luogo ad errori imprevisti:\n"
          + stkTableNames);
-
-      recurse = false;
-      if(disableForeign)
-        disableForeignKeys(stkTableNames);
+      htTableNames.add(nomeTabella);
+      return;
     }
 
     stkTableNames.push(nomeTabella);
     try
     {
-      ColumnValues c = buildInsertZeroCriteria(dbMap, tm, recurse);
-
-      if(c != null)
-      {
-        DbUtils.doInsert(tm.getTmap().getFullyQualifiedTableName(), c);
-        log.info("Tabella " + nomeTabella + " caricata con valore 0.");
-      }
+      processTable0(nomeTabella, tm, dbMap, con);
+      log.info("Tabella " + nomeTabella + " caricata con valore 0.");
     }
     catch(Exception e)
     {
-      if(!e.getMessage().contains("duplicate key value"))
-        log.debug("Failure " + nomeTabella + ": " + prepareString(e));
+      log.debug("Failure " + nomeTabella + ": " + prepareString(e));
     }
     stkTableNames.pop();
     htTableNames.add(nomeTabella);
-
-    if(!recurse && disableForeign)
-      enableForeignKeys(stkTableNames);
   }
 
-  /**
-   * Costruisce il criteria per l'aggiornamento della tabella indicata.
-   * @param dbMap
-   * @param tm
-   * @param recurse
-   * @return il criteria oppure null se non applicabile
-   * @throws Exception
-   */
-  protected ColumnValues buildInsertZeroCriteria(DatabaseMap dbMap, TableMapHelper tm, boolean recurse)
+  private void processTable0(String nomeTabella, TableMapHelper tm, DatabaseMap dbMap, Connection con)
      throws Exception
   {
-    ColumnValues cr = new ColumnValues();
+    ColumnValues crInsert = new ColumnValues();
+    ColumnValues crUpdate = new ColumnValues();
+    Criteria crSelect = new Criteria();
     ColumnMap[] cs = tm.getColumns();
     ForeignKeyMap fk;
-    int numPrimary = 0;
 
     for(int i = 0; i < cs.length; i++)
     {
@@ -405,33 +304,105 @@ public class SanityTorqueUtils extends SanityDatabaseUtils
       String colName = c.getColumnName();
 
       if(c.isPrimaryKey())
-        numPrimary++;
-
-      if(c.isPrimaryKey() || c.isNotNull())
       {
-        if(c.getType() instanceof String)
-          cr.put(c, new JdbcTypedValue("0", Types.CHAR));
-        else if(c.getType() instanceof Timestamp)
-          cr.put(c, new JdbcTypedValue(todayts, Types.TIMESTAMP));
-        else if(c.getType() instanceof Date)
-          cr.put(c, new JdbcTypedValue(today, Types.DATE));
+        if(tm.isString(c))
+        {
+          crInsert.put(c, new JdbcTypedValue("0", Types.CHAR));
+          crSelect.and(c, "0");
+        }
+        if(tm.isNumeric(c))
+        {
+          crInsert.put(c, new JdbcTypedValue(0, Types.INTEGER));
+          crSelect.and(c, 0);
+        }
         else
-          cr.put(c, new JdbcTypedValue(0, Types.INTEGER));
+        {
+          log.info("Tabella " + nomeTabella + "; tipo di chiave primaria non supportato.");
+          return;
+        }
+      }
+      else if(c.isNotNull())
+      {
+        if(tm.isString(c))
+        {
+          crInsert.put(c, new JdbcTypedValue("0", Types.CHAR));
+          crUpdate.put(c, new JdbcTypedValue("0", Types.CHAR));
+        }
+        else if(c.getType() instanceof Timestamp)
+        {
+          crInsert.put(c, new JdbcTypedValue(todayts, Types.TIMESTAMP));
+          crUpdate.put(c, new JdbcTypedValue(todayts, Types.TIMESTAMP));
+        }
+        else if(c.getType() instanceof Date)
+        {
+          crInsert.put(c, new JdbcTypedValue(today, Types.DATE));
+          crUpdate.put(c, new JdbcTypedValue(today, Types.DATE));
+        }
+        else
+        {
+          crInsert.put(c, new JdbcTypedValue(0, Types.INTEGER));
+          crUpdate.put(c, new JdbcTypedValue(0, Types.INTEGER));
+        }
+      }
+      else if(tm.isNumeric(c))
+      {
+        crInsert.put(c, new JdbcTypedValue(0, Types.INTEGER));
+        crUpdate.put(c, new JdbcTypedValue(0, Types.INTEGER));
       }
 
-      if(StringOper.isEquNocase("descrizione", colName))
-        cr.put(c, new JdbcTypedValue("Nessuno/Indefinito", Types.CHAR));
-      if(StringOper.isEquNocase("stato_rec", colName))
-        cr.put(c, new JdbcTypedValue(10, Types.INTEGER));
-
-      if(recurse && (fk = tm.findForeignKeyByColumnName(colName)) != null)
+      if(StringOper.isEquNocase("descrizione", c.getColumnName()))
       {
-        TableMap tMap = fk.getForeignTable();
-        insertZeroCriteria(dbMap, new TableMapHelper(tMap));
+        if(c.getSize() >= NESSUNO_INDEFINITO.length())
+        {
+          crInsert.put(c, new JdbcTypedValue(NESSUNO_INDEFINITO, Types.CHAR));
+          crUpdate.put(c, new JdbcTypedValue(NESSUNO_INDEFINITO, Types.CHAR));
+        }
+      }
+      else if(StringOper.isEquNocase("stato_rec", c.getColumnName()))
+      {
+        crInsert.put(c, new JdbcTypedValue(10, Types.INTEGER));
+        crUpdate.put(c, new JdbcTypedValue(10, Types.INTEGER));
+      }
+
+      if((fk = tm.findForeignKeyByColumnName(colName)) != null)
+      {
+        processTable(new TableMapHelper(fk.getForeignTable()), dbMap, con);
       }
     }
 
-    return numPrimary == 1 ? cr : null;
+    // inserisce o aggiorna record 0
+    if(doInsert(tm.getFullyQualifiedTableName(), crInsert, con) == 0)
+      doUpdate(crSelect, crUpdate, con);
+  }
+
+  private static int doInsert(String fullTableName, ColumnValues criteria, Connection con)
+  {
+    try
+    {
+      return DbUtils.doInsert(fullTableName, criteria, con);
+    }
+    catch(ConstraintViolationException e)
+    {
+      return 0;
+    }
+    catch(Exception e)
+    {
+      log.debug(e.getMessage());
+      return 0;
+    }
+  }
+
+  private static int doUpdate(Criteria selectCriteria, ColumnValues updateValues, Connection con)
+  {
+    try
+    {
+      return DbUtils.doUpdate(selectCriteria, updateValues, con);
+    }
+    catch(Exception e)
+    {
+      log.debug(e.getMessage());
+      return 0;
+    }
   }
 
   protected String prepareString(Throwable ex)
@@ -442,62 +413,5 @@ public class SanityTorqueUtils extends SanityDatabaseUtils
   public void sanityData()
      throws Exception
   {
-  }
-
-  protected void disableForeignKeys(Collection<String> tables)
-  {
-    for(String nome : tables)
-      disableForeignKeys(nome);
-  }
-
-  protected void enableForeignKeys(Collection<String> tables)
-  {
-    for(String nome : tables)
-      enableForeignKeys(nome);
-  }
-
-  protected void disableForeignKeys(String nomeTabella)
-  {
-    String sSQL = "ALTER TABLE " + nomeTabella + " DISABLE TRIGGER ALL";
-    try
-    {
-      DbUtils.executeStatement(sSQL);
-    }
-    catch(TorqueException ex)
-    {
-      log.error(sSQL, ex);
-    }
-  }
-
-  protected void enableForeignKeys(String nomeTabella)
-  {
-    String sSQL = "ALTER TABLE " + nomeTabella + " ENABLE TRIGGER ALL";
-    try
-    {
-      DbUtils.executeStatement(sSQL);
-    }
-    catch(TorqueException ex)
-    {
-      log.error(sSQL, ex);
-    }
-  }
-
-  public void prefetchSchema()
-  {
-    Connection con = null;
-    try
-    {
-      con = Torque.getConnection();
-      Schema.initSchemas(con);
-    }
-    catch(Throwable t)
-    {
-      log.error("Fatal error loading all schema.", t);
-    }
-    finally
-    {
-      if(con != null)
-        Torque.closeConnection(con);
-    }
   }
 }

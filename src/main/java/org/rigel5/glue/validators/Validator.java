@@ -117,7 +117,8 @@ public class Validator
           synchronized(ppv)
           {
             ppv.init(elePPV);
-            return ppv.validate(obj, tableModel, table, row, session, param, i18n, con, custom);
+            if(!ppv.validate(obj, tableModel, table, row, session, param, i18n, con, custom))
+              return false;
           }
         }
       }
@@ -183,8 +184,14 @@ public class Validator
           {
             ppv.init(elePPV);
             boolean rv = ppv.validate(obj, tableModel, table, row, session, param, i18n, custom);
-            stopParsing.stopParsing = ppv.isStopParsing();
-            return rv;
+
+            if(ppv.isStopParsing())
+              stopParsing.stopParsing = true;
+
+            if(!rv)
+            {
+              return rv;
+            }
           }
         }
       }
@@ -224,10 +231,11 @@ public class Validator
           synchronized(ppv)
           {
             ppv.init(elePPV);
-            return ppv.validate(obj,
+            if(!ppv.validate(obj,
                tableModelMaster, tableMaster, rowMaster,
                detail, tableModelDetail, tableDetail,
-               session, param, i18n, dbCon, custom);
+               session, param, i18n, dbCon, custom))
+              return false;
           }
         }
       }
@@ -266,7 +274,8 @@ public class Validator
           synchronized(ppv)
           {
             ppv.init(elePPV);
-            return ppv.action(obj, tableModel, table, row, session, param, i18n, custom);
+            if(!ppv.action(obj, tableModel, table, row, session, param, i18n, custom))
+              return false;
           }
         }
       }

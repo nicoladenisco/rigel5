@@ -18,6 +18,7 @@
 package org.rigel5.glue;
 
 import java.text.Format;
+import java.text.ParsePosition;
 import org.rigel5.table.RigelTableModel;
 
 /**
@@ -29,4 +30,11 @@ public abstract class RigelFormat extends Format
 {
   public abstract void prepareFormatRecord(RigelTableModel tm, int row, int col)
      throws Exception;
+
+  @Override
+  public Object parseObject(String source, ParsePosition pos)
+  {
+    pos.setIndex(source.length());
+    return source;
+  }
 }

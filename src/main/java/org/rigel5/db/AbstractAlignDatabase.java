@@ -17,6 +17,8 @@
  */
 package org.rigel5.db;
 
+import com.workingdogs.village.Column;
+import com.workingdogs.village.TableDataSet;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -28,6 +30,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.torque.map.ColumnMap;
 import org.commonlib5.exec.ExecHelper;
 import org.commonlib5.utils.ArrayMap;
 import org.commonlib5.utils.OsIdent;
@@ -35,6 +38,7 @@ import org.commonlib5.utils.StringOper;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.input.SAXBuilder;
+import org.rigel5.db.torque.TableMapHelper;
 
 /**
  * Allinea il database leggendo il file updpilot.xml.
@@ -71,8 +75,10 @@ abstract public class AbstractAlignDatabase
   protected Connection con = null;
   protected String adapter;
   protected List<File> buildScripts = new ArrayList<>();
+  protected String clobType = "CLOB";
 
-  public static int osType = OsIdent.checkOStype();
+  public static final int osType = OsIdent.checkOStype();
+  public static final int SB_STATEMENT_SIZE = 1024;
 
   /**
    * Imposta connesione da utilizzare per l'aggiornamento del db.
@@ -83,6 +89,8 @@ abstract public class AbstractAlignDatabase
   {
     this.con = con;
     this.adapter = adapter;
+    if("postgresql".equals(adapter))
+      this.clobType = "TEXT";
   }
 
   /**
@@ -276,7 +284,7 @@ abstract public class AbstractAlignDatabase
     try ( Statement query = con.createStatement();  BufferedReader in = new BufferedReader(rd))
     {
       String str;
-      StringBuilder sb = new StringBuilder(1024);
+      StringBuilder sb = new StringBuilder(SB_STATEMENT_SIZE);
 
       while((str = in.readLine()) != null)
       {
@@ -290,6 +298,8 @@ abstract public class AbstractAlignDatabase
           if(sSQL == null)
             continue;
 
+          sSQL = StringOper.left(sSQL, -1);
+
           if(veryverbose)
             System.out.println("sSQL=" + sSQL);
           else
@@ -302,7 +312,7 @@ abstract public class AbstractAlignDatabase
           }
 
           // ricrea il buffer per il comando SQL
-          sb = new StringBuilder(1024);
+          sb = new StringBuilder(SB_STATEMENT_SIZE);
         }
       }
     }
@@ -310,8 +320,7 @@ abstract public class AbstractAlignDatabase
 
   protected void executeFileSqlIgnoraErrori(Element e, File fileSql)
   {
-    if(verbose)
-      System.out.println("Elaborazione " + fileSql.getAbsolutePath());
+    System.out.println("=== Elaborazione " + fileSql.getAbsolutePath() + " ===");
 
     try ( InputStreamReader rd = new InputStreamReader(new FileInputStream(fileSql), "UTF-8"))
     {
@@ -340,53 +349,32 @@ abstract public class AbstractAlignDatabase
   {
     try
     {
-      try ( Statement query = con.createStatement();  BufferedReader in = new BufferedReader(rd))
+      try ( BufferedReader in = new BufferedReader(rd))
       {
-        String str, sSQL = "";
-        StringBuilder sb = new StringBuilder(1024);
+        String str, sSQL;
+        StringBuilder sb = new StringBuilder(SB_STATEMENT_SIZE);
 
         while((str = in.readLine()) != null)
         {
           // trim della stringa
           str = str.trim();
-
           sb.append(str).append("\n ");
+
           if(str.endsWith(";"))
           {
-            try
-            {
-              if((sSQL = StringOper.okStrNull(sb)) == null)
-                continue;
+            if((sSQL = StringOper.okStrNull(sb)) == null)
+              continue;
 
-              if(veryverbose)
-                System.out.println("sSQL=" + sSQL);
-
-              if(!executeMacro(sSQL))
-              {
-                // esegue la modifica
-                query.executeUpdate(sSQL);
-              }
-
-              if(!veryverbose)
-                System.out.print('.');
-            }
-            catch(SQLException se)
-            {
-              // in caso di errore SQL visualizza il messaggio ma continua
-              // se non siamo in veryverbose scrive qui la stringa sql
-              if(!veryverbose)
-                System.out.println("\nsSQL=" + sSQL);
-
-              System.out.println(se.getMessage());
-            }
-            catch(Exception se)
-            {
-              // in caso di errore generico visualizza stack ma continua
-              se.printStackTrace();
-            }
-
-            sb = new StringBuilder(1024);
+            executeInternalNoError(sSQL);
+            sb = new StringBuilder(SB_STATEMENT_SIZE);
           }
+        }
+
+        // eventuale residuo non terminato da ';'
+        if(sb.length() > 0)
+        {
+          if((sSQL = StringOper.okStrNull(sb)) != null)
+            executeInternalNoError(sSQL + ";");
         }
       }
 
@@ -396,6 +384,44 @@ abstract public class AbstractAlignDatabase
     catch(Exception e)
     {
       e.printStackTrace();
+    }
+  }
+
+  private void executeInternalNoError(String sSQL)
+  {
+    try
+    {
+      if(veryverbose)
+        System.out.println("sSQL=" + sSQL);
+
+      if(!executeMacro(sSQL))
+      {
+        // esegue la modifica
+        try ( Statement st = con.createStatement())
+        {
+          if(sSQL.endsWith(";"))
+            sSQL = StringOper.left(sSQL, -1);
+
+          st.executeUpdate(sSQL);
+        }
+      }
+
+      if(!veryverbose)
+        System.out.print('.');
+    }
+    catch(SQLException se)
+    {
+      // in caso di errore SQL visualizza il messaggio ma continua
+      // se non siamo in veryverbose scrive qui la stringa sql
+      if(!veryverbose)
+        System.out.println("\nsSQL=" + sSQL);
+
+      System.out.println(se.getMessage());
+    }
+    catch(Exception se)
+    {
+      // in caso di errore generico visualizza stack ma continua
+      se.printStackTrace();
     }
   }
 
@@ -996,6 +1022,102 @@ abstract public class AbstractAlignDatabase
 
       executeFileSQL(fileSQL, true);
     }
+  }
+
+  public void macro_campoclob(String params)
+     throws Exception
+  {
+    String[] arParams = params.split(";");
+    if(arParams.length < 1)
+      throw new Exception("Errore di sintassi: attesi almento 1 parametro (separatore ;) [" + params + "].");
+
+    String nomeTabella = arParams[0];
+    String campi[] = null;
+
+    if(arParams.length > 1)
+      campi = Arrays.copyOfRange(arParams, 1, arParams.length);
+
+    TableMapHelper tm = new TableMapHelper(nomeTabella);
+
+    if(campi == null)
+    {
+      ColumnMap[] columns = tm.getColumns();
+      for(int i = 0; i < columns.length; i++)
+      {
+        ColumnMap c = columns[i];
+        if("CLOB".equalsIgnoreCase(c.getTorqueType()))
+        {
+          testConvertCampoToClob(tm.getNomeTabella(), c);
+        }
+      }
+    }
+    else
+    {
+      for(int i = 0; i < campi.length; i++)
+      {
+        String nomeCampo = campi[i];
+        ColumnMap campo = tm.getCampo(nomeCampo);
+
+        if(campo == null)
+        {
+          if(verbose)
+            System.out.println("Tabella " + nomeTabella + " campo " + nomeCampo + " scartato perchè non trovato.");
+          continue;
+        }
+
+        testConvertCampoToClob(nomeTabella, campo);
+      }
+    }
+  }
+
+  private void testConvertCampoToClob(String nomeTabella, ColumnMap cTo)
+     throws Exception
+  {
+    String nomeCampo = cTo.getColumnName();
+    TableDataSet tds = new TableDataSet(con, nomeTabella);
+    Column cAct = tds.schema().findInSchemaIgnoreCaseQuiet(nomeCampo);
+    Column cOld = tds.schema().findInSchemaIgnoreCaseQuiet(nomeCampo + "OLD");
+
+    if(cAct == null)
+    {
+      String sSQL
+         = "ALTER TABLE " + nomeTabella + "\n"
+         + "    ADD COLUMN " + nomeCampo + " " + clobType + ";\n";
+
+      if(cOld != null)
+      {
+        sSQL += "UPDATE " + nomeTabella + "\n"
+           + "	SET " + nomeCampo + "=" + nomeCampo + "OLD;\n"
+           + "";
+      }
+
+      StringReader sr = new StringReader(sSQL);
+      executeStreamSqlIgnoraErrori(sr);
+    }
+    else
+    {
+      if(cAct.typeEnum() == Types.CLOB || "TEXT".equalsIgnoreCase(cAct.typeName()))
+      {
+        if(verbose)
+          System.out.println("Tabella " + nomeTabella + " campo " + nomeCampo + " scartato perchè già CLOB.");
+        return;
+      }
+
+      String sSQL
+         = "ALTER TABLE " + nomeTabella + "\n"
+         + "    RENAME " + nomeCampo + " TO " + nomeCampo + "OLD;\n"
+         + "ALTER TABLE " + nomeTabella + "\n"
+         + "    ADD COLUMN " + nomeCampo + " " + clobType + ";\n"
+         + "UPDATE " + nomeTabella + "\n"
+         + "	SET " + nomeCampo + "=" + nomeCampo + "OLD;\n"
+         + "";
+
+      StringReader sr = new StringReader(sSQL);
+      executeStreamSqlIgnoraErrori(sr);
+    }
+
+    if(verbose)
+      System.out.println("Tabella " + nomeTabella + " campo " + nomeCampo + " convertito in CLOB.");
   }
 
   /**

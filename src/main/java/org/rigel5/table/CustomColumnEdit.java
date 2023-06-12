@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -41,7 +41,10 @@ public interface CustomColumnEdit
    * Ritorna vero se questo plugin genera codice HTML custom per l'editing.
    * @return
    */
-  public boolean haveCustomHtml();
+  public default boolean haveCustomHtml()
+  {
+    return false;
+  }
 
   /**
    * Genera l'HTML necessario all'editing della colonna/riga indicata.
@@ -49,21 +52,25 @@ public interface CustomColumnEdit
    * @param model gestore dei dati della tabella
    * @param row riga richiesta
    * @param col colonna richiesta
-   * @param formattedValue valore formattato del campo in questione
+   * @param cellText valore formattato del campo in questione
+   * @param cellHtml html default per edit campo
    * @param nomeCampo nome del campo di default
    * @param i18n internazionalizzatore
    * @throws Exception
    * @return HTML del campo
    */
   public String getHtmlEdit(RigelColumnDescriptor cd, TableModel model,
-     int row, int col, String formattedValue, String nomeCampo, RigelI18nInterface i18n)
+     int row, int col, String cellText, String cellHtml, String nomeCampo, RigelI18nInterface i18n)
      throws Exception;
 
   /**
    * Ritorna vero se questo plugin implementa una logica speciale di parsing.
    * @return
    */
-  public boolean haveCustomParser();
+  public default boolean haveCustomParser()
+  {
+    return false;
+  }
 
   /**
    * Parsing del campo.
@@ -82,5 +89,35 @@ public interface CustomColumnEdit
   public Object parseValue(RigelColumnDescriptor cd, TableModel model,
      int row, int col, String formattedValue, String nomeCampo, String oldValue, Map params, RigelI18nInterface i18n)
      throws Exception;
-}
 
+  /**
+   * Ritorna vero se questo plugin aggiunge codice HTML custom per l'editing.
+   * @return
+   */
+  public default boolean haveAddHtml()
+  {
+    return false;
+  }
+
+  /**
+   * Aggiunge l'HTML necessario all'editing della colonna/riga indicata.
+   * La funzione può aggiungere HTML a quello già generato per default da rigel.
+   * @param cd colonna di riferimento
+   * @param model gestore dei dati della tabella
+   * @param row riga richiesta
+   * @param col colonna richiesta
+   * @param formattedValue valore formattato del campo in questione
+   * @param nomeCampo nome del campo di default
+   * @param rigelHtml l'HTML generato per default da rigel
+   * @param i18n internazionalizzatore
+   * @throws Exception
+   * @return HTML del campo
+   */
+  public default String addHtmlEdit(RigelColumnDescriptor cd, TableModel model,
+     int row, int col, String formattedValue, String nomeCampo, String rigelHtml,
+     RigelI18nInterface i18n)
+     throws Exception
+  {
+    return rigelHtml;
+  }
+}

@@ -52,7 +52,6 @@ public class SqlWrapperXmlMaker extends RigelBaseWrapperXmlMaker
      throws Exception
   {
     HtmlSqlWrapperBase wl = (HtmlSqlWrapperBase) (super.parseWrapper(nomeLista, lista, wb, edit, removeCaratt));
-    Element e = null;
 
     String s = null;
     if((s = lista.getChildTextTrim("select")) != null)
@@ -79,23 +78,14 @@ public class SqlWrapperXmlMaker extends RigelBaseWrapperXmlMaker
       if(removeCaratt && cd.isCaratteristiche())
         continue;
 
-//      if(!cd.isCalcolato() && cd.getDataType() == RigelColumnDescriptor.PDT_UNDEFINED)
-//        throw new MissingParameterException("[" + nomeLista + "]["
-//           + cd.getCaption() + "] parametro obbligatorio 'tipo' non presente!");
-      if(!cd.isCalcolato() && cd.getDataType() != RigelColumnDescriptor.PDT_UNDEFINED)
-        cd.setValClass(SqlAbstractTableModel.retObjTipoClass(cd.getDataType()));
-
       addColumn(item, wl.getPtm(), cd);
     }
 
+    if((s = lista.getChildTextTrim("orderby")) != null)
+      wl.ssp.setOrderby(s);
+
     // rimuove colonne in liste derivate
     removeColumns(lista, wl.getPtm());
-
-    String OrderBy;
-    if((OrderBy = lista.getChildTextTrim("orderby")) != null)
-    {
-      wl.ssp.setOrderby(OrderBy);
-    }
 
     return wl;
   }
