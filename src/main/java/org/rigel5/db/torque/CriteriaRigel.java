@@ -22,7 +22,9 @@ import org.apache.torque.Torque;
 import org.apache.torque.TorqueException;
 import org.apache.torque.criteria.Criteria;
 import org.apache.torque.criteria.SqlEnum;
+import org.apache.torque.map.ColumnMap;
 import org.apache.torque.map.TableMap;
+import org.commonlib5.utils.ArrayOper;
 import org.commonlib5.utils.DateTime;
 
 /**
@@ -329,6 +331,46 @@ public class CriteriaRigel extends Criteria
     }
 
     addILike(table, column, value);
+    return this;
+  }
+
+  public Criteria andIn(ColumnMap cm, int[] idRes)
+  {
+    return andIn(cm, ArrayOper.asList(idRes));
+  }
+
+  public Criteria andNotIn(ColumnMap cm, int[] idRes)
+  {
+    return andNotIn(cm, ArrayOper.asList(idRes));
+  }
+
+  public Criteria add(ColumnMap col, Object value)
+  {
+    return and(col, value);
+  }
+
+  public Criteria add(ColumnMap col, Object value, SqlEnum test)
+  {
+    return and(col, value, test);
+  }
+
+  public Criteria addIn(ColumnMap cm, int[] idRes)
+  {
+    return andIn(cm, ArrayOper.asList(idRes));
+  }
+
+  public Criteria addNotIn(ColumnMap cm, int[] idRes)
+  {
+    return andNotIn(cm, ArrayOper.asList(idRes));
+  }
+
+  public CriteriaRigel isBetweenTimestampDateTrunc(ColumnMap col, Date min, Date max)
+  {
+    min = DateTime.inizioGiorno(min);
+    max = DateTime.fineGiorno(max);
+
+    super.and(col, min, Criteria.GREATER_EQUAL);
+    super.and(col, max, Criteria.LESS_EQUAL);
     return this;
   }
 }

@@ -331,9 +331,9 @@ public class DbUtils
    * @param pks collezione di interi
    * @return lista di chiavi primarie
    */
-  public static List<ObjectKey> convertIntegerKeys(int[] pks)
+  public static List<ObjectKey<? extends Object>> convertIntegerKeys(int[] pks)
   {
-    ArrayList<ObjectKey> lsPks = new ArrayList<>();
+    ArrayList<ObjectKey<? extends Object>> lsPks = new ArrayList<>();
     for(int pk : pks)
       lsPks.add(SimpleKey.keyFor(pk));
     return lsPks;
@@ -345,9 +345,9 @@ public class DbUtils
    * @param pks collezione di interi
    * @return lista di chiavi primarie
    */
-  public static List<ObjectKey> convertIntegerKeys(Collection<Integer> pks)
+  public static List<ObjectKey<? extends Object>> convertIntegerKeys(Collection<Integer> pks)
   {
-    ArrayList<ObjectKey> lsPks = new ArrayList<>();
+    ArrayList<ObjectKey<? extends Object>> lsPks = new ArrayList<>();
     pks.forEach((idDoc) -> lsPks.add(SimpleKey.keyFor(idDoc)));
     return lsPks;
   }
@@ -358,9 +358,9 @@ public class DbUtils
    * @param pks collezione di stringhe
    * @return lista di chiavi primarie
    */
-  public static List<ObjectKey> convertStringKeys(Collection<String> pks)
+  public static List<ObjectKey<? extends Object>> convertStringKeys(Collection<String> pks)
   {
-    ArrayList<ObjectKey> lsPks = new ArrayList<>();
+    ArrayList<ObjectKey<? extends Object>> lsPks = new ArrayList<>();
     pks.forEach((idDoc) -> lsPks.add(SimpleKey.keyFor(idDoc)));
     return lsPks;
   }
@@ -371,9 +371,9 @@ public class DbUtils
    * @param pks collezione di stringhe
    * @return lista di chiavi primarie
    */
-  public static List<ObjectKey> convertStringKeysApici(Collection<String> pks)
+  public static List<ObjectKey<? extends Object>> convertStringKeysApici(Collection<String> pks)
   {
-    ArrayList<ObjectKey> lsPks = new ArrayList<>();
+    ArrayList<ObjectKey<? extends Object>> lsPks = new ArrayList<>();
     pks.forEach((idDoc) -> lsPks.add(SimpleKey.keyFor("'" + idDoc + "'")));
     return lsPks;
   }
@@ -426,7 +426,7 @@ public class DbUtils
    * @return lista di chiavi primarie
    * @throws java.lang.Exception
    */
-  public static <T> List<ObjectKey> extractIntegerKeys(Collection<T> objs,
+  public static <T> List<ObjectKey<? extends Object>> extractIntegerKeys(Collection<T> objs,
      LEU.ToIntFunction_WithExceptions<T, Exception> fun)
      throws Exception
   {
@@ -447,7 +447,7 @@ public class DbUtils
    * @return lista di chiavi primarie
    * @throws java.lang.Exception
    */
-  public static <T> List<ObjectKey> extractStringKeys(Collection<T> objs,
+  public static <T> List<ObjectKey<? extends Object>> extractStringKeys(Collection<T> objs,
      LEU.Function_WithExceptions<T, String, Exception> fun)
      throws Exception
   {
@@ -469,7 +469,7 @@ public class DbUtils
    * @return lista di chiavi primarie
    * @throws java.lang.Exception
    */
-  public static <T> List<ObjectKey> extractStringKeysApici(Collection<T> objs,
+  public static <T> List<ObjectKey<? extends Object>> extractStringKeysApici(Collection<T> objs,
      LEU.Function_WithExceptions<T, String, Exception> fun)
      throws Exception
   {
@@ -488,9 +488,9 @@ public class DbUtils
    * @param objs collezione di oggetti Torque
    * @return lista di tutte le chiavi primarie
    */
-  public static List<ObjectKey> convertBaseObjectKeys(Collection<Persistent> objs)
+  public static List<ObjectKey<? extends Object>> convertBaseObjectKeys(Collection<Persistent> objs)
   {
-    ArrayList<ObjectKey> lsPks = new ArrayList<>();
+    ArrayList<ObjectKey<? extends Object>> lsPks = new ArrayList<>();
     objs.forEach((o) -> lsPks.add(o.getPrimaryKey()));
     return lsPks;
   }
@@ -632,7 +632,7 @@ public class DbUtils
   public static boolean existTableExact(Connection con, String nomeTabella)
      throws Exception
   {
-    try (ResultSet rs = con.getMetaData().getTables(null, null, null, TABLES_FILTER))
+    try(ResultSet rs = con.getMetaData().getTables(null, null, null, TABLES_FILTER))
     {
       while(rs.next())
       {
@@ -665,7 +665,7 @@ public class DbUtils
      String nomeSchema, String nomeTabella, String nomeColonna)
      throws SQLException
   {
-    try (ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
+    try(ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
     {
       while(rs.next())
       {
@@ -683,7 +683,7 @@ public class DbUtils
   {
     ArrayMap<String, Integer> rv = new ArrayMap<>();
 
-    try (ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
+    try(ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
     {
       while(rs.next())
       {
@@ -770,7 +770,7 @@ public class DbUtils
   public static Schema schemaQuery(Connection con, String sSQL)
      throws Exception
   {
-    try (QueryDataSet qds = new QueryDataSet(con, sSQL))
+    try(QueryDataSet qds = new QueryDataSet(con, sSQL))
     {
       return qds.schema();
     }
@@ -779,7 +779,7 @@ public class DbUtils
   public static Schema schemaTable(Connection con, String nomeTabella)
      throws Exception
   {
-    try (TableDataSet tds = new TableDataSet(con, nomeTabella))
+    try(TableDataSet tds = new TableDataSet(con, nomeTabella))
     {
       return tds.schema();
     }
@@ -949,7 +949,7 @@ public class DbUtils
   {
     ArrayMap<String, Integer> rv = new ArrayMap<>();
 
-    try (ResultSet rs = con.getMetaData().getPrimaryKeys(con.getCatalog(), nomeSchema, nomeTabella))
+    try(ResultSet rs = con.getMetaData().getPrimaryKeys(con.getCatalog(), nomeSchema, nomeTabella))
     {
       while(rs.next())
       {
@@ -1129,6 +1129,20 @@ public class DbUtils
   }
 
   /**
+   * Esegue una query con risultati.
+   * @param queryString
+   * @param singleRecord ignorato (solo per compatibilita BasePeer)
+   * @param con
+   * @return
+   * @throws Exception
+   */
+  public static List<Record> executeQuery(String queryString, boolean singleRecord, Connection con)
+     throws Exception
+  {
+    return executeQuery(queryString, 0, -1, con);
+  }
+
+  /**
    * Method for performing a SELECT. Returns all results.
    *
    * @param queryString A String with the sql statement to execute.
@@ -1276,7 +1290,7 @@ public class DbUtils
     }
     query.append(")");
 
-    try (PreparedStatement ps = connection.prepareStatement(query.toString()))
+    try(PreparedStatement ps = connection.prepareStatement(query.toString()))
     {
       populatePreparedStatement(replacementObjects, ps, 1);
 
@@ -1324,7 +1338,7 @@ public class DbUtils
       replacementObjects.add(updateValue.getValue());
     }
 
-    try (PreparedStatement ps = connection.prepareStatement(query.toString()))
+    try(PreparedStatement ps = connection.prepareStatement(query.toString()))
     {
       int position = populatePreparedStatement(replacementObjects, ps, 1);
 
@@ -1401,7 +1415,7 @@ public class DbUtils
   public static int executeStatement(String sSQL, Connection con)
      throws TorqueException
   {
-    try (Statement st = con.createStatement())
+    try(Statement st = con.createStatement())
     {
       return st.executeUpdate(sSQL);
     }
@@ -1438,7 +1452,7 @@ public class DbUtils
 
           if(!sSQL.isEmpty())
           {
-            try (PreparedStatement ps = con.prepareStatement(sSQL))
+            try(PreparedStatement ps = con.prepareStatement(sSQL))
             {
               count += ps.executeUpdate();
             }
@@ -1474,7 +1488,7 @@ public class DbUtils
       StringBuilder sb1 = new StringBuilder(1024);
       StringBuilder sb2 = new StringBuilder(1024);
 
-      try (ResultSet rs = con.getMetaData().getColumns(conp.getCatalog(), nomeSchemap, nomeTabellap, null))
+      try(ResultSet rs = con.getMetaData().getColumns(conp.getCatalog(), nomeSchemap, nomeTabellap, null))
       {
         for(int i = 0; rs.next(); i++)
         {
@@ -1611,5 +1625,29 @@ public class DbUtils
     {
       throw new RuntimeException(ex);
     }
+  }
+
+  public static long deleteAll(Connection con, String tableName, String primaryName, int idToDel)
+     throws Exception
+  {
+    int pos = tableName.indexOf(".");
+    if(pos == -1)
+      return deleteAll(con, "", tableName, primaryName, idToDel);
+    else
+      return deleteAll(con, tableName.substring(0, pos), tableName.substring(pos + 1), primaryName, idToDel);
+  }
+
+  public static long deleteAll(Connection con, String schemaName, String tableName, String primaryName, int idToDel)
+     throws Exception
+  {
+    TableHelperDelete instance = new TableHelperDelete(con, false);
+    instance.loadData(schemaName, tableName);
+    instance.prepareDeleteCascade(primaryName, idToDel);
+
+    List<String> recurse = instance.getRecurse();
+    if(!recurse.isEmpty())
+      throw new SQLException("Relazioni circolari: " + recurse);
+
+    return instance.executeDelete();
   }
 }

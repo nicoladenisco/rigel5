@@ -46,6 +46,14 @@ public class TableHelperDelete extends TableHelper
     super(con, dryrun);
   }
 
+  public void prepareDeleteCascade(String fieldPrimary, int primaryKey)
+     throws Exception
+  {
+    int[] primaryKeys = new int[1];
+    primaryKeys[0] = primaryKey;
+    prepareDeleteCascade(fieldPrimary, primaryKeys);
+  }
+
   public void prepareDeleteCascade(String fieldPrimary, int[] primaryKeys)
      throws Exception
   {

@@ -49,6 +49,17 @@ public class TableHelper
     this.dryrun = dryrun;
   }
 
+  public void loadDataEasy(String fullTableName)
+     throws Exception
+  {
+    DbUtils.scanTabelleColonne(con, fullTableName, null,
+       (Connection con2, String nomeSchema, String nomeTabella, String nomeColonna) ->
+    {
+      loadData(nomeSchema, nomeTabella);
+      return 0;
+    });
+  }
+
   public void loadData(String schemaName, String tableName)
      throws Exception
   {
@@ -58,7 +69,7 @@ public class TableHelper
     esportate.clear();
     importate.clear();
 
-    try ( ResultSet rs = meta.getExportedKeys(null, schemaName, tableName))
+    try(ResultSet rs = meta.getExportedKeys(null, schemaName, tableName))
     {
       while(rs.next())
       {
@@ -69,7 +80,7 @@ public class TableHelper
       }
     }
 
-    try ( ResultSet rs = meta.getImportedKeys(null, schemaName, tableName))
+    try(ResultSet rs = meta.getImportedKeys(null, schemaName, tableName))
     {
       while(rs.next())
       {
