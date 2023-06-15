@@ -245,6 +245,12 @@ public class DbUtils
     return executeStatement(sSQL);
   }
 
+  public static long getMaxField(String tabella, ColumnMap campo, Connection con)
+     throws Exception
+  {
+    return getMaxField(tabella, campo.getColumnName(), con);
+  }
+
   /**
    * Ritorna il valore massimo di un campo su una tabella.
    *

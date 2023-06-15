@@ -334,34 +334,47 @@ public class CriteriaRigel extends Criteria
     return this;
   }
 
-  public Criteria andIn(ColumnMap cm, int[] idRes)
+  public CriteriaRigel andIn(ColumnMap cm, int[] idRes)
   {
-    return andIn(cm, ArrayOper.asList(idRes));
+    andIn(cm, ArrayOper.asList(idRes));
+    return this;
   }
 
-  public Criteria andNotIn(ColumnMap cm, int[] idRes)
+  public CriteriaRigel andNotIn(ColumnMap cm, int[] idRes)
   {
-    return andNotIn(cm, ArrayOper.asList(idRes));
+    andNotIn(cm, ArrayOper.asList(idRes));
+    return this;
   }
 
-  public Criteria add(ColumnMap col, Object value)
+  public CriteriaRigel add(ColumnMap col, Object value)
   {
-    return and(col, value);
+    and(col, value);
+    return this;
   }
 
-  public Criteria add(ColumnMap col, Object value, SqlEnum test)
+  public CriteriaRigel add(ColumnMap col, Object value, SqlEnum test)
   {
-    return and(col, value, test);
+    and(col, value, test);
+    return this;
   }
 
-  public Criteria addIn(ColumnMap cm, int[] idRes)
+  public CriteriaRigel addIn(ColumnMap cm, int[] idRes)
   {
-    return andIn(cm, ArrayOper.asList(idRes));
+    andIn(cm, ArrayOper.asList(idRes));
+    return this;
   }
 
-  public Criteria addNotIn(ColumnMap cm, int[] idRes)
+  public CriteriaRigel addNotIn(ColumnMap cm, int[] idRes)
   {
-    return andNotIn(cm, ArrayOper.asList(idRes));
+    andNotIn(cm, ArrayOper.asList(idRes));
+    return this;
+  }
+
+  public CriteriaRigel isBetweenTimestamp(ColumnMap col, Date min, Date max)
+  {
+    super.and(col, min, Criteria.GREATER_EQUAL);
+    super.and(col, max, Criteria.LESS_EQUAL);
+    return this;
   }
 
   public CriteriaRigel isBetweenTimestampDateTrunc(ColumnMap col, Date min, Date max)
@@ -371,6 +384,18 @@ public class CriteriaRigel extends Criteria
 
     super.and(col, min, Criteria.GREATER_EQUAL);
     super.and(col, max, Criteria.LESS_EQUAL);
+    return this;
+  }
+
+  public CriteriaRigel addIn(ColumnMap cm, String[] codiciCampione)
+  {
+    super.and(cm, codiciCampione);
+    return this;
+  }
+
+  public CriteriaRigel addIn(ColumnMap cm, Collection<?> lsCodApp)
+  {
+    super.andIn(cm, lsCodApp);
     return this;
   }
 }
