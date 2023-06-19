@@ -174,6 +174,11 @@ public class CriteriaRigel extends Criteria
     return this;
   }
 
+  public CriteriaRigel isNull(ColumnMap cm)
+  {
+    return isNull(cm.getColumnName());
+  }
+
   /**
    * Represents the Is NOT NULL in the WHERE
    * clause of an SQL Statement
@@ -185,6 +190,11 @@ public class CriteriaRigel extends Criteria
   {
     super.andVerbatimSql("(" + columnname + " is NOT NULL)", null);
     return this;
+  }
+
+  public CriteriaRigel isNotNull(ColumnMap cm)
+  {
+    return isNotNull(cm.getColumnName());
   }
 
   /**

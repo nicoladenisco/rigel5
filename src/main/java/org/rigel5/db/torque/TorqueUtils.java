@@ -22,10 +22,12 @@ import java.util.List;
 import org.apache.torque.Column;
 import org.apache.torque.TorqueException;
 import org.apache.torque.criteria.Criteria;
+import org.apache.torque.map.TableMap;
 import org.apache.torque.om.ColumnAccessByName;
 import org.apache.torque.util.BasePeerImpl;
 import org.commonlib5.utils.DateTime;
 import org.json.JSONObject;
+import org.rigel5.db.IndexHelper;
 
 /**
  * Utilità per Torque om.
@@ -76,5 +78,34 @@ public class TorqueUtils
     }
 
     return json;
+  }
+
+  public static <T> T retrieveByAlternateKeyQuiet(int numIdx, BasePeerImpl<T> peerImpl, Connection con, Object... args)
+     throws Exception
+  {
+    TableMap tm = peerImpl.getTableMap();
+    IndexHelper ih = new IndexHelper(con, false);
+    ih.loadDataEasy(tm.getFullyQualifiedTableName());
+
+    CriteriaRigel cr = new CriteriaRigel();
+    String indexName = ih.getUniqueIndexNames().stream()
+       .filter((s) -> s.matches(".+_" + numIdx))
+       .findFirst().orElse(null);
+
+    if(indexName == null)
+      throw new Exception("Chiave alternata " + numIdx + " non trovata.");
+
+    List<IndexHelper.IndiciBean> lsib = ih.getUniqueIndex(indexName);
+
+    if(lsib.size() != args.length)
+      throw new Exception("Chiave alternata " + numIdx + " disallineata: erano attesi "
+         + lsib.size() + " parametri invece di " + args.length);
+
+    for(IndexHelper.IndiciBean ib : lsib)
+    {
+      cr.and(ib.COLUMN_NAME, args[ib.ORDINAL_POSITION - 1]);
+    }
+
+    return getFirst(peerImpl, cr, con);
   }
 }
