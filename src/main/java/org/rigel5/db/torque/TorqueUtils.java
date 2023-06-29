@@ -18,6 +18,7 @@
 package org.rigel5.db.torque;
 
 import java.sql.Connection;
+import java.util.Arrays;
 import java.util.List;
 import org.apache.torque.Column;
 import org.apache.torque.TorqueException;
@@ -78,6 +79,12 @@ public class TorqueUtils
     }
 
     return json;
+  }
+
+  public static JSONObject toJson2(ColumnAccessByName toExport, JSONObject json, String... fields)
+     throws Exception
+  {
+    return toJson(toExport, Arrays.asList(fields), json);
   }
 
   public static <T> T retrieveByAlternateKeyQuiet(int numIdx, BasePeerImpl<T> peerImpl, Connection con, Object... args)
