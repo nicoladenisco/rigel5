@@ -17,59 +17,58 @@
  */
 package org.rigel5.db;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.PatternLayout;
-import org.commonlib5.utils.JavaLoggingToCommonLoggingRedirector;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 
 /**
+ * Test per TableHelper.java.
  *
  * @author Nicola De Nisco
  */
 public class TableHelperTest
 {
-  private static Connection con;
+  private static final DerbyTestHelper db = new DerbyTestHelper();
 
   public TableHelperTest()
   {
   }
 
-  @BeforeClass
-  public static void setUpClass()
-  {
-    // configurazione per il logging a console (Log4j/apache commons)
-    BasicConfigurator.configure(new ConsoleAppender(
-       new PatternLayout("%d [%t] %-5p %c{1} - %m%n")));
-
-    // accoda i messaggi del logger standard di java al layer Log4j
-    // NOTA: la configurazione di Log4j ha un default nelle risorse
-    // ed un eventuale settaggio esplicito in Log4j.properties
-    // letto in SetupData.initSetup
-    JavaLoggingToCommonLoggingRedirector.activate();
-
-    try
-    {
-      Class.forName("org.postgresql.Driver");
-      String url = "jdbc:postgresql://192.168.56.1/perseof2dasmelab?user=postgres&password=1234";
-      con = DriverManager.getConnection(url);
-    }
-    catch(Exception ex)
-    {
-      ex.printStackTrace();
-    }
-  }
-
-  @AfterClass
-  public static void tearDownClass()
-  {
-  }
-
+//  @BeforeClass
+//  public static void setUpClass()
+//  {
+//    // configurazione per il logging a console (Log4j/apache commons)
+//    BasicConfigurator.configure(new ConsoleAppender(
+//       new PatternLayout("%d [%t] %-5p %c{1} - %m%n")));
+//
+//    // accoda i messaggi del logger standard di java al layer Log4j
+//    // NOTA: la configurazione di Log4j ha un default nelle risorse
+//    // ed un eventuale settaggio esplicito in Log4j.properties
+//    // letto in SetupData.initSetup
+//    JavaLoggingToCommonLoggingRedirector.activate();
+//
+//    try
+//    {
+//      db.init();
+//      db.buildDb1();
+//    }
+//    catch(Exception ex)
+//    {
+//      ex.printStackTrace();
+//    }
+//  }
+//
+//  @AfterClass
+//  public static void tearDownClass()
+//  {
+//    try
+//    {
+//      db.shutdown();
+//    }
+//    catch(Exception ex)
+//    {
+//      ex.printStackTrace();
+//    }
+//  }
   @Before
   public void setUp()
   {
