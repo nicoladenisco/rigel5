@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -45,7 +45,7 @@ public class ParseSchemaBase
   {
     SAXBuilder builder = new SAXBuilder();
 
-    if(dtdDir != null)
+    if(dtdDir != null && dtdDir.isDirectory())
     {
       builder.setEntityResolver((String publicId, String systemId) ->
       {
