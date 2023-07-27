@@ -17,6 +17,12 @@
  */
 package org.rigel5.db;
 
+import com.workingdogs.village.DataSetException;
+import com.workingdogs.village.DerbyTestEnvironment;
+import com.workingdogs.village.Record;
+import com.workingdogs.village.TableDataSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 import java.util.Set;
 import org.apache.log4j.BasicConfigurator;
@@ -39,7 +45,7 @@ import org.rigel5.SetupHolder;
  */
 public class IndexHelperTest
 {
-  private static final DerbyTestHelper db = new DerbyTestHelper();
+  private static DerbyTestEnvironment db;
 
   public IndexHelperTest()
   {
@@ -60,8 +66,11 @@ public class IndexHelperTest
 
     try
     {
-      db.init();
-      db.buildDb1();
+      db = DerbyTestEnvironment.getInstance();
+      if(!db.isOpen())
+        db.open();
+
+      inserisciDati();
     }
     catch(Exception ex)
     {
@@ -86,6 +95,48 @@ public class IndexHelperTest
   {
   }
 
+  private static void inserisciDati()
+     throws SQLException, DataSetException
+  {
+    try (Statement stm = db.getConn().createStatement())
+    {
+      stm.executeUpdate("DELETE FROM STP.TRANSCODE");
+    }
+
+    TableDataSet tdsrt = new TableDataSet(db.getConn(), "STP.TRANSCODE");
+
+    /*
+    app character varying(16)
+    tipo character varying(16)
+    codice_caleido character varying(64)
+    codice_app character varying(64)
+     */
+    {
+      Record r = tdsrt.addRecord();
+      r.setValue("app", "A");
+      r.setValue("tipo", "B");
+      r.setValue("codice_caleido", "CAL0001");
+      r.setValue("codice_app", "APP0001");
+      r.save();
+    }
+    {
+      Record r = tdsrt.addRecord();
+      r.setValue("app", "A");
+      r.setValue("tipo", "B");
+      r.setValue("codice_caleido", "CAL0002");
+      r.setValue("codice_app", "APP0002");
+      r.save();
+    }
+    {
+      Record r = tdsrt.addRecord();
+      r.setValue("app", "A");
+      r.setValue("tipo", "B");
+      r.setValue("codice_caleido", "CAL0003");
+      r.setValue("codice_app", "APP0003");
+      r.save();
+    }
+  }
+
   @Test
   public void testLoadData()
      throws Exception
@@ -93,7 +144,7 @@ public class IndexHelperTest
     System.out.println("loadData");
     String schemaName = "STP";
     String tableName = "TRANSCODE";
-    IndexHelper instance = new IndexHelper(db.con, true);
+    IndexHelper instance = new IndexHelper(db.getConn(), true);
     instance.loadData(schemaName, tableName);
     assertFalse(instance.indici.isEmpty());
     // TODO review the generated test code and remove the default call to fail.
@@ -105,7 +156,7 @@ public class IndexHelperTest
      throws Exception
   {
     System.out.println("loadDataEasy");
-    IndexHelper instance = new IndexHelper(db.con, true);
+    IndexHelper instance = new IndexHelper(db.getConn(), true);
     instance.loadDataEasy("STP.TRANSCODE");
     assertFalse(instance.indici.isEmpty());
   }
@@ -117,7 +168,7 @@ public class IndexHelperTest
     System.out.println("getIndexNames");
     String schemaName = "STP";
     String tableName = "TRANSCODE";
-    IndexHelper instance = new IndexHelper(db.con, true);
+    IndexHelper instance = new IndexHelper(db.getConn(), true);
     instance.loadData(schemaName, tableName);
     assertFalse(instance.indici.isEmpty());
     Set<String> indexNames = instance.getIndexNames();
@@ -132,7 +183,7 @@ public class IndexHelperTest
     System.out.println("getUniqueIndexNames");
     String schemaName = "STP";
     String tableName = "TRANSCODE";
-    IndexHelper instance = new IndexHelper(db.con, true);
+    IndexHelper instance = new IndexHelper(db.getConn(), true);
     instance.loadData(schemaName, tableName);
     assertFalse(instance.indici.isEmpty());
     Set<String> indexNames = instance.getUniqueIndexNames();
@@ -147,7 +198,7 @@ public class IndexHelperTest
     System.out.println("getIndex");
     String schemaName = "STP";
     String tableName = "TRANSCODE";
-    IndexHelper instance = new IndexHelper(db.con, true);
+    IndexHelper instance = new IndexHelper(db.getConn(), true);
     instance.loadData(schemaName, tableName);
     final String idxName = "IDX_TRANSCODE_1";
     List<IndexHelper.IndiciBean> idxColumn = instance.getIndex(idxName);
@@ -163,7 +214,7 @@ public class IndexHelperTest
 //    System.out.println("getUniqueIndex");
 //    String schemaName = "STP";
 //    String tableName = "TRANSCODE";
-//    IndexHelper instance = new IndexHelper(db.con, true);
+//    IndexHelper instance = new IndexHelper(db.getConn(), true);
 //    instance.loadData(schemaName, tableName);
 //    final String idxName = "TRANSCODE_PKEY";
 //    List<IndexHelper.IndiciBean> idxColumn = instance.getUniqueIndex(idxName);

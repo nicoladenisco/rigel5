@@ -105,16 +105,7 @@ public class DerbyTestEnvironment implements Closeable
        + "    CONSTRAINT idx_mic_batteri_1 UNIQUE (codice)\n"
        + ")";
 
-    // Table/View 'MIC_BATTERI' already exists in Schema 'APP'.
-    try ( Statement stm = conn.createStatement())
-    {
-      stm.executeUpdate(sSQL1);
-    }
-    catch(SQLException ex)
-    {
-      if(!ex.getMessage().contains("already exists"))
-        throw ex;
-    }
+    executeStatement(sSQL1);
 
     String sSQL2
        = "CREATE TABLE mic_antibiotici\n"
@@ -136,12 +127,41 @@ public class DerbyTestEnvironment implements Closeable
        + "    CONSTRAINT idx_mic_antibiotici_1 UNIQUE (codice)\n"
        + ")";
 
-    try ( Statement stm = conn.createStatement())
+    executeStatement(sSQL2);
+
+    executeStatement("CREATE SCHEMA stp");
+
+    String sSQL3
+       = "CREATE TABLE stp.transcode\n"
+       + "(\n"
+       + "    app character varying(16)  NOT NULL,\n"
+       + "    tipo character varying(16)  NOT NULL,\n"
+       + "    codice_caleido character varying(64)  NOT NULL,\n"
+       + "    codice_app character varying(64)  NOT NULL,\n"
+       + "    CONSTRAINT transcode_pkey PRIMARY KEY (app, tipo, codice_caleido)\n"
+       + ")";
+
+    executeStatement(sSQL3);
+
+    String sSQL4
+       = "CREATE INDEX idx_transcode_1\n"
+       + "    ON stp.transcode (app, codice_app)\n"
+       + "";
+
+    executeStatement(sSQL4);
+  }
+
+  public void executeStatement(String sSQL2)
+     throws SQLException
+  {
+    try (Statement stm = conn.createStatement())
     {
       stm.executeUpdate(sSQL2);
     }
     catch(SQLException ex)
     {
+      // ignora errore di tabella già esistente
+      // Table/View 'MIC_BATTERI' already exists in Schema 'APP'.
       if(!ex.getMessage().contains("already exists"))
         throw ex;
     }
