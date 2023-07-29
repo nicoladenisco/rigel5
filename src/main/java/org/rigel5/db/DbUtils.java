@@ -1633,21 +1633,11 @@ public class DbUtils
     }
   }
 
-  public static long deleteAll(Connection con, String tableName, String primaryName, int idToDel)
-     throws Exception
-  {
-    int pos = tableName.indexOf(".");
-    if(pos == -1)
-      return deleteAll(con, "", tableName, primaryName, idToDel);
-    else
-      return deleteAll(con, tableName.substring(0, pos), tableName.substring(pos + 1), primaryName, idToDel);
-  }
-
-  public static long deleteAll(Connection con, String schemaName, String tableName, String primaryName, int idToDel)
+  public static long deleteCascade(Connection con, String tableName, String primaryName, int idToDel)
      throws Exception
   {
     TableHelperDelete instance = new TableHelperDelete(con, false);
-    instance.loadData(schemaName, tableName);
+    instance.loadDataEasy(tableName);
     instance.prepareDeleteCascade(primaryName, idToDel);
 
     List<String> recurse = instance.getRecurse();
