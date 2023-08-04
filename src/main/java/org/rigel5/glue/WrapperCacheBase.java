@@ -812,7 +812,7 @@ abstract public class WrapperCacheBase
       if((objCache = getListaEditPeer(type)) != null)
         return objCache;
     }
-    catch(MissingListException e)
+    catch(MissingListException | MissingSectionException e)
     {
     }
 
@@ -822,7 +822,7 @@ abstract public class WrapperCacheBase
       if((objCache = getListaEditTmap(type)) != null)
         return objCache;
     }
-    catch(MissingListException e)
+    catch(MissingListException | MissingSectionException e)
     {
     }
 
@@ -848,7 +848,7 @@ abstract public class WrapperCacheBase
       if((objCache = getFormPeer(type)) != null)
         return objCache;
     }
-    catch(MissingListException e)
+    catch(MissingListException | MissingSectionException e)
     {
     }
 
@@ -858,7 +858,7 @@ abstract public class WrapperCacheBase
       if((objCache = getFormTmap(type)) != null)
         return objCache;
     }
-    catch(MissingListException e)
+    catch(MissingListException | MissingSectionException e)
     {
     }
 
@@ -868,7 +868,7 @@ abstract public class WrapperCacheBase
       if((objCache = getFormSql(type)) != null)
         return objCache;
     }
-    catch(MissingListException e)
+    catch(MissingListException | MissingSectionException e)
     {
     }
 
@@ -892,7 +892,7 @@ abstract public class WrapperCacheBase
       if((objCache = getFormPeer(type)) != null)
         return objCache;
     }
-    catch(MissingListException e)
+    catch(MissingListException | MissingSectionException e)
     {
     }
 
@@ -902,7 +902,7 @@ abstract public class WrapperCacheBase
       if((objCache = getFormTmap(type)) != null)
         return objCache;
     }
-    catch(MissingListException e)
+    catch(MissingListException | MissingSectionException e)
     {
     }
 

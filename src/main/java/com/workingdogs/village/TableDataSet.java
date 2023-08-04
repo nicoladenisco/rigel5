@@ -692,10 +692,24 @@ public class TableDataSet
     return DbUtils.getMaxField(schema().tableName(), campo, null, conn) + 1;
   }
 
+  public long getNextIDFromSequence(String sequenceName)
+     throws Exception
+  {
+    KeyDef keydef = keydef();
+
+    if(keydef == null)
+      throw new Exception("Missing KeyDef for this table.");
+
+    if(keydef.size() != 1)
+      throw new Exception("KeyDef must have one and only one column.");
+
+    return DbUtils.getValueFromSequence(sequenceName, conn);
+  }
+
   public static Record fetchOneRecord(String tableName, String where, Connection con)
      throws Exception
   {
-    try ( TableDataSet tds = new TableDataSet(con, tableName))
+    try (TableDataSet tds = new TableDataSet(con, tableName))
     {
       tds.where(where);
       tds.fetchRecords(1);
@@ -706,7 +720,7 @@ public class TableDataSet
   public static List<Record> fetchAllRecords(String tableName, String where, Connection con)
      throws Exception
   {
-    try ( TableDataSet tds = new TableDataSet(con, tableName))
+    try (TableDataSet tds = new TableDataSet(con, tableName))
     {
       tds.where(where);
       return tds.fetchAllRecords();
