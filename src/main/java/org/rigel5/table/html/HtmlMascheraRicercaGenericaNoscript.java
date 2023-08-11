@@ -43,16 +43,16 @@ import org.rigel5.table.RigelTableModel;
  * @author Nicola De Nisco
  * @version 1.0
  */
-public class HtmlMascheraRicercaGenerica implements MascheraRicercaGenerica
+public class HtmlMascheraRicercaGenericaNoscript implements MascheraRicercaGenerica
 {
   /** Logging */
-  private static Log log = LogFactory.getLog(HtmlMascheraRicercaGenerica.class);
+  private static Log log = LogFactory.getLog(HtmlMascheraRicercaGenericaNoscript.class);
   protected BuilderRicercaGenerica brg = null;
   protected RigelTableModel rtm = null;
   protected String formName = "fo";
   protected RigelI18nInterface i18n = null;
 
-  public HtmlMascheraRicercaGenerica(BuilderRicercaGenerica brg, RigelTableModel rtm, RigelI18nInterface i18n)
+  public HtmlMascheraRicercaGenericaNoscript(BuilderRicercaGenerica brg, RigelTableModel rtm, RigelI18nInterface i18n)
   {
     this.brg = brg;
     this.rtm = rtm;
@@ -98,51 +98,6 @@ public class HtmlMascheraRicercaGenerica implements MascheraRicercaGenerica
     }
 
     sb.append(HtmlUtils.generaOptionCombo(0, "No", defVal));
-  }
-
-  /**
-   * Ritorna la porzione di javascript necessaria a consentire l'editing
-   * del calendario.
-   * @param cd colonna del campo
-   * @param fieldName nome del campo data
-   * @return il codice javascript
-   */
-  protected String getScriptData(RigelColumnDescriptor cd, String fieldName)
-  {
-    String nomeCampoInizio = "VL" + fieldName;
-    String nomeCampoFine = "VF" + fieldName;
-    String nomeCampoOperazione = "OP" + fieldName;
-
-    return "\r\n"
-       + "function restartd_" + nomeCampoInizio + "(strdate) {\r\n"
-       + "      document." + formName + "." + nomeCampoInizio + ".value = strdate;\r\n"
-       + "      document." + formName + "." + nomeCampoOperazione + ".value = 2;\r\n"
-       + "}\r\n"
-       + "function restartd_" + nomeCampoFine + "(strdate) {\r\n"
-       + "      document." + formName + "." + nomeCampoFine + ".value = strdate;\r\n"
-       + "      document." + formName + "." + nomeCampoOperazione + ".value = 8;\r\n"
-       + "}\r\n"
-       + "function restartd_" + nomeCampoInizio + "_" + nomeCampoFine + "(ss) {\r\n"
-       + "      var idx = ss.indexOf(\"|\");\r\n"
-       + "      var s1  = ss.substring( 0, idx);\r\n"
-       + "      var s2  = ss.substring(idx+1);\r\n"
-       + "      document." + formName + "." + nomeCampoInizio + ".value = s1;\r\n"
-       + "      document." + formName + "." + nomeCampoFine + ".value = s2;\r\n"
-       + "      document." + formName + "." + nomeCampoOperazione + ".value = 8;\r\n"
-       + "}\r\n"
-       + "\r\n";
-  }
-
-  protected String getScriptCampi(RigelColumnDescriptor cd, String fieldName)
-  {
-    return "\r\n"
-       + "function cambia_VL" + fieldName + "() {\r\n"
-       + "      document." + formName + ".OP" + fieldName + ".value = 1;\r\n"
-       + "}\r\n"
-       + "function cambia_VF" + fieldName + "() {\r\n"
-       + "      document." + formName + ".OP" + fieldName + ".value = 8;\r\n"
-       + "}\r\n"
-       + "\r\n";
   }
 
   /**
@@ -248,19 +203,17 @@ public class HtmlMascheraRicercaGenerica implements MascheraRicercaGenerica
   {
     this.formName = nomeForm;
     RigelHtmlPageComponent html = new RigelHtmlPageComponent(PageComponentType.HTML, "search");
-    RigelHtmlPageComponent javascript = new RigelHtmlPageComponent(PageComponentType.JAVASCRIPT, "search");
 
     html.append("<div id=\"rigel_search_param_" + formName + "\" class=\"rigel_search_param\">\r\n"
        + "<input type=\"hidden\" name=\"filtro\" value=\"2\">");
 
-    buildHtmlRicercaTable(html, javascript);
+    buildHtmlRicercaTable(html);
     html.append("</div>\r\n");
 
     page.add(html);
-    page.add(javascript);
   }
 
-  protected void buildHtmlRicercaTable(RigelHtmlPageComponent html, RigelHtmlPageComponent javascript)
+  protected void buildHtmlRicercaTable(RigelHtmlPageComponent html)
      throws Exception
   {
     html.append("<table width=100%>\r\n"
@@ -329,16 +282,13 @@ public class HtmlMascheraRicercaGenerica implements MascheraRicercaGenerica
 
       else if(cd.isDate() && SetupHolder.getImgEditData() != null)
       {
-        String sds = URLEncoder.encode("restartd_VL" + fieldName, "UTF-8");
-        String sdt = URLEncoder.encode("restartd_VF" + fieldName, "UTF-8");
-        String sdi = URLEncoder.encode("restartd_VL" + fieldName + "_VF" + fieldName, "UTF-8");
-
         html.append("<td><input type=\"text\" size=\"20\""
            + " name=\"VL" + fieldName + "\""
            + " value=\"" + val + "\" "
            + " onkeydown=\"return moveKey(document." + formName + ".VL" + fieldNameUp
            + " , document." + formName + ".VL" + fieldNameDw + ", event);\"> "
-           + "&nbsp;<a href=\"javascript:apriCalendarioIntervalloForm('" + formName + "','" + sds + "','" + sdi + "')\">"
+           + "&nbsp;<a href=''"
+           + " onclick=\"apriCalendarioNoscript('" + formName + "','" + fieldName + "')\">"
            + SetupHolder.getImgEditData() + "</a>"
            + "</td>\r\n");
 
@@ -347,18 +297,16 @@ public class HtmlMascheraRicercaGenerica implements MascheraRicercaGenerica
            + " value=\"" + vaf + "\" "
            + " onkeydown=\"return moveKey(document." + formName + ".VF" + fieldNameUp
            + " , document." + formName + ".VF" + fieldNameDw + ", event);\"> "
-           + "&nbsp;<a href=\"javascript:apriCalendarioIntervalloForm('" + formName + "','" + sdt + "','" + sdi + "')\">"
+           + "&nbsp;<a href=''"
+           + " onclick=\"apriCalendarioNoscript('" + formName + "','" + fieldName + "')\">"
            + SetupHolder.getImgEditData() + "</a>"
            + "</td>\r\n");
-
-        javascript.append(getScriptData(cd, fieldName));
       }
       else
       {
         html.append("<td><input type=\"text\" size=\"20\""
            + " name=\"VL" + fieldName + "\""
            + " value=\"" + val + "\" "
-           + " onchange=\"cambia_VL" + fieldName + "()\" "
            + " onkeydown=\"return moveKey(document." + formName + ".VL" + fieldNameUp
            + " , document." + formName + ".VL" + fieldNameDw + ", event);\"> "
            + "</td>\r\n");
@@ -366,12 +314,9 @@ public class HtmlMascheraRicercaGenerica implements MascheraRicercaGenerica
         html.append("<td><input type=\"text\" size=\"20\""
            + " name=\"VF" + fieldName + "\""
            + " value=\"" + vaf + "\" "
-           + " onchange=\"cambia_VF" + fieldName + "()\" "
            + " onkeydown=\"return moveKey(document." + formName + ".VF" + fieldNameUp
            + " , document." + formName + ".VF" + fieldNameDw + ", event);\"> "
            + "</td>\r\n");
-
-        javascript.append(getScriptCampi(cd, fieldName));
       }
 
       html.append("<td><select name=\"RS").append(fieldName).append("\">");
@@ -431,10 +376,9 @@ public class HtmlMascheraRicercaGenerica implements MascheraRicercaGenerica
     int numSiSeColumn = 0;
     String clearForm = "";
     String funSubmit = "document." + formName + ".submit();";
-    String funTest = "onkeypress='return testInvio_" + formName + "(event);'";
+    String funTest = "onkeypress=\"return rigel.testInvio('" + formName + "', event);\"";
 
     RigelHtmlPageComponent html = new RigelHtmlPageComponent(PageComponentType.HTML, "simplesearch");
-    RigelHtmlPageComponent javascript = new RigelHtmlPageComponent(PageComponentType.JAVASCRIPT, "simplesearch");
     html.append("<div class=\"rigel_simple_search\">\r\n")
        .append("<!-- BEGIN SIMPLE SEARCH -->\r\n");
 
@@ -498,15 +442,13 @@ public class HtmlMascheraRicercaGenerica implements MascheraRicercaGenerica
 
             // aggiunge calendario per i campi data
             String nomeCampoInizio = "VL" + fieldName;
-            String sds = URLEncoder.encode("restartd_" + nomeCampoInizio, "UTF-8");
+            String sds = URLEncoder.encode("rigel.restart(" + nomeForm + "," + nomeCampoInizio + "+,VALUE)", "UTF-8");
 
             html
-               .append("&nbsp;<a href=\"javascript:apriCalendarioForm('")
+               .append("&nbsp;<a onclick=\"apriCalendarioNoscript('")
                .append(formName).append("','").append(sds).append("')\">")
                .append(SetupHolder.getImgEditData())
                .append("</a>");
-
-            javascript.append(getScriptData(cd, fieldName));
           }
         }
         else
@@ -541,52 +483,17 @@ public class HtmlMascheraRicercaGenerica implements MascheraRicercaGenerica
        .append("<input type=\"hidden\" name=\"filtro\" value=\"").append(AbstractHtmlTablePagerFilter.FILTRO_APPLICA).append("\"/>\r\n")
        .append("<input type=\"hidden\" name=\"SSORT\" value=\"").append(simpleSearchColumn).append("\"/>\r\n");
 
-    javascript
-       .append("document.").append(formName).append(".").append(firstControl).append(".focus();\r\n")
-       .append("\r\n")
-       .append("function SimpleSort_").append(formName).append("(idx)\r\n")
-       .append("{\r\n")
-       .append("   val=document.").append(formName).append(".SSORT.value;\r\n")
-       .append("   if(idx == Math.abs(val))\r\n")
-       .append("   {\r\n")
-       .append("     document.").append(formName).append(".SSORT.value=-val;\r\n")
-       .append("   }\r\n")
-       .append("   else\r\n")
-       .append("   {\r\n")
-       .append("     document.").append(formName).append(".SSORT.value=idx;\r\n")
-       .append("   }\r\n")
-       .append("   document.").append(formName).append(".submit();\r\n")
-       .append("}\r\n")
-       .append("\r\n")
-       .append("function pulisciRicercaSemplice_").append(formName).append("()\r\n")
-       .append("{\r\n")
-       .append(clearForm)
-       .append("   document.").append(formName).append(".SSORT.value=0;\r\n")
-       .append("   document.").append(formName).append(".submit();\r\n")
-       .append("}\r\n")
-       .append("function testInvio_").append(formName).append("(e)\r\n")
-       .append("{\r\n")
-       .append("  if(e == null) e=event;\r\n")
-       .append("  if(e.keyCode == 13){\r\n")
-       .append("   document.").append(formName).append(".submit();\r\n")
-       .append("   return false;\r\n")
-       .append("  }\r\n")
-       .append("  return true;\r\n")
-       .append("}\r\n")
-       .append("");
-
     html
        .append("<!-- MORE SIMPLE SEARCH -->\r\n")
        .append("<input type=\"button\" name=\"SimpleSearch_").append(formName).append("\" value=\"")
        .append(i18n.getCaptionButtonCerca()).append("\" onclick=\"document.").append(formName).append(".submit();\"/>\r\n")
        .append("<input type=\"button\" name=\"publisciSimpleSearch_").append(formName).append("\" value=\"")
-       .append(i18n.getCaptionButtonPulisci()).append("\" onclick=\"pulisciRicercaSemplice_").append(formName).append("();\"/>\r\n")
+       .append(i18n.getCaptionButtonPulisci()).append("\" onclick=\"rigel.pulisciRicercaSemplice('").append(formName).append("');\"/>\r\n")
        .append(haveFilter ? " [" + i18n.msg("Filtro attivo") + "]" : "")
        .append("<!-- END FORM SIMPLE SEARCH -->\r\n")
        .append("</div>\r\n");
 
     page.add(html);
-    page.add(javascript);
   }
 
   protected void getComboBoxAnnoCompleto(StringBuilder sb, String nomeCampo, int anno1)

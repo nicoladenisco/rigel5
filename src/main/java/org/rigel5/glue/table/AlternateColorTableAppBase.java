@@ -200,14 +200,21 @@ public class AlternateColorTableAppBase extends AlternateColorTableAppGeneric
     if((cd = getCD(col)) == null)
       return colText;
 
-    if(cd.getFiltroSort() > 0 && cd.getFiltroSort() < 1000)
+    if(cd.isEscludiRicerca())
+      return colText;
+
+    int filtroSort = cd.getFiltroSort();
+
+    if(filtroSort > 0 && filtroSort < 1000)
       colText = "[\u2191]" + colText;
-    if(cd.getFiltroSort() >= 1000 && cd.getFiltroSort() < 2000)
+    if(filtroSort >= 1000 && filtroSort < 2000)
       colText = "[\u2193]" + colText;
 
-    return cd.isEscludiRicerca() ? colText
-              : HtmlUtils.makeHrefJScript("SimpleSort_" + formName + "('" + (col + 1) + "')",
-          colText, "txt-yellow-bold-12-nul");
+    return "<a onclick=\"rigel.simpleSort('" + formName + "', '" + (col + 1) + "')\">" + colText + "</a>";
+
+//       cd.isEscludiRicerca() ? colText
+//              : HtmlUtils.makeHrefJScript("SimpleSort_" + formName + "('" + (col + 1) + "')",
+//          colText, "txt-yellow-bold-12-nul");
   }
 
   /**
