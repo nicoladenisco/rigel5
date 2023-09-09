@@ -37,6 +37,7 @@ import org.rigel5.db.DbUtils;
 import org.rigel5.db.torque.PeerTransactAgent;
 import org.rigel5.db.torque.TableMapHelper;
 import org.rigel5.exceptions.MissingColumnException;
+import org.rigel5.exceptions.MissingParameterException;
 import org.rigel5.glue.PeerObjectSaver;
 import org.rigel5.table.FiltroListe;
 import org.rigel5.table.RigelColumnDescriptor;
@@ -815,6 +816,9 @@ abstract public class PeerAbstractTableModel extends RigelObjectTableModel
   public int deleteByQueryKey(String sKey)
      throws Exception
   {
+    if(!StringOper.isOkStr(sKey))
+      throw new MissingParameterException("Selettore record da cancellare non definito. Operazione non possibile.");
+
     if(doDeleteM == null)
     {
       // recupera il metodo per la cancellazione

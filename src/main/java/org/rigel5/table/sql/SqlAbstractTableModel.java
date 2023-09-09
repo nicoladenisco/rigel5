@@ -282,11 +282,9 @@ abstract public class SqlAbstractTableModel extends RigelObjectTableModel
 
             // se non specificato esplicitamente ricava un default ragionevole in base al tipo di dato
             if(cd.getDataType() == RigelColumnDescriptor.PDT_UNDEFINED)
-            {
               cd.setDataType(retTipoSql(col.typeEnum()));
-              cd.setValClass(retObjTipoClass(cd.getDataType()));
-            }
 
+            cd.setValClass(retObjTipoClass(cd.getDataType()));
             found = true;
             break;
           }
@@ -300,7 +298,7 @@ abstract public class SqlAbstractTableModel extends RigelObjectTableModel
     // riporta colonne non trovate
     if(!vNotFound.isEmpty())
     {
-      String colList = StringOper.join(vNotFound.iterator(), ", ", "");
+      String colList = StringOper.join(vNotFound.iterator(), ", ", null);
       throw new MissingColumnException("Colonne " + colList + " non trovate negli oggetti passati!");
     }
   }
@@ -387,6 +385,9 @@ abstract public class SqlAbstractTableModel extends RigelObjectTableModel
   public int deleteByQueryKey(String sKey)
      throws Exception
   {
+    if(!StringOper.isOkStr(sKey))
+      throw new MissingParameterException("Selettore record da cancellare non definito. Operazione non possibile.");
+
     String sDel = "";
     for(int i = 0; i < getColumnCount(); i++)
     {
@@ -421,6 +422,7 @@ abstract public class SqlAbstractTableModel extends RigelObjectTableModel
     // reset numero totale record
     clearTotalRecords();
 
+    fireTableDataChanged();
     return rv;
   }
 

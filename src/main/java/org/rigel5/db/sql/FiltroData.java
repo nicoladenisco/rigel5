@@ -103,7 +103,7 @@ public class FiltroData
   public FiltroData addWhere(String nomecampo, SqlEnum criteria)
   {
     if(criteria.equals(SqlEnum.ISNULL) || criteria.equals(SqlEnum.ISNOTNULL))
-      return addWhere(nomecampo, criteria, null);
+      return addWhere(nomecampo, criteria, "");
 
     throw new RuntimeException("Valore non valido per criteria: deve essere ISNULL o ISNOTNULL");
   }
@@ -115,6 +115,9 @@ public class FiltroData
 
   public FiltroData addWhere(int type, String nomecampo, SqlEnum criteria, Object val)
   {
+    if(val == null)
+      throw new RuntimeException("Where component can not be empty.");
+
     whereInfo wi = new whereInfo();
     wi.type = type;
     wi.nomecampo = nomecampo;

@@ -750,7 +750,7 @@ abstract public class RigelColumnDescriptor extends TableColumn
     {
       log.debug("[RigelColumnDescriptor.parseValue] value=" + value);
       log.error("RIGEL:", ex);
-      return null;
+      throw new RuntimeException(ex);
     }
   }
 
