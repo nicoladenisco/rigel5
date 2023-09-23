@@ -359,6 +359,7 @@ abstract public class WrapperCacheBase
     table.init("FT", wf, buildDefaultPeerSaver());
     table.setTableStatement(tagTabelleForm);
     table.setI18n(i18n);
+    table.setAttivaProtezioneCSRF(wf.isAttivaProtezioneCSRF());
 
     wf.setTableStatement(tagTabelleForm);
     wf.setTbl(table);

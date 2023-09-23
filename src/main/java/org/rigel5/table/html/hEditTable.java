@@ -26,6 +26,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.torque.om.Persistent;
 import org.commonlib5.utils.StringOper;
 import org.rigel5.HtmlUtils;
+import org.rigel5.SetupHolder;
 import org.rigel5.table.CustomColumnEdit;
 import org.rigel5.table.ForeignDataHolder;
 import org.rigel5.table.RigelColumnDescriptor;
@@ -41,18 +42,21 @@ import org.rigel5.table.sql.html.SqlTableModel;
  */
 public class hEditTable extends hTable
 {
+  /** Logging */
+  private static Log log = LogFactory.getLog(hEditTable.class);
+
   protected boolean colonnaAnnulla = true;
   protected String captionAnnulla = "An";
   protected String id = "";
   protected RigelHtmlPageComponent scriptTest = new RigelHtmlPageComponent(PageComponentType.JAVASCRIPT_PART, "test");
   protected String popupListaFunction = "apriFinestraLista";
   protected String popupFormFunction = "apriFinestraForm";
-  /** Logging */
-  private static Log log = LogFactory.getLog(hEditTable.class);
+  protected boolean attivaProtezioneCSRF = false;
 
   public hEditTable(String sId)
   {
     id = sId;
+    attivaProtezioneCSRF = SetupHolder.isAttivaProtezioneCSRF();
   }
 
   public void setColonnaAnnulla(boolean newColonnaAnnulla)
@@ -63,6 +67,16 @@ public class hEditTable extends hTable
   public boolean isColonnaAnnulla()
   {
     return colonnaAnnulla;
+  }
+
+  public boolean isAttivaProtezioneCSRF()
+  {
+    return attivaProtezioneCSRF;
+  }
+
+  public void setAttivaProtezioneCSRF(boolean attivaProtezioneCSRF)
+  {
+    this.attivaProtezioneCSRF = attivaProtezioneCSRF;
   }
 
   public void setCaptionAnnulla(String newCaptionAnnulla)

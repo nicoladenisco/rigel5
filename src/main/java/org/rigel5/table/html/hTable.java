@@ -42,6 +42,7 @@ public class hTable
 {
   /** Logging */
   private static Log log = LogFactory.getLog(hTable.class);
+
   protected TableModel tableModel;
   protected TableColumnModel columnModel;
   protected String tableStatement;

@@ -21,6 +21,7 @@ import java.util.*;
 import javax.servlet.http.*;
 import org.jdom2.Element;
 import org.rigel5.RigelXmlSetupInterface;
+import org.rigel5.SetupHolder;
 import org.rigel5.table.html.wrapper.CustomButtonInfo;
 import org.rigel5.table.html.wrapper.EditInfo;
 import org.rigel5.table.html.wrapper.ForeignInfo;
@@ -41,7 +42,7 @@ abstract public class WrapperBase implements RigelXmlSetupInterface
   protected String titolo;
   protected String customScript;
   protected RigelTableModel ptm = null;
-  protected Vector<String> sortColumns = new Vector<String>(16, 16);
+  protected Vector<String> sortColumns = new Vector<>(16, 16);
   protected int numPerPage = 10;
   protected String nomeTabella;
   protected int numColonne;
@@ -59,8 +60,9 @@ abstract public class WrapperBase implements RigelXmlSetupInterface
   protected boolean newEnabled = true;
   protected boolean customColumnsEnabled = false;
   protected AbstractTablePager pager = null;
-  protected Vector<CustomButtonInfo> headerButtons = new Vector<CustomButtonInfo>();
+  protected final Vector<CustomButtonInfo> headerButtons = new Vector<>();
   protected ParametriFiltroListe filtro = new ParametriFiltroListe();
+  protected boolean attivaProtezioneCSRF = SetupHolder.isAttivaProtezioneCSRF();
   //
   // costanti
   public static final String VAR_MACRO = "@@@";
@@ -381,5 +383,15 @@ abstract public class WrapperBase implements RigelXmlSetupInterface
   public void setNosize(boolean nosize)
   {
     this.nosize = nosize;
+  }
+
+  public boolean isAttivaProtezioneCSRF()
+  {
+    return attivaProtezioneCSRF;
+  }
+
+  public void setAttivaProtezioneCSRF(boolean attivaProtezioneCSRF)
+  {
+    this.attivaProtezioneCSRF = attivaProtezioneCSRF;
   }
 }

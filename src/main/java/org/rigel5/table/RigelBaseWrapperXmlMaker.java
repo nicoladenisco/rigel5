@@ -145,6 +145,12 @@ public class RigelBaseWrapperXmlMaker
     if((e = lista.getChild("disableNew")) != null)
       wl.setNewEnabled(false);
 
+    // protezione CSRF
+    if((e = lista.getChild("disableCsrf")) != null)
+      wl.setAttivaProtezioneCSRF(false);
+    if((e = lista.getChild("enableCsrf")) != null)
+      wl.setAttivaProtezioneCSRF(true);
+
     // flag abilitazione classi colonna custom
     if((e = lista.getChild("customColumns")) != null)
       wl.setCustomColumnsEnabled(true);

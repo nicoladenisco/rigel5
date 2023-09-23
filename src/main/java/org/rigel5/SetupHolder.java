@@ -112,6 +112,9 @@ public class SetupHolder
    */
   private static RigelI18nInterface ri18n = new DefaultRigelI18nImplementation();
 
+  /* Default per protezione anti CSRF */
+  private static boolean attivaProtezioneCSRF = true;
+
   //////////////////////////////////////////////////////////////////
   //
   public static void setImgEditForeign(String _imgEditForeign)
@@ -387,5 +390,15 @@ public class SetupHolder
   public static void setComboDescLimit(int comboDescLimit)
   {
     SetupHolder.comboDescLimit = comboDescLimit;
+  }
+
+  public static boolean isAttivaProtezioneCSRF()
+  {
+    return attivaProtezioneCSRF;
+  }
+
+  public static void setAttivaProtezioneCSRF(boolean v)
+  {
+    attivaProtezioneCSRF = v;
   }
 }
