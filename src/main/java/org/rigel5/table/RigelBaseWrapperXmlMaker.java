@@ -132,7 +132,7 @@ public class RigelBaseWrapperXmlMaker
       wl.setTitolo(e.getTextTrim());
     if((e = lista.getChild("permessi")) != null)
       wl.setPermessi(parsePermessi(e));
-    if((e = lista.getChild("permission")) != null)
+    if((e = lista.getChild("permissions")) != null)
       wl.setPermessi(parsePermessi(e));
     if((e = lista.getChild("table")) != null)
       wl.setTableStatement(e.getTextTrim());
@@ -801,6 +801,8 @@ public class RigelBaseWrapperXmlMaker
       String caption = StringOper.okStrAny(
          er.getAttributeValue("nome"),
          er.getAttributeValue("name"));
+      if(caption == null || caption.isEmpty())
+        continue;
       removed += rtm.delColumn(caption);
     }
     return removed;
