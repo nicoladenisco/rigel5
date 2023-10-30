@@ -21,23 +21,29 @@ import com.workingdogs.village.*;
 import com.workingdogs.village.Column;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.torque.*;
 import org.apache.torque.criteria.Criteria;
 import org.apache.torque.map.*;
+import org.apache.torque.om.NumberKey;
 import org.apache.torque.om.ObjectKey;
 import org.apache.torque.om.Persistent;
 import org.apache.torque.om.SimpleKey;
+import org.apache.torque.om.mapper.RecordMapper;
 import org.apache.torque.sql.Query;
 import org.apache.torque.sql.SqlBuilder;
 import org.apache.torque.util.ColumnValues;
 import org.apache.torque.util.ExceptionMapper;
 import org.apache.torque.util.JdbcTypedValue;
+import org.apache.torque.util.ResultsetSpliterator;
 import org.apache.torque.util.Transaction;
 import org.commonlib5.lambda.LEU;
 import org.commonlib5.utils.ArrayMap;
@@ -1212,9 +1218,170 @@ public class DbUtils
   public static List<Record> doSelect(Criteria criteria, Connection con)
      throws Exception
   {
+    try (Stream<Record> resultStream = doSelectAsStream(criteria, new VillageRecordMapper(), con))
+    {
+      List<Record> result = resultStream.collect(Collectors.toList());
+
+      if(criteria.isSingleRecord() && result.size() > 1)
+      {
+        throw new TooManyRowsException(
+           "Criteria expected single Record and "
+           + "Multiple Records were selected");
+      }
+
+      return result;
+    }
+  }
+
+  /**
+   * Performs a SQL <code>select</code> using a PreparedStatement.
+   * This method returns a stream that <b>must</b> be closed after use.
+   * All resources used by this method will be closed when the stream is
+   * closed.
+   *
+   * @param <TT> Object type class
+   * @param criteria A Criteria specifying the records to select, not null.
+   * @param mapper The mapper creating the objects from the resultSet,
+   * not null.
+   * @param connection the database connection for selecting records,
+   * not null.
+   *
+   * @return The results of the query as a Stream, not null.
+   *
+   * @throws TorqueException Error performing database query.
+   */
+  public static <TT> Stream<TT> doSelectAsStream(
+     final Criteria criteria,
+     final RecordMapper<TT> mapper,
+     final Connection connection)
+     throws TorqueException
+  {
+    if(connection == null)
+      throw new NullPointerException("connection is null");
+
     Query query = SqlBuilder.buildQuery(criteria);
-    String sSQL = query.getDisplayString();
-    return QueryDataSet.fetchAllRecords(con, sSQL);
+    if(query.getFromClause().isEmpty())
+      throw new TorqueException("Missing from clause.");
+
+    try
+    {
+      PreparedStatement statement = connection.prepareStatement(query.toString());
+      if(query.getFetchSize() != null)
+        statement.setFetchSize(query.getFetchSize());
+
+      List<Object> replacements = setPreparedStatementReplacements(
+         statement,
+         query.getPreparedStatementReplacements(),
+         0);
+
+      ResultSet resultSet = statement.executeQuery();
+      ResultsetSpliterator<TT> spliterator = new ResultsetSpliterator<>(mapper, criteria, statement, resultSet);
+      return StreamSupport.stream(spliterator, false).onClose(spliterator);
+    }
+    catch(SQLException e)
+    {
+      throw ExceptionMapper.getInstance().toTorqueException(e);
+    }
+  }
+
+  /**
+   * Sets the prepared statement replacements into a query, possibly
+   * modifying the type if required by DB Drivers.
+   *
+   * @param statement the statement to set the parameters in, not null.
+   * @param replacements the replacements to set, not null.
+   * @param offset the offset on the parameters, 0 for no offset.
+   *
+   * @return the parameters set.
+   *
+   * @throws SQLException if setting the parameter fails.
+   */
+  public static List<Object> setPreparedStatementReplacements(
+     final PreparedStatement statement,
+     final List<Object> replacements,
+     final int offset)
+     throws SQLException
+  {
+    List<Object> result = new ArrayList<>(replacements.size());
+    int i = 1 + offset;
+    for(Object param : replacements)
+    {
+      if(param instanceof java.sql.Timestamp)
+      {
+        statement.setTimestamp(i, (java.sql.Timestamp) param);
+        result.add(param);
+      }
+      else if(param instanceof java.sql.Date)
+      {
+        statement.setDate(i, (java.sql.Date) param);
+        result.add(param);
+      }
+      else if(param instanceof java.sql.Time)
+      {
+        statement.setTime(i, (java.sql.Time) param);
+        result.add(param);
+      }
+      else if(param instanceof java.util.Date)
+      {
+        java.sql.Timestamp sqlDate = new java.sql.Timestamp(
+           ((java.util.Date) param).getTime());
+        statement.setTimestamp(i, sqlDate);
+        result.add(sqlDate);
+      }
+      else if(param instanceof NumberKey)
+      {
+        BigDecimal bigDecimal = ((NumberKey) param).getValue();
+        statement.setBigDecimal(i, bigDecimal);
+        result.add(bigDecimal);
+      }
+      else if(param instanceof Integer)
+      {
+        statement.setInt(i, ((Integer) param).intValue());
+        result.add(param);
+      }
+      else if(param instanceof Long)
+      {
+        statement.setLong(i, ((Long) param).longValue());
+        result.add(param);
+      }
+      else if(param instanceof BigDecimal)
+      {
+        statement.setBigDecimal(i, (BigDecimal) param);
+        result.add(param);
+      }
+      else if(param instanceof Boolean)
+      {
+        statement.setBoolean(i, ((Boolean) param).booleanValue());
+        result.add(param);
+      }
+      else if(param instanceof Short)
+      {
+        statement.setShort(i, ((Short) param).shortValue());
+        result.add(param);
+      }
+      else if(param instanceof Byte)
+      {
+        statement.setByte(i, ((Byte) param).byteValue());
+        result.add(param);
+      }
+      else if(param instanceof Float)
+      {
+        statement.setFloat(i, ((Float) param).floatValue());
+        result.add(param);
+      }
+      else if(param instanceof Double)
+      {
+        statement.setDouble(i, ((Double) param).doubleValue());
+        result.add(param);
+      }
+      else
+      {
+        statement.setString(i, param.toString());
+        result.add(param.toString());
+      }
+      ++i;
+    }
+    return result;
   }
 
   public static void doInsert(String fullTableName, ColumnValues insertValues)

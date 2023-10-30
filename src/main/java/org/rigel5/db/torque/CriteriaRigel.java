@@ -399,7 +399,7 @@ public class CriteriaRigel extends Criteria
 
   public CriteriaRigel addIn(ColumnMap cm, String[] codiciCampione)
   {
-    super.and(cm, codiciCampione);
+    super.andIn(cm, codiciCampione);
     return this;
   }
 
