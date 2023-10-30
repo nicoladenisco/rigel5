@@ -43,7 +43,7 @@ public interface CustomColumnEdit
    */
   public default boolean haveCustomHtml()
   {
-    return false;
+    return true;
   }
 
   /**
@@ -86,9 +86,12 @@ public interface CustomColumnEdit
    * @throws Exception
    * @return il valore richiesto opportunamente convertito nel tipo richiesto
    */
-  public Object parseValue(RigelColumnDescriptor cd, TableModel model,
+  public default Object parseValue(RigelColumnDescriptor cd, TableModel model,
      int row, int col, String formattedValue, String nomeCampo, String oldValue, Map params, RigelI18nInterface i18n)
-     throws Exception;
+     throws Exception
+  {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
 
   /**
    * Ritorna vero se questo plugin aggiunge codice HTML custom per l'editing.
