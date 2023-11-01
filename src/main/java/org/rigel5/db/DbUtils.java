@@ -694,7 +694,7 @@ public class DbUtils
   public static boolean existTableExact(Connection con, String nomeTabella)
      throws Exception
   {
-    try (ResultSet rs = con.getMetaData().getTables(null, null, null, TABLES_FILTER))
+    try(ResultSet rs = con.getMetaData().getTables(null, null, null, TABLES_FILTER))
     {
       while(rs.next())
       {
@@ -727,7 +727,7 @@ public class DbUtils
      String nomeSchema, String nomeTabella, String nomeColonna)
      throws SQLException
   {
-    try (ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
+    try(ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
     {
       while(rs.next())
       {
@@ -745,7 +745,7 @@ public class DbUtils
   {
     ArrayMap<String, Integer> rv = new ArrayMap<>();
 
-    try (ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
+    try(ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
     {
       while(rs.next())
       {
@@ -832,7 +832,7 @@ public class DbUtils
   public static Schema schemaQuery(Connection con, String sSQL)
      throws Exception
   {
-    try (QueryDataSet qds = new QueryDataSet(con, sSQL))
+    try(QueryDataSet qds = new QueryDataSet(con, sSQL))
     {
       return qds.schema();
     }
@@ -841,7 +841,7 @@ public class DbUtils
   public static Schema schemaTable(Connection con, String nomeTabella)
      throws Exception
   {
-    try (TableDataSet tds = new TableDataSet(con, nomeTabella))
+    try(TableDataSet tds = new TableDataSet(con, nomeTabella))
     {
       return tds.schema();
     }
@@ -1011,7 +1011,7 @@ public class DbUtils
   {
     ArrayMap<String, Integer> rv = new ArrayMap<>();
 
-    try (ResultSet rs = con.getMetaData().getPrimaryKeys(con.getCatalog(), nomeSchema, nomeTabella))
+    try(ResultSet rs = con.getMetaData().getPrimaryKeys(con.getCatalog(), nomeSchema, nomeTabella))
     {
       while(rs.next())
       {
@@ -1513,7 +1513,7 @@ public class DbUtils
     }
     query.append(")");
 
-    try (PreparedStatement ps = connection.prepareStatement(query.toString()))
+    try(PreparedStatement ps = connection.prepareStatement(query.toString()))
     {
       populatePreparedStatement(replacementObjects, ps, 1);
 
@@ -1656,7 +1656,7 @@ public class DbUtils
   public static int executeStatement(String sSQL, Connection con)
      throws TorqueException
   {
-    try (Statement st = con.createStatement())
+    try(Statement st = con.createStatement())
     {
       return st.executeUpdate(sSQL);
     }
@@ -1693,7 +1693,7 @@ public class DbUtils
 
           if(!sSQL.isEmpty())
           {
-            try (PreparedStatement ps = con.prepareStatement(sSQL))
+            try(PreparedStatement ps = con.prepareStatement(sSQL))
             {
               count += ps.executeUpdate();
             }
@@ -1729,7 +1729,7 @@ public class DbUtils
       StringBuilder sb1 = new StringBuilder(1024);
       StringBuilder sb2 = new StringBuilder(1024);
 
-      try (ResultSet rs = con.getMetaData().getColumns(conp.getCatalog(), nomeSchemap, nomeTabellap, null))
+      try(ResultSet rs = con.getMetaData().getColumns(conp.getCatalog(), nomeSchemap, nomeTabellap, null))
       {
         for(int i = 0; rs.next(); i++)
         {
@@ -1866,6 +1866,15 @@ public class DbUtils
     {
       throw new RuntimeException(ex);
     }
+  }
+
+  public static void deleteAll(Connection dbCon, String tableName, String primayKey, int idToDel)
+     throws TorqueException
+  {
+    String sSQL
+       = "DELETE FROM " + tableName
+       + " WHERE " + primayKey + "=" + idToDel;
+    executeStatement(sSQL, dbCon);
   }
 
   public static long deleteCascade(Connection con, String tableName, String primaryName, int idToDel)
