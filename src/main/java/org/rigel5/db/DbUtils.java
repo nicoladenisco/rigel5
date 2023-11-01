@@ -32,6 +32,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.torque.*;
 import org.apache.torque.criteria.Criteria;
+import org.apache.torque.criteria.FromElement;
 import org.apache.torque.map.*;
 import org.apache.torque.om.NumberKey;
 import org.apache.torque.om.ObjectKey;
@@ -44,6 +45,7 @@ import org.apache.torque.util.ColumnValues;
 import org.apache.torque.util.ExceptionMapper;
 import org.apache.torque.util.JdbcTypedValue;
 import org.apache.torque.util.ResultsetSpliterator;
+import org.apache.torque.util.TorqueConnection;
 import org.apache.torque.util.Transaction;
 import org.commonlib5.lambda.LEU;
 import org.commonlib5.utils.ArrayMap;
@@ -171,21 +173,15 @@ public class DbUtils
   public static long getRecordCount(Criteria c)
      throws Exception
   {
-    QueryBuilder qb = getQueryBuilder();
-    String sSQL = qb.getCountRecordsQuery(c);
-
-    List<Record> records = executeQuery(sSQL);
-    if(records.isEmpty())
+    try (TorqueConnection connection = Transaction.begin())
     {
-      return 0;
+      return getRecordCount(c, connection);
     }
-
-    Record rec = (Record) (records.get(0));
-    return rec.getValue(1).asLong();
   }
 
   /**
-   * Calcola il numero di record totali di un Criteria. Vengono conteggiati tutti i record selezionabili dal criteria
+   * Calcola il numero di record totali di un Criteria.
+   * Vengono conteggiati tutti i record selezionabili dal criteria
    * specificato.
    *
    * @param c criteria da conteggiare
@@ -197,42 +193,96 @@ public class DbUtils
      throws Exception
   {
     QueryBuilder qb = getQueryBuilder();
-    String sSQL = qb.getCountRecordsQuery(c);
 
-    List<Record> records = executeQuery(sSQL, con);
-    if(records.isEmpty())
+    if(con == null)
+      throw new NullPointerException("connection is null");
+
+    Query query = SqlBuilder.buildQuery(c);
+    if(query.getFromClause().isEmpty())
+      throw new TorqueException("Missing from clause.");
+
+    try
     {
-      return 0;
-    }
+      String sSQL = query.toString();
+      int idx = sSQL.indexOf(" FROM ");
+      if(idx == -1)
+        throw new TorqueException("Invalid syntax in query.");
 
-    Record rec = (Record) (records.get(0));
-    return rec.getValue(1).asLong();
+      String sSQL1 = "SELECT * " + sSQL.substring(idx);
+      String sSQL2 = qb.getCountRecordsQuery(sSQL1);
+
+      try (PreparedStatement statement = con.prepareStatement(sSQL2))
+      {
+        if(query.getFetchSize() != null)
+          statement.setFetchSize(query.getFetchSize());
+
+        setPreparedStatementReplacements(
+           statement,
+           query.getPreparedStatementReplacements(),
+           0);
+
+        try (ResultSet resultSet = statement.executeQuery())
+        {
+          if(resultSet.next())
+            return resultSet.getLong(1);
+        }
+
+        return 0;
+      }
+    }
+    catch(SQLException e)
+    {
+      throw ExceptionMapper.getInstance().toTorqueException(e);
+    }
   }
 
   public static long deleteFromCriteria(Criteria c)
      throws Exception
   {
-    String subSQL = createQueryString(c);
-
-    if(subSQL.startsWith("SELECT  FROM") || subSQL.startsWith("SELECT DISTINCT  FROM"))
+    try (TorqueConnection connection = Transaction.begin())
     {
-      subSQL = "DELETE " + subSQL.substring(subSQL.indexOf("FROM"));
+      long rv = deleteFromCriteria(c, connection);
+      Transaction.commit(connection);
+      return rv;
     }
-
-    return executeStatement(subSQL);
   }
 
   public static long deleteFromCriteria(Criteria c, Connection con)
      throws Exception
   {
-    String subSQL = createQueryString(c);
+    if(con == null)
+      throw new NullPointerException("connection is null");
 
-    if(subSQL.startsWith("SELECT  FROM") || subSQL.startsWith("SELECT DISTINCT  FROM"))
+    Query query = SqlBuilder.buildQuery(c);
+    if(query.getFromClause().isEmpty())
+      throw new TorqueException("Missing from clause.");
+
+    try
     {
-      subSQL = "DELETE " + subSQL.substring(subSQL.indexOf("FROM"));
-    }
+      String sSQL = query.toString();
+      int idx = sSQL.indexOf(" FROM ");
+      if(idx == -1)
+        throw new TorqueException("Invalid syntax in query.");
 
-    return executeStatement(subSQL, con);
+      String sSQL1 = "DELETE " + sSQL.substring(idx);
+
+      try (PreparedStatement statement = con.prepareStatement(sSQL1))
+      {
+        if(query.getFetchSize() != null)
+          statement.setFetchSize(query.getFetchSize());
+
+        setPreparedStatementReplacements(
+           statement,
+           query.getPreparedStatementReplacements(),
+           0);
+
+        return statement.executeUpdate();
+      }
+    }
+    catch(SQLException e)
+    {
+      throw ExceptionMapper.getInstance().toTorqueException(e);
+    }
   }
 
   /**
@@ -1269,7 +1319,7 @@ public class DbUtils
       if(query.getFetchSize() != null)
         statement.setFetchSize(query.getFetchSize());
 
-      List<Object> replacements = setPreparedStatementReplacements(
+      setPreparedStatementReplacements(
          statement,
          query.getPreparedStatementReplacements(),
          0);
@@ -1485,6 +1535,7 @@ public class DbUtils
    * are selected using <code>criteria</code> and updated using the values
    * in <code>updateValues</code>.
    *
+   * @param fullTableName name of the table
    * @param criteria selects which rows of which table should be updated.
    * @param updateValues Which columns to update with which values, not null.
    * @param connection the database connection to use, not null.
@@ -1494,6 +1545,7 @@ public class DbUtils
    * @throws TorqueException if updating fails.
    */
   public static int doUpdate(
+     String fullTableName,
      Criteria criteria,
      ColumnValues updateValues,
      Connection connection)
@@ -1501,31 +1553,47 @@ public class DbUtils
   {
     Query query = SqlBuilder.buildQuery(criteria);
     query.setType(Query.Type.UPDATE);
-    query.getSelectClause().clear();
 
-    List<JdbcTypedValue> replacementObjects = new ArrayList<>();
-    for(Map.Entry<org.apache.torque.Column, JdbcTypedValue> updateValue : updateValues.entrySet())
+    query.getFromClause().clear();
+    query.getFromClause().add(new FromElement(fullTableName));
+    query.getUpdateValues().putAll(updateValues);
+
+    try (PreparedStatement preparedStatement = connection.prepareStatement(query.toString()))
     {
-      org.apache.torque.Column column = updateValue.getKey();
-      query.getSelectClause().add(column.getColumnName());
-      replacementObjects.add(updateValue.getValue());
-    }
-
-    try (PreparedStatement ps = connection.prepareStatement(query.toString()))
-    {
-      int position = populatePreparedStatement(replacementObjects, ps, 1);
-
-      for(Object value : query.getPreparedStatementReplacements())
+      int position = 1;
+      List<JdbcTypedValue> replacementObjects = new ArrayList<>();
+      for(Map.Entry<org.apache.torque.Column, JdbcTypedValue> updateValue : updateValues.entrySet())
       {
-        ps.setObject(position++, value);
+        JdbcTypedValue replacementObject = updateValue.getValue();
+        if(replacementObject.getSqlExpression() != null)
+        {
+          // replacementObject is no real value but contains
+          // a sql snippet which was (hopefully) processed earlier.
+          continue;
+        }
+
+        Object value = replacementObject.getValue();
+
+        if(value != null)
+        {
+          preparedStatement.setObject(position, value);
+        }
+        else
+        {
+          preparedStatement.setNull(
+             position,
+             replacementObject.getJdbcType());
+        }
+        replacementObjects.add(replacementObject);
+        position++;
       }
 
-      long startTime = System.currentTimeMillis();
-      int affectedRows = ps.executeUpdate();
-      long queryEndTime = System.currentTimeMillis();
-      log.trace("update took " + (queryEndTime - startTime) + " milliseconds");
+      List<Object> replacements = setPreparedStatementReplacements(
+         preparedStatement,
+         query.getPreparedStatementReplacements(),
+         position - 1);
 
-      return affectedRows;
+      return preparedStatement.executeUpdate();
     }
     catch(SQLException e)
     {
@@ -1541,7 +1609,8 @@ public class DbUtils
    * @return indice finale
    * @throws SQLException
    */
-  public static int populatePreparedStatement(List<JdbcTypedValue> replacementObjects, final PreparedStatement ps, int position)
+  public static int populatePreparedStatement(
+     List<JdbcTypedValue> replacementObjects, final PreparedStatement ps, int position)
      throws SQLException
   {
     for(JdbcTypedValue rep : replacementObjects)
@@ -1573,10 +1642,9 @@ public class DbUtils
   public static int executeStatement(String sSQL)
      throws TorqueException
   {
-    Connection con = null;
+    Connection con = Torque.getConnection();
     try
     {
-      con = Torque.getConnection();
       return executeStatement(sSQL, con);
     }
     finally
@@ -1823,12 +1891,11 @@ public class DbUtils
   public static long getValueFromSequence(String sequenceName, String dbName)
      throws Exception
   {
-    Connection con = null;
     long results = 0;
+    Connection con = Torque.getConnection(dbName);
+
     try
     {
-      con = Torque.getConnection(dbName);
-
       // execute the query
       results = getValueFromSequence(sequenceName, con);
     }
@@ -1836,6 +1903,7 @@ public class DbUtils
     {
       Torque.closeConnection(con);
     }
+
     return results;
   }
 

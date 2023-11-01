@@ -114,10 +114,9 @@ abstract public class QueryBuilder implements Closeable
     Query q = SqlBuilder.buildQuery(c);
     String subSQL = q.toString();
 
-    if(subSQL.startsWith("SELECT  FROM") || subSQL.startsWith("SELECT DISTINCT  FROM"))
-    {
-      subSQL = "SELECT * " + subSQL.substring(subSQL.indexOf("FROM"));
-    }
+    int idx = subSQL.indexOf(" FROM ");
+    if(idx != -1)
+      subSQL = "SELECT * " + subSQL.substring(idx);
 
     return getCountRecordsQuery(subSQL);
   }

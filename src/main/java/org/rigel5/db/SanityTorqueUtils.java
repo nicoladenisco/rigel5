@@ -328,7 +328,7 @@ public class SanityTorqueUtils extends SanityDatabaseUtils
     {
       ColumnValues upd = new ColumnValues();
       upd.put(statoRec, new JdbcTypedValue(10, Types.INTEGER));
-      DbUtils.doUpdate(cr, upd, con);
+      DbUtils.doUpdate(tm.getFullyQualifiedTableName(), cr, upd, con);
     }
 
     return true;

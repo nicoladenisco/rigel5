@@ -372,7 +372,7 @@ public class SanityTorqueUtils3 extends SanityDatabaseUtils
 
     // inserisce o aggiorna record 0
     if(doInsert(tm.getFullyQualifiedTableName(), crInsert, con) == 0)
-      doUpdate(crSelect, crUpdate, con);
+      doUpdate(tm.getFullyQualifiedTableName(), crSelect, crUpdate, con);
   }
 
   private static int doInsert(String fullTableName, ColumnValues criteria, Connection con)
@@ -392,11 +392,11 @@ public class SanityTorqueUtils3 extends SanityDatabaseUtils
     }
   }
 
-  private static int doUpdate(Criteria selectCriteria, ColumnValues updateValues, Connection con)
+  private static int doUpdate(String fullTableName, Criteria selectCriteria, ColumnValues updateValues, Connection con)
   {
     try
     {
-      return DbUtils.doUpdate(selectCriteria, updateValues, con);
+      return DbUtils.doUpdate(fullTableName, selectCriteria, updateValues, con);
     }
     catch(Exception e)
     {
