@@ -17,9 +17,12 @@
  */
 package org.rigel5.table;
 
+import java.util.Collection;
 import java.util.Map;
 import javax.swing.table.TableModel;
+import org.commonlib5.utils.Pair;
 import org.jdom2.Element;
+import org.rigel5.HtmlUtils;
 import org.rigel5.RigelI18nInterface;
 
 /**
@@ -122,5 +125,61 @@ public interface CustomColumnEdit
      throws Exception
   {
     return rigelHtml;
+  }
+
+  /**
+   * Semplice implementazione di un combo di stringhe.
+   * La chiave e il valore del combo box sono identiche.
+   * @param nomeCampo nome del campo di default
+   * @param stringValues collezione di stringhe
+   * @param cellText valore di default da evidenziare nel combo
+   * @param inserisciDefault se vero viene aggiunto il primo elemento con valore stringa vuota e label 'DEFAULT'.
+   * @return html completo del combo
+   */
+  public default String comboStrings1(String nomeCampo,
+     Collection<String> stringValues, String cellText, boolean inserisciDefault)
+  {
+    StringBuilder rv = new StringBuilder();
+    rv.append("<select name=\"").append(nomeCampo).append("\">");
+
+    if(inserisciDefault)
+      rv.append(HtmlUtils.generaOptionCombo("", "DEFAULT", cellText));
+
+    if(stringValues != null)
+    {
+      for(String bn : stringValues)
+        rv.append(HtmlUtils.generaOptionCombo(bn, cellText));
+    }
+
+    rv.append("</select>");
+    return rv.toString();
+  }
+
+  /**
+   * Semplice implementazione di un combo di stringhe.
+   * La chiave e il valore del combo box sono definiti dalla pair: first=codice, second=descrizione.
+   * @param nomeCampo nome del campo di default
+   * @param stringValues collezione di stringhe
+   * @param cellText valore di default da evidenziare nel combo
+   * @param inserisciDefault se vero viene aggiunto il primo elemento con valore stringa vuota e label 'DEFAULT'.
+   * @return html completo del combo
+   */
+  public default String comboStrings2(String nomeCampo,
+     Collection<Pair<String, String>> stringValues, String cellText, boolean inserisciDefault)
+  {
+    StringBuilder rv = new StringBuilder();
+    rv.append("<select name=\"").append(nomeCampo).append("\">");
+
+    if(inserisciDefault)
+      rv.append(HtmlUtils.generaOptionCombo("", "DEFAULT", cellText));
+
+    if(stringValues != null)
+    {
+      for(Pair<String, String> p : stringValues)
+        rv.append(HtmlUtils.generaOptionCombo(p.first, p.second, cellText));
+    }
+
+    rv.append("</select>");
+    return rv.toString();
   }
 }

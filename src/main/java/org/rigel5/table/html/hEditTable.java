@@ -872,7 +872,7 @@ public class hEditTable extends hTable
 
     return "<input name=\"" + nomeCampo + "\" " + navUpDown
        + "size=\"" + (size - 15) + "\" value=\"" + value + "\"" + " class=\"" + style + "\""
-       + "><input type=\"file\" name=\"" + nomeCampo + "_file\" "
+       + ">&nbsp;<input type=\"file\" name=\"" + nomeCampo + "_file\" "
        + "size=\"5\" value=\"\"" + " class=\"" + style + "\" onchange=\"fileChange_" + nomeCampo + "()\">\r\n"
        + "\r\n";
   }
