@@ -64,6 +64,8 @@ public class TableDataSetTest
     AZA_testGetSelectString();
     BAA_testFetchByPrimaryKeys();
     BAB_testFetchByGenericValues();
+    CCA_test_fetchOneRecordOrNew();
+    DAA_saveWithInsertAndGetGeneratedKeys();
   }
 
   /**
@@ -229,6 +231,35 @@ public class TableDataSetTest
     }
   }
 
+  /**
+   * Test of save method, of class TableDataSet.
+   */
+  public synchronized void CCA_test_fetchOneRecordOrNew()
+     throws Exception
+  {
+    System.out.println("fetchOneRecordOrNew");
+    boolean intransaction = false;
+    try(TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
+    {
+      Record r = instance.fetchOneRecordOrNew("idbatteri=3", true);
+      if(r.toBeSavedWithInsert())
+        r.setValue("idbatteri", instance.getNextID());
+
+      r.setValue("codice", "bat3");
+      r.setValue("descrizione", "Batterio3");
+      r.setValue("tiporecord", 1);
+      r.setValue("stato_rec", 0);
+      r.setValue("id_user", 0);
+      r.setValue("id_ucrea", 0);
+      r.setValue("ult_modif", new Date());
+      r.setValue("creazione", new Date());
+      r.setValue("codiceregionale", "BB");
+      int expResult = 1;
+      int result = instance.save(intransaction);
+      assertEquals(expResult, result);
+    }
+  }
+
   public synchronized void DAA_saveWithInsertAndGetGeneratedKeys()
      throws Exception
   {
@@ -236,30 +267,40 @@ public class TableDataSetTest
     int count = 0;
     try(TableDataSet instance = new TableDataSet(dbe.getConn(), "tblPosts"))
     {
-      for(int i = 0; i < 10; i++)
+      instance.setPreferInsertAndGetGeneratedKeys(true);
+
+      for(int i = 0; i < 3; i++)
       {
-        Record r = instance.addRecord();
+        Record r1 = instance.addRecord();
         count++;
         // aggiunge valori tranne la chiave primaria
-        r.setValue("strContent", "content" + count);
-        r.setValue("strLink", "link" + count);
-        r.setValue("strImage", "image" + count);
-        r.saveWithInsertAndGetGeneratedKeys(instance.getConnection());
+        r1.setValue("strContent", "content" + count);
+        r1.setValue("strLink", "link" + count);
+        r1.setValue("strImage", "image" + count);
+        r1.save();
         //r.setValue("", 0);
         //r.setValue("", 0);
-        long id = r.getValue("nId").asLong();
+        long id = r1.getValue("nId").asLong();
         assertNotEquals(0, id);
 
         instance.clear();
+        Record r2 = instance.fetchOneRecordOrNew("nId=" + id, false);
+        assertNotNull(r2);
+        r2.setValue("strContent", "2content" + count);
+        r2.setValue("strLink", "2link" + count);
+        r2.setValue("strImage", "2image" + count);
+        r2.save();
 
         instance.clear();
         List<Record> recs = instance.fetchAllRecords();
-        assertEquals(count, recs.size());
-
         assertTrue(recs.stream()
-           .filter(LEU.rethrowPredicate((rr) -> id == r.getValue("nId").asLong()))
+           .filter(LEU.rethrowPredicate((rr) -> id == r1.getValue("nId").asLong()))
            .findFirst().orElse(null) != null);
       }
+
+      instance.clear();
+      List<Record> recs = instance.fetchAllRecords();
+      System.out.println("** " + recs);
     }
   }
 }

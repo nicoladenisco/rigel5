@@ -54,6 +54,9 @@ public abstract class DataSet implements Closeable
   /** have all records been retrieved with the fetchRecords? */
   private boolean allRecordsRetrieved = false;
 
+  /** if saveWithInsert prefer saveWithInsertAndGetGeneratedKeys */
+  private boolean preferInsertAndGetGeneratedKeys = false;
+
   /** number of records retrieved */
   private int recordRetrievedCount = 0;
 
@@ -281,6 +284,7 @@ public abstract class DataSet implements Closeable
 
     Record rec = new Record(ds, true);
     rec.markForInsert();
+    rec.setPreferInsertAndGetGeneratedKeys(ds.isPreferInsertAndGetGeneratedKeys());
     records.add(rec);
 
     return rec;
@@ -349,6 +353,9 @@ public abstract class DataSet implements Closeable
       records.clear();
       records = null;
     }
+
+    recordRetrievedCount = 0;
+    lastFetchSize = 0;
 
     return this;
   }
@@ -434,6 +441,7 @@ public abstract class DataSet implements Closeable
   public void clear()
      throws DataSetException
   {
+    selectString = null;
     releaseRecords();
 
     Throwable sqlEx = null;
@@ -940,5 +948,15 @@ public abstract class DataSet implements Closeable
   public void setConnection(Connection conn)
   {
     this.conn = conn;
+  }
+
+  public boolean isPreferInsertAndGetGeneratedKeys()
+  {
+    return preferInsertAndGetGeneratedKeys;
+  }
+
+  public void setPreferInsertAndGetGeneratedKeys(boolean preferInsertAndGetGeneratedKeys)
+  {
+    this.preferInsertAndGetGeneratedKeys = preferInsertAndGetGeneratedKeys;
   }
 }

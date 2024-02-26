@@ -194,6 +194,15 @@ public class TableDataSet
     return super.fetchRecords(start, max, consumer);
   }
 
+  @Override
+  public void clear()
+     throws DataSetException
+  {
+    super.clear();
+    where = order = other = null;
+    refreshOnSave = false;
+  }
+
   /**
    * Saves all the records in the DataSet.
    *
@@ -706,10 +715,26 @@ public class TableDataSet
     return DbUtils.getValueFromSequence(sequenceName, conn);
   }
 
+  public Record fetchOneRecordOrNew(String where, boolean createIfNotExist)
+     throws Exception
+  {
+    clear();
+    where(where);
+    fetchRecords(1);
+
+    if(lastFetchSize() == 1)
+      return getRecord(0);
+
+    if(createIfNotExist)
+      return addRecord();
+
+    return null;
+  }
+
   public static Record fetchOneRecord(String tableName, String where, Connection con)
      throws Exception
   {
-    try (TableDataSet tds = new TableDataSet(con, tableName))
+    try(TableDataSet tds = new TableDataSet(con, tableName))
     {
       tds.where(where);
       tds.fetchRecords(1);
@@ -720,7 +745,7 @@ public class TableDataSet
   public static List<Record> fetchAllRecords(String tableName, String where, Connection con)
      throws Exception
   {
-    try (TableDataSet tds = new TableDataSet(con, tableName))
+    try(TableDataSet tds = new TableDataSet(con, tableName))
     {
       tds.where(where);
       return tds.fetchAllRecords();

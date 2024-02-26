@@ -57,6 +57,9 @@ public class Record
   /** a saved copy of the schema for this Record */
   private Schema schema;
 
+  /** if saveWithInsert prefer saveWithInsertAndGetGeneratedKeys */
+  private boolean preferInsertAndGetGeneratedKeys = false;
+
   /**
    * This isn't used and doesn't do anything.
    */
@@ -217,7 +220,10 @@ public class Record
 
     if(toBeSavedWithInsert())
     {
-      returnValue = saveWithInsert(connection);
+      if(preferInsertAndGetGeneratedKeys)
+        returnValue = saveWithInsertAndGetGeneratedKeys(connection);
+      else
+        returnValue = saveWithInsert(connection);
     }
     else if(toBeSavedWithUpdate())
     {
@@ -434,8 +440,11 @@ public class Record
       {
         try(ResultSet rs = stmt.getGeneratedKeys())
         {
-          long value = rs.getLong(1);
-          setValue(primary.name(), value);
+          if(rs != null && rs.next())
+          {
+            long value = rs.getLong(1);
+            setValue(primary.name(), value);
+          }
         }
       }
 
@@ -902,6 +911,16 @@ public class Record
   public int getSaveType()
   {
     return this.saveType;
+  }
+
+  public boolean isPreferInsertAndGetGeneratedKeys()
+  {
+    return preferInsertAndGetGeneratedKeys;
+  }
+
+  public void setPreferInsertAndGetGeneratedKeys(boolean preferInsertAndGetGeneratedKeys)
+  {
+    this.preferInsertAndGetGeneratedKeys = preferInsertAndGetGeneratedKeys;
   }
 
   /**
