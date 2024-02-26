@@ -149,12 +149,22 @@ public class DerbyTestEnvironment implements Closeable
        + "";
 
     executeStatement(sSQL4);
+
+    String sSQL5
+       = "CREATE TABLE tblPosts (\n"
+       + "  nId INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,\n"
+       + "  strContent VARCHAR(140) NOT NULL,\n"
+       + "  strLink VARCHAR(200),\n"
+       + "  strImage VARCHAR(200)\n"
+       + ")";
+
+    executeStatement(sSQL5);
   }
 
   public void executeStatement(String sSQL2)
      throws SQLException
   {
-    try (Statement stm = conn.createStatement())
+    try(Statement stm = conn.createStatement())
     {
       stm.executeUpdate(sSQL2);
     }

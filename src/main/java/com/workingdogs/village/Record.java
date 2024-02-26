@@ -23,6 +23,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -252,7 +253,7 @@ public class Record
   public int saveWithDelete(Connection connection)
      throws DataSetException, SQLException
   {
-    try ( PreparedStatement stmt = connection.prepareStatement(getSaveString()))
+    try(PreparedStatement stmt = connection.prepareStatement(getSaveString()))
     {
       int ps = 1;
 
@@ -296,7 +297,7 @@ public class Record
   public int saveWithUpdate(Connection connection)
      throws DataSetException, SQLException
   {
-    try ( PreparedStatement stmt = connection.prepareStatement(getSaveString()))
+    try(PreparedStatement stmt = connection.prepareStatement(getSaveString()))
     {
       int ps = 1;
 
@@ -353,7 +354,7 @@ public class Record
   public int saveWithInsert(Connection connection)
      throws DataSetException, SQLException
   {
-    try ( PreparedStatement stmt = connection.prepareStatement(getSaveString()))
+    try(PreparedStatement stmt = connection.prepareStatement(getSaveString()))
     {
       int ps = 1;
 
@@ -368,6 +369,75 @@ public class Record
       }
 
       int ret = stmt.executeUpdate();
+
+      if(((TableDataSet) dataset()).refreshOnSave())
+      {
+        refresh(dataset().connection());
+      }
+      else
+      {
+        // Marks all of the values clean since they have now been saved
+        markRecordClean();
+      }
+
+      setSaveType(Enums.AFTERINSERT);
+
+      if(ret > 1)
+      {
+        throw new SQLException("There were " + ret + " rows inserted with this records key value.");
+      }
+
+      return ret;
+    }
+  }
+
+  /**
+   * Saves the data in this Record to the database with an INSERT statement.
+   * Dopo la insert vengono recuperate eventuali valori generati da sequenze.
+   *
+   * @param connection TODO: DOCUMENT ME!
+   *
+   * @return SQL INSERT statement
+   *
+   * @throws DataSetException TODO: DOCUMENT ME!
+   * @throws SQLException TODO: DOCUMENT ME!
+   */
+  public int saveWithInsertAndGetGeneratedKeys(Connection connection)
+     throws DataSetException, SQLException
+  {
+    Column primary = null;
+
+    try(PreparedStatement stmt = connection.prepareStatement(getSaveString(), Statement.RETURN_GENERATED_KEYS))
+    {
+      int ps = 1;
+
+      for(int i = 1; i <= size(); i++)
+      {
+        Column column = schema().column(i);
+
+        if(column.isPrimaryKey())
+          if(primary == null)
+            primary = column;
+          else
+            throw new DataSetException("This function can be used only if table have one primay key with autoincrement.");
+
+        if(!valueIsClean(i) && !column.readOnly())
+        {
+          Value val = getValue(i);
+          val.setPreparedStatementValue(stmt, ps++);
+        }
+      }
+
+      int ret = stmt.executeUpdate();
+
+      if(ret != 0 && primary != null)
+      {
+        try(ResultSet rs = stmt.getGeneratedKeys())
+        {
+          long value = rs.getLong(1);
+          setValue(primary.name(), value);
+        }
+      }
 
       if(((TableDataSet) dataset()).refreshOnSave())
       {
@@ -1373,7 +1443,7 @@ public class Record
    */
   public boolean isAZombie()
   {
-    return (this.saveType == Enums.ZOMBIE) ? true : false;
+    return (this.saveType == Enums.ZOMBIE);
   }
 
   /**
@@ -1457,7 +1527,7 @@ public class Record
       throw new DataSetException("You can only perform a refresh on Records created with a TableDataSet.");
     }
 
-    try ( PreparedStatement stmt = connection.prepareStatement(getRefreshQueryString()))
+    try(PreparedStatement stmt = connection.prepareStatement(getRefreshQueryString()))
     {
       int ps = 1;
       for(int i = 1; i <= dataset().keydef().size(); i++)
@@ -1472,7 +1542,7 @@ public class Record
         val.setPreparedStatementValue(stmt, ps++);
       }
 
-      try ( ResultSet rs = stmt.executeQuery())
+      try(ResultSet rs = stmt.executeQuery())
       {
         rs.next();
         initializeRecord();

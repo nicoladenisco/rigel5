@@ -22,6 +22,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.commonlib5.lambda.LEU;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
@@ -49,7 +50,7 @@ public class TableDataSetTest
   {
     preparaDatabase();
 
-    try (Statement stm = dbe.getConn().createStatement())
+    try(Statement stm = dbe.getConn().createStatement())
     {
       stm.executeUpdate("DELETE FROM mic_antibiotici");
       stm.executeUpdate("DELETE FROM mic_batteri");
@@ -124,7 +125,7 @@ public class TableDataSetTest
   {
     System.out.println("save");
     boolean intransaction = false;
-    try (TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
+    try(TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
     {
       List<Record> lsRecs = instance.fetchAllRecords();
       Record r = instance.addRecord();
@@ -151,7 +152,7 @@ public class TableDataSetTest
      throws Exception
   {
     System.out.println("removeDeletedRecords");
-    try (TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
+    try(TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
     {
       List<Record> lsRecs = instance.fetchAllRecords();
       assertEquals(2, lsRecs.size());
@@ -171,7 +172,7 @@ public class TableDataSetTest
      throws Exception
   {
     System.out.println("refresh");
-    try (TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
+    try(TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
     {
       List<Record> lsRecs = instance.fetchAllRecords();
       assertEquals(1, lsRecs.size());
@@ -190,7 +191,7 @@ public class TableDataSetTest
      throws Exception
   {
     System.out.println("getSelectString");
-    try (TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
+    try(TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
     {
       String expResult = "SELECT * FROM mic_batteri";
       String result = instance.getSelectString();
@@ -202,7 +203,7 @@ public class TableDataSetTest
      throws Exception
   {
     System.out.println("fetchByPrimaryKeys");
-    try (TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
+    try(TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
     {
       List<Record> totRecs = instance.fetchAllRecords();
       assertFalse(totRecs.isEmpty());
@@ -217,7 +218,7 @@ public class TableDataSetTest
      throws Exception
   {
     System.out.println("fetchByGenericValues");
-    try (TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
+    try(TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
     {
       List<Record> totRecs = instance.fetchAllRecords();
       assertFalse(totRecs.isEmpty());
@@ -225,6 +226,40 @@ public class TableDataSetTest
       keyValues.put("CODICE", "bat1");
       List<Record> lsRecs = instance.fetchByGenericValues(keyValues).fetchAllRecords();
       assertEquals(1, lsRecs.size());
+    }
+  }
+
+  public synchronized void DAA_saveWithInsertAndGetGeneratedKeys()
+     throws Exception
+  {
+    System.out.println("saveWithInsertAndGetGeneratedKeys");
+    int count = 0;
+    try(TableDataSet instance = new TableDataSet(dbe.getConn(), "tblPosts"))
+    {
+      for(int i = 0; i < 10; i++)
+      {
+        Record r = instance.addRecord();
+        count++;
+        // aggiunge valori tranne la chiave primaria
+        r.setValue("strContent", "content" + count);
+        r.setValue("strLink", "link" + count);
+        r.setValue("strImage", "image" + count);
+        r.saveWithInsertAndGetGeneratedKeys(instance.getConnection());
+        //r.setValue("", 0);
+        //r.setValue("", 0);
+        long id = r.getValue("nId").asLong();
+        assertNotEquals(0, id);
+
+        instance.clear();
+
+        instance.clear();
+        List<Record> recs = instance.fetchAllRecords();
+        assertEquals(count, recs.size());
+
+        assertTrue(recs.stream()
+           .filter(LEU.rethrowPredicate((rr) -> id == r.getValue("nId").asLong()))
+           .findFirst().orElse(null) != null);
+      }
     }
   }
 }
