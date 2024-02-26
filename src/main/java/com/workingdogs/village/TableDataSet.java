@@ -706,6 +706,22 @@ public class TableDataSet
     return DbUtils.getValueFromSequence(sequenceName, conn);
   }
 
+  public Record fetchOneRecordOrNew(String where, boolean createIfNotExist)
+     throws Exception
+  {
+    clear();
+    where(where);
+    fetchRecords(1);
+
+    if(lastFetchSize() == 1)
+      return getRecord(0);
+
+    if(createIfNotExist)
+      return addRecord();
+
+    return null;
+  }
+
   public static Record fetchOneRecord(String tableName, String where, Connection con)
      throws Exception
   {

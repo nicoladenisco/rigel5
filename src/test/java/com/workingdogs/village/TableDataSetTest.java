@@ -63,6 +63,7 @@ public class TableDataSetTest
     AZA_testGetSelectString();
     BAA_testFetchByPrimaryKeys();
     BAB_testFetchByGenericValues();
+    CCA_test_fetchOneRecordOrNew();
   }
 
   /**
@@ -225,6 +226,35 @@ public class TableDataSetTest
       keyValues.put("CODICE", "bat1");
       List<Record> lsRecs = instance.fetchByGenericValues(keyValues).fetchAllRecords();
       assertEquals(1, lsRecs.size());
+    }
+  }
+
+  /**
+   * Test of save method, of class TableDataSet.
+   */
+  public synchronized void CCA_test_fetchOneRecordOrNew()
+     throws Exception
+  {
+    System.out.println("fetchOneRecordOrNew");
+    boolean intransaction = false;
+    try (TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
+    {
+      Record r = instance.fetchOneRecordOrNew("idbatteri=3", true);
+      if(r.toBeSavedWithInsert())
+        r.setValue("idbatteri", instance.getNextID());
+
+      r.setValue("codice", "bat3");
+      r.setValue("descrizione", "Batterio3");
+      r.setValue("tiporecord", 1);
+      r.setValue("stato_rec", 0);
+      r.setValue("id_user", 0);
+      r.setValue("id_ucrea", 0);
+      r.setValue("ult_modif", new Date());
+      r.setValue("creazione", new Date());
+      r.setValue("codiceregionale", "BB");
+      int expResult = 1;
+      int result = instance.save(intransaction);
+      assertEquals(expResult, result);
     }
   }
 }
