@@ -155,7 +155,8 @@ public class Record
   {
     for(int i = 1; i <= size(); i++)
     {
-      Value val = new Value(rs, i, schema().column(i).typeEnum());
+      final Column column = schema().column(i);
+      Value val = new Value(rs, column, i, column.typeEnum());
       this.values[i] = val;
     }
   }
@@ -174,7 +175,7 @@ public class Record
     for(int i = 1; i <= size(); i++)
     {
       Value valOrigin = origin.values[i];
-      Value val = new Value(valOrigin.columnNumber(), valOrigin.type(), valOrigin.getValue());
+      Value val = new Value(valOrigin.columnNumber(), valOrigin.column(), valOrigin.type(), valOrigin.getValue());
       this.values[i] = val;
     }
   }
@@ -259,7 +260,7 @@ public class Record
   public int saveWithDelete(Connection connection)
      throws DataSetException, SQLException
   {
-    try(PreparedStatement stmt = connection.prepareStatement(getSaveString()))
+    try (PreparedStatement stmt = connection.prepareStatement(getSaveString()))
     {
       int ps = 1;
 
@@ -303,7 +304,7 @@ public class Record
   public int saveWithUpdate(Connection connection)
      throws DataSetException, SQLException
   {
-    try(PreparedStatement stmt = connection.prepareStatement(getSaveString()))
+    try (PreparedStatement stmt = connection.prepareStatement(getSaveString()))
     {
       int ps = 1;
 
@@ -360,7 +361,7 @@ public class Record
   public int saveWithInsert(Connection connection)
      throws DataSetException, SQLException
   {
-    try(PreparedStatement stmt = connection.prepareStatement(getSaveString()))
+    try (PreparedStatement stmt = connection.prepareStatement(getSaveString()))
     {
       int ps = 1;
 
@@ -413,7 +414,7 @@ public class Record
   {
     Column primary = null;
 
-    try(PreparedStatement stmt = connection.prepareStatement(getSaveString(), Statement.RETURN_GENERATED_KEYS))
+    try (PreparedStatement stmt = connection.prepareStatement(getSaveString(), Statement.RETURN_GENERATED_KEYS))
     {
       int ps = 1;
 
@@ -438,7 +439,7 @@ public class Record
 
       if(ret != 0 && primary != null)
       {
-        try(ResultSet rs = stmt.getGeneratedKeys())
+        try (ResultSet rs = stmt.getGeneratedKeys())
         {
           if(rs != null && rs.next())
           {
@@ -1546,7 +1547,7 @@ public class Record
       throw new DataSetException("You can only perform a refresh on Records created with a TableDataSet.");
     }
 
-    try(PreparedStatement stmt = connection.prepareStatement(getRefreshQueryString()))
+    try (PreparedStatement stmt = connection.prepareStatement(getRefreshQueryString()))
     {
       int ps = 1;
       for(int i = 1; i <= dataset().keydef().size(); i++)
@@ -1561,7 +1562,7 @@ public class Record
         val.setPreparedStatementValue(stmt, ps++);
       }
 
-      try(ResultSet rs = stmt.executeQuery())
+      try (ResultSet rs = stmt.executeQuery())
       {
         rs.next();
         initializeRecord();

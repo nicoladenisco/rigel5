@@ -26,7 +26,9 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.text.ParseException;
 import java.util.Calendar;
+import org.commonlib5.utils.DateTime;
 import org.commonlib5.utils.StringOper;
 
 /**
@@ -39,6 +41,9 @@ import org.commonlib5.utils.StringOper;
  */
 public class Value
 {
+  /** the Column connected to this value */
+  private Column column;
+
   /** the object that is stored in this object */
   private Object valueObject;
 
@@ -48,19 +53,24 @@ public class Value
   /** what sql type of object is this? */
   private final int type;
 
+  /** if true empty string value return 0 in conversion to number */
+  private final boolean emptyStringZero = true;
+
   /**
    * Creates a new Value object based on the ResultSet, columnNumber and
    * type
    *
    * @param rs
+   * @param column
    * @param columnNumber
    * @param type
    *
    * @exception SQLException
    */
-  public Value(ResultSet rs, int columnNumber, int type)
+  public Value(ResultSet rs, Column column, int columnNumber, int type)
      throws SQLException
   {
+    this.column = column;
     this.columnNumber = columnNumber;
     this.type = type;
     this.valueObject = null;
@@ -191,9 +201,10 @@ public class Value
     }
   }
 
-  public Value(int columnNumber, int type, Object val)
+  public Value(int columnNumber, Column col, int type, Object val)
      throws SQLException
   {
+    this.column = col;
     this.columnNumber = columnNumber;
     this.type = type;
     this.valueObject = val;
@@ -231,10 +242,32 @@ public class Value
   public void setPreparedStatementValue(PreparedStatement stmt, int stmtNumber)
      throws DataSetException, SQLException
   {
+    try
+    {
+      setPreparedStatementValueInternal(stmt, stmtNumber);
+    }
+    catch(DataSetException e1)
+    {
+      String message = e1.getMessage() + " in " + columnNumber + "/"
+         + (column == null ? "???" : column.name())
+         + " value [" + toString() + "]";
+      throw new DataSetException(message, e1);
+    }
+    catch(SQLException e2)
+    {
+      String message = e2.getMessage() + " in " + columnNumber + "/"
+         + (column == null ? "???" : column.name())
+         + " value [" + toString() + "]";
+      throw new SQLException(message, e2);
+    }
+  }
+
+  private void setPreparedStatementValueInternal(PreparedStatement stmt, int stmtNumber)
+     throws DataSetException, SQLException
+  {
     if(isNull())
     {
       stmt.setNull(stmtNumber, type());
-
       return;
     }
 
@@ -242,44 +275,36 @@ public class Value
     {
       case Types.BIT:
         stmt.setBoolean(stmtNumber, this.asBoolean());
-
         break;
 
       case Types.TINYINT:
         stmt.setByte(stmtNumber, this.asByte());
-
         break;
 
       case Types.BIGINT:
         stmt.setLong(stmtNumber, this.asLong());
-
         break;
 
       case Types.SMALLINT:
         stmt.setShort(stmtNumber, this.asShort());
-
         break;
 
       case Types.INTEGER:
         stmt.setInt(stmtNumber, this.asInt());
-
         break;
 
       case Types.REAL:
         stmt.setFloat(stmtNumber, this.asFloat());
-
         break;
 
       case Types.FLOAT:
       case Types.DOUBLE:
         stmt.setDouble(stmtNumber, this.asDouble());
-
         break;
 
       case Types.NUMERIC:
       case Types.DECIMAL:
         stmt.setBigDecimal(stmtNumber, this.asBigDecimal());
-
         break;
 
       case Types.LONGVARBINARY:
@@ -292,7 +317,6 @@ public class Value
         byte[] value = this.asBytes();
         stmt.setBinaryStream(stmtNumber,
            new java.io.ByteArrayInputStream(value), value.length);
-
         break;
 
       case Types.LONGVARCHAR:
@@ -300,32 +324,26 @@ public class Value
       case Types.VARCHAR:
       case Types.OTHER:
         stmt.setString(stmtNumber, this.asString());
-
         break;
 
       case Types.DATE:
         stmt.setDate(stmtNumber, this.asDate());
-
         break;
 
       case Types.TIME:
         stmt.setTime(stmtNumber, this.asTime());
-
         break;
 
       case Types.TIMESTAMP:
         stmt.setTimestamp(stmtNumber, this.asTimestamp());
-
         break;
 
       case Types.NULL:
         stmt.setNull(stmtNumber, 0);
-
         break;
 
       default:
         stmt.setString(stmtNumber, this.asString());
-
         break;
     }
   }
@@ -398,7 +416,7 @@ public class Value
       }
       else if(isDouble())
       {
-        return new BigDecimal(((Double) valueObject).doubleValue());
+        return new BigDecimal(((Double) valueObject));
       }
       else if(isFloat())
       {
@@ -415,7 +433,7 @@ public class Value
     }
     catch(Exception e)
     {
-      throw new DataSetException("Illegal conversion: " + e.toString());
+      throw new BadConversionException(columnNumber, column, e);
     }
   }
 
@@ -443,7 +461,7 @@ public class Value
       }
       else if(isDouble())
       {
-        return new BigDecimal(((Double) valueObject).doubleValue())
+        return new BigDecimal(((Double) valueObject))
            .setScale(scale);
       }
       else if(isFloat())
@@ -462,7 +480,7 @@ public class Value
     }
     catch(Exception e)
     {
-      throw new DataSetException("Bad conversion: " + e.toString());
+      throw new BadConversionException(columnNumber, column, e);
     }
   }
 
@@ -484,7 +502,7 @@ public class Value
       }
       else if(isBoolean())
       {
-        return ((Boolean) valueObject).booleanValue();
+        return ((Boolean) valueObject);
       }
 
       String check = asString();
@@ -493,7 +511,7 @@ public class Value
     }
     catch(Exception e)
     {
-      throw new DataSetException("Bad conversion: " + e.toString());
+      throw new BadConversionException(columnNumber, column, e);
     }
   }
 
@@ -535,7 +553,7 @@ public class Value
     }
     catch(Exception e)
     {
-      throw new DataSetException("Bad conversion: " + e.toString());
+      throw new BadConversionException(columnNumber, column, e);
     }
   }
 
@@ -557,11 +575,11 @@ public class Value
       }
       else if(isInt())
       {
-        return ((Integer) valueObject).intValue();
+        return ((Integer) valueObject);
       }
       else if(isString())
       {
-        return Integer.valueOf((String) valueObject).intValue();
+        return parseInt((String) valueObject);
       }
       else if(isLong())
       {
@@ -581,12 +599,12 @@ public class Value
       }
       else
       {
-        return Integer.valueOf(asString()).intValue();
+        return parseInt(asString());
       }
     }
     catch(Exception e)
     {
-      throw new DataSetException("Bad conversion: " + e.toString());
+      throw new BadConversionException(columnNumber, column, e);
     }
   }
 
@@ -613,7 +631,7 @@ public class Value
       else if(isString() || isDouble() || isFloat() || isBigDecimal()
          || isLong() || isShort() || isByte())
       {
-        return new Integer(asString());
+        return parseIntObj(asString());
       }
       else
       {
@@ -622,7 +640,7 @@ public class Value
     }
     catch(Exception e)
     {
-      throw new DataSetException("Illegal conversion: " + e.toString());
+      throw new BadConversionException(columnNumber, column, e);
     }
   }
 
@@ -644,11 +662,11 @@ public class Value
       }
       else if(isByte())
       {
-        return ((Byte) valueObject).byteValue();
+        return ((Byte) valueObject);
       }
       else if(isString())
       {
-        return Integer.valueOf((String) valueObject).byteValue();
+        return parseIntObj((String) valueObject).byteValue();
       }
       else if(isShort())
       {
@@ -676,12 +694,12 @@ public class Value
       }
       else
       {
-        return Integer.valueOf(asString()).byteValue();
+        return parseIntObj(asString()).byteValue();
       }
     }
     catch(Exception e)
     {
-      throw new DataSetException("Bad conversion: " + e.toString());
+      throw new BadConversionException(columnNumber, column, e);
     }
   }
 
@@ -708,7 +726,7 @@ public class Value
       else if(isString() || isDouble() || isFloat() || isInt()
          || isLong() || isShort() || isBigDecimal())
       {
-        return new Byte(asString());
+        return Byte.valueOf(asString());
       }
       else
       {
@@ -717,7 +735,7 @@ public class Value
     }
     catch(Exception e)
     {
-      throw new DataSetException("Illegal conversion: " + e.toString());
+      throw new BadConversionException(columnNumber, column, e);
     }
   }
 
@@ -748,7 +766,7 @@ public class Value
     }
     catch(Exception e)
     {
-      throw new DataSetException("Bad conversion: " + e.toString());
+      throw new BadConversionException(columnNumber, column, e);
     }
 
     return new byte[0];
@@ -772,11 +790,11 @@ public class Value
       }
       else if(isShort())
       {
-        return ((Short) valueObject).shortValue();
+        return ((Short) valueObject);
       }
       else if(isString())
       {
-        return Integer.valueOf((String) valueObject).shortValue();
+        return parseIntObj((String) valueObject).shortValue();
       }
       else if(isInt())
       {
@@ -800,12 +818,12 @@ public class Value
       }
       else
       {
-        return Integer.valueOf(asString()).shortValue();
+        return parseIntObj(asString()).shortValue();
       }
     }
     catch(Exception e)
     {
-      throw new DataSetException("Bad conversion: " + e.toString());
+      throw new BadConversionException(columnNumber, column, e);
     }
   }
 
@@ -832,7 +850,7 @@ public class Value
       else if(isString() || isDouble() || isFloat() || isInt()
          || isLong() || isBigDecimal() || isByte())
       {
-        return new Short(asString());
+        return Short.valueOf(asString());
       }
       else
       {
@@ -841,7 +859,7 @@ public class Value
     }
     catch(Exception e)
     {
-      throw new DataSetException("Illegal conversion: " + e.toString());
+      throw new BadConversionException(columnNumber, column, e);
     }
   }
 
@@ -891,12 +909,12 @@ public class Value
       }
       else
       {
-        return Integer.valueOf(asString()).longValue();
+        return parseIntObj(asString()).longValue();
       }
     }
     catch(Exception e)
     {
-      throw new DataSetException("Bad conversion: " + e.toString());
+      throw new BadConversionException(columnNumber, column, e);
     }
   }
 
@@ -923,7 +941,7 @@ public class Value
       else if(isString() || isDouble() || isFloat() || isInt()
          || isBigDecimal() || isShort() || isByte())
       {
-        return new Long(asString());
+        return Long.valueOf(asString());
       }
       else
       {
@@ -932,7 +950,7 @@ public class Value
     }
     catch(Exception e)
     {
-      throw new DataSetException("Illegal conversion: " + e.toString());
+      throw new BadConversionException(columnNumber, column, e);
     }
   }
 
@@ -954,11 +972,11 @@ public class Value
       }
       else if(isDouble())
       {
-        return ((Double) valueObject).doubleValue();
+        return ((Double) valueObject);
       }
       else if(isString())
       {
-        return Integer.valueOf((String) valueObject).doubleValue();
+        return parseDoubleObj((String) valueObject).doubleValue();
       }
       else if(isShort())
       {
@@ -982,12 +1000,12 @@ public class Value
       }
       else
       {
-        return Integer.valueOf(asString()).doubleValue();
+        return parseDoubleObj(asString()).doubleValue();
       }
     }
     catch(Exception e)
     {
-      throw new DataSetException("Bad conversion: " + e.toString());
+      throw new BadConversionException(columnNumber, column, e);
     }
   }
 
@@ -1014,7 +1032,7 @@ public class Value
       else if(isString() || isBigDecimal() || isFloat() || isInt()
          || isLong() || isShort() || isByte())
       {
-        return new Double(asString());
+        return parseDoubleObj(asString());
       }
       else
       {
@@ -1023,7 +1041,7 @@ public class Value
     }
     catch(Exception e)
     {
-      throw new DataSetException("Illegal conversion: " + e.toString());
+      throw new BadConversionException(columnNumber, column, e);
     }
   }
 
@@ -1045,11 +1063,11 @@ public class Value
       }
       else if(isFloat())
       {
-        return ((Float) valueObject).floatValue();
+        return ((Float) valueObject);
       }
       else if(isString())
       {
-        return Integer.valueOf((String) valueObject).floatValue();
+        return parseDoubleObj((String) valueObject).floatValue();
       }
       else if(isShort())
       {
@@ -1073,12 +1091,12 @@ public class Value
       }
       else
       {
-        return Integer.valueOf(asString()).floatValue();
+        return parseDoubleObj(asString()).floatValue();
       }
     }
     catch(Exception e)
     {
-      throw new DataSetException("Bad conversion: " + e.toString());
+      throw new BadConversionException(columnNumber, column, e);
     }
   }
 
@@ -1105,7 +1123,7 @@ public class Value
       else if(isString() || isDouble() || isBigDecimal() || isInt()
          || isLong() || isShort() || isByte())
       {
-        return new Float(asString());
+        return parseDoubleObj(asString()).floatValue();
       }
       else
       {
@@ -1114,7 +1132,7 @@ public class Value
     }
     catch(Exception e)
     {
-      throw new DataSetException("Illegal conversion: " + e.toString());
+      throw new BadConversionException(columnNumber, column, e);
     }
   }
 
@@ -1155,21 +1173,20 @@ public class Value
       }
       else if(isString())
       {
-        return Time.valueOf((String) valueObject);
+        return parseTime((String) valueObject);
       }
       else
       {
-        return Time.valueOf(asString());
+        return parseTime(asString());
       }
     }
     catch(IllegalArgumentException a)
     {
-      throw new DataSetException("Bad date value - "
-         + "Java Time Objects cannot be earlier than 1/1/70");
+      throw new BadTimestampException(columnNumber, column, a);
     }
     catch(Exception b)
     {
-      throw new DataSetException("Bad conversion: " + b.toString());
+      throw new BadConversionException(columnNumber, column, b);
     }
   }
 
@@ -1207,21 +1224,20 @@ public class Value
       }
       else if(isString())
       {
-        return Timestamp.valueOf((String) valueObject);
+        return parseTimestamp((String) valueObject);
       }
       else
       {
-        return Timestamp.valueOf(asString());
+        return parseTimestamp(asString());
       }
     }
     catch(IllegalArgumentException a)
     {
-      throw new DataSetException("Bad date value - "
-         + "Java Timestamp Objects cannot be earlier than 1/1/70");
+      throw new BadTimestampException(columnNumber, column, a);
     }
     catch(Exception b)
     {
-      throw new DataSetException("Bad conversion: " + b.toString());
+      throw new BadConversionException(columnNumber, column, b);
     }
   }
 
@@ -1260,7 +1276,7 @@ public class Value
       {
         cal.setTime((Time) valueObject);
 
-        return java.sql.Date.valueOf(cal.get(Calendar.YEAR) + "-"
+        return parseSqlDate(cal.get(Calendar.YEAR) + "-"
            + leadingZero(cal.get(Calendar.MONTH) + 1) + "-"
            + leadingZero(cal.get(Calendar.DAY_OF_MONTH)));
       }
@@ -1268,27 +1284,26 @@ public class Value
       {
         cal.setTime((java.util.Date) valueObject);
 
-        return java.sql.Date.valueOf(cal.get(Calendar.YEAR) + "-"
+        return parseSqlDate(cal.get(Calendar.YEAR) + "-"
            + leadingZero(cal.get(Calendar.MONTH) + 1) + "-"
            + leadingZero(cal.get(Calendar.DAY_OF_MONTH)));
       }
       else if(isString())
       {
-        return java.sql.Date.valueOf((String) valueObject);
+        return parseSqlDate((String) valueObject);
       }
       else
       {
-        return java.sql.Date.valueOf(asString());
+        return parseSqlDate(asString());
       }
     }
     catch(IllegalArgumentException a)
     {
-      throw new DataSetException("Bad date value - "
-         + "Java Timestamp Objects cannot be earlier than 1/1/70");
+      throw new BadTimestampException(columnNumber, column, a);
     }
     catch(Exception b)
     {
-      throw new DataSetException("Bad conversion: " + b.toString());
+      throw new BadConversionException(columnNumber, column, b);
     }
   }
 
@@ -1312,6 +1327,10 @@ public class Value
       {
         return (java.util.Date) valueObject;
       }
+      else if(isString())
+      {
+        return parseSqlDate(asString());
+      }
 
       Calendar cal = Calendar.getInstance();
 
@@ -1327,7 +1346,7 @@ public class Value
       {
         cal.setTime((Time) valueObject);
 
-        return java.sql.Date.valueOf(cal.get(Calendar.YEAR) + "-"
+        return parseSqlDate(cal.get(Calendar.YEAR) + "-"
            + leadingZero(cal.get(Calendar.MONTH) + 1) + "-"
            + leadingZero(cal.get(Calendar.DAY_OF_MONTH)));
       }
@@ -1335,7 +1354,7 @@ public class Value
       {
         cal.setTime((java.util.Date) valueObject);
 
-        return java.sql.Date.valueOf(cal.get(Calendar.YEAR) + "-"
+        return parseSqlDate(cal.get(Calendar.YEAR) + "-"
            + leadingZero(cal.get(Calendar.MONTH) + 1) + "-"
            + leadingZero(cal.get(Calendar.DAY_OF_MONTH)));
       }
@@ -1346,12 +1365,11 @@ public class Value
     }
     catch(IllegalArgumentException a)
     {
-      throw new DataSetException("Bad date value - "
-         + "Java java.util.Date Objects cannot be earlier than 1/1/70");
+      throw new BadTimestampException(columnNumber, column, a);
     }
     catch(Exception b)
     {
-      throw new DataSetException("Bad conversion: " + b.toString());
+      throw new BadConversionException(columnNumber, column, b);
     }
   }
 
@@ -1525,6 +1543,11 @@ public class Value
     return this.columnNumber;
   }
 
+  public Column column()
+  {
+    return this.column;
+  }
+
   /**
    * DOCUMENT ME!
    *
@@ -1548,5 +1571,136 @@ public class Value
   private String leadingZero(int val)
   {
     return (val < 10 ? "0" : "") + val;
+  }
+
+  private int parseInt(String value)
+  {
+    if(value == null)
+      return 0;
+
+    String s = value.trim();
+    if(s.isEmpty() && emptyStringZero)
+      return 0;
+
+    return Integer.parseInt(s);
+  }
+
+  private Integer parseIntObj(String value)
+  {
+    return parseInt(value);
+  }
+
+  private Double parseDoubleObj(String value)
+  {
+    if(value == null)
+      return 0.0;
+
+    String s = value.trim();
+    if(s.isEmpty() && emptyStringZero)
+      return 0.0;
+
+    return Double.valueOf(s);
+  }
+
+  private Timestamp parseTimestamp(String value)
+  {
+    if(value == null)
+      return null;
+
+    String s = value.trim();
+    if(s.isEmpty())
+      return null;
+
+    try
+    {
+      return Timestamp.valueOf(s);
+    }
+    catch(Exception e)
+    {
+    }
+
+    return new Timestamp(convertDateCommonFormat(s));
+  }
+
+  private Time parseTime(String value)
+  {
+    if(value == null)
+      return null;
+
+    String s = value.trim();
+    if(s.isEmpty())
+      return null;
+
+    return Time.valueOf(s);
+  }
+
+  private java.sql.Date parseSqlDate(String value)
+  {
+    if(value == null)
+      return null;
+
+    String s = value.trim();
+    if(s.isEmpty())
+      return null;
+
+    try
+    {
+      return java.sql.Date.valueOf(s);
+    }
+    catch(Exception e)
+    {
+    }
+
+    return new java.sql.Date(convertDateCommonFormat(s));
+  }
+
+  /**
+   * Try to convert from common date format.
+   * @param s
+   * @return
+   */
+  protected long convertDateCommonFormat(String s)
+  {
+    try
+    {
+      return DateTime.ISOformatFull.parse(s).getTime();
+    }
+    catch(ParseException ex)
+    {
+    }
+
+    try
+    {
+      return DateTime.dfDataOra.parse(s).getTime();
+    }
+    catch(ParseException ex)
+    {
+    }
+
+    try
+    {
+      return DateTime.dfDTMXDS.parse(s).getTime();
+    }
+    catch(ParseException ex)
+    {
+    }
+
+    try
+    {
+      return DateTime.ISOformat.parse(s).getTime();
+    }
+    catch(ParseException ex)
+    {
+    }
+
+    try
+    {
+      return DateTime.dfData.parse(s).getTime();
+    }
+    catch(ParseException ex)
+    {
+    }
+
+    throw new IllegalArgumentException("Unrecognized date/time format.");
   }
 }

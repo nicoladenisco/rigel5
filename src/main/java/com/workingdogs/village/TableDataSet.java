@@ -533,7 +533,7 @@ public class TableDataSet
     for(String colName : lsChiavi)
     {
       Column col = schema.column(colName);
-      Value val = new Value(ps, col.typeEnum(), values.get(colName));
+      Value val = new Value(ps, col, col.typeEnum(), values.get(colName));
 
       if(val.isNull())
         throw new DataSetException("Missing value for " + tableName() + "." + colName + ".");
@@ -577,7 +577,7 @@ public class TableDataSet
     {
       String colName = keydef().getAttrib(i);
       Column col = schema.column(colName);
-      Value val = new Value(i, col.typeEnum(), keyValues.get(colName));
+      Value val = new Value(i, col, col.typeEnum(), keyValues.get(colName));
 
       if(val.isNull())
         throw new DataSetException("Missing primary key value for " + tableName() + "." + colName + ".");
@@ -734,7 +734,7 @@ public class TableDataSet
   public static Record fetchOneRecord(String tableName, String where, Connection con)
      throws Exception
   {
-    try(TableDataSet tds = new TableDataSet(con, tableName))
+    try (TableDataSet tds = new TableDataSet(con, tableName))
     {
       tds.where(where);
       tds.fetchRecords(1);
@@ -745,7 +745,7 @@ public class TableDataSet
   public static List<Record> fetchAllRecords(String tableName, String where, Connection con)
      throws Exception
   {
-    try(TableDataSet tds = new TableDataSet(con, tableName))
+    try (TableDataSet tds = new TableDataSet(con, tableName))
     {
       tds.where(where);
       return tds.fetchAllRecords();

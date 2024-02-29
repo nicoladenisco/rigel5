@@ -98,7 +98,7 @@ public final class Schema
     DatabaseMetaData databaseMetaData = conn.getMetaData();
     String connURL = databaseMetaData.getURL();
 
-    try ( ResultSet rsTables = databaseMetaData.getTables(conn.getCatalog(), null, null, TABLES_FILTER))
+    try (ResultSet rsTables = databaseMetaData.getTables(conn.getCatalog(), null, null, TABLES_FILTER))
     {
       while(rsTables.next())
       {
@@ -106,7 +106,7 @@ public final class Schema
         String tableName = StringOper.okStr(rsTables.getString("TABLE_NAME"));
         cacheSchemaTable.put(tableName, schemaName);
 
-        try ( ResultSet rsColumns = databaseMetaData.getColumns(conn.getCatalog(), schemaName, tableName, null))
+        try (ResultSet rsColumns = databaseMetaData.getColumns(conn.getCatalog(), schemaName, tableName, null))
         {
           Schema schema = new Schema();
 
@@ -144,11 +144,14 @@ public final class Schema
     {
       DatabaseMetaData databaseMetaData = conn.getMetaData();
 
-      try ( ResultSet rsTables = databaseMetaData.getTables(conn.getCatalog(), null, null, TABLES_FILTER))
+      try (ResultSet rsTables = databaseMetaData.getTables(conn.getCatalog(), null, null, TABLES_FILTER))
       {
         while(rsTables.next())
         {
-          cacheSchemaTable.put(rsTables.getString(3), StringOper.okStr(rsTables.getString(2)));
+          cacheSchemaTable.put(
+             StringOper.okStr(rsTables.getString(3)),
+             StringOper.okStr(rsTables.getString(2))
+          );
         }
       }
 
@@ -207,8 +210,9 @@ public final class Schema
       if(tableSchema == null)
       {
         String sql = "SELECT " + columnsAttribute + " FROM " + tableName + " WHERE 1 = -1";
+        //System.out.println("Schema sql: " + sql);
 
-        try ( PreparedStatement stmt = conn.prepareStatement(sql))
+        try (PreparedStatement stmt = conn.prepareStatement(sql))
         {
           if(stmt != null)
           {

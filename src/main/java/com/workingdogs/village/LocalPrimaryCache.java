@@ -54,18 +54,55 @@ public class LocalPrimaryCache
     if(tablepks == null)
     {
       tablepks = new HashMap<>();
-      try ( ResultSet dbPrimary = dbMeta.getPrimaryKeys(catalog, metaSchemaName, metaTableName))
+
+      if(dbMeta.getClass().getName().contains("Jtds"))
       {
-        while(dbPrimary.next())
-        {
-          String nomeColonna = dbPrimary.getString("COLUMN_NAME");
-          int kinfo = dbPrimary.getInt("KEY_SEQ");
-          tablepks.put(nomeColonna, kinfo);
-        }
+        jtdsDriver(metaSchemaName, metaTableName, tablepks);
       }
+      else
+      {
+        allDriver(metaSchemaName, metaTableName, tablepks);
+      }
+
       pkCache.put(key, tablepks);
     }
 
     return tablepks.getOrDefault(metaColumnName, 0);
+  }
+
+  protected void allDriver(String metaSchemaName, String metaTableName, Map<String, Integer> tablepks)
+     throws SQLException
+  {
+    try (ResultSet dbPrimary = dbMeta.getPrimaryKeys(catalog, metaSchemaName, metaTableName))
+    {
+      while(dbPrimary.next())
+      {
+        String nomeColonna = dbPrimary.getString("COLUMN_NAME");
+        int kinfo = dbPrimary.getInt("KEY_SEQ");
+        tablepks.put(nomeColonna, kinfo);
+      }
+    }
+  }
+
+  protected void jtdsDriver(String metaSchemaName, String metaTableName, Map<String, Integer> tablepks)
+     throws SQLException
+  {
+    String sc = catalog;
+    int pos = metaTableName.indexOf("..");
+    if(pos != -1)
+    {
+      sc = metaTableName.substring(0, pos);
+      metaTableName = metaTableName.substring(pos + 2);
+    }
+
+    try (ResultSet dbPrimary = dbMeta.getPrimaryKeys(sc, "dbo", metaTableName))
+    {
+      while(dbPrimary.next())
+      {
+        String nomeColonna = dbPrimary.getString("COLUMN_NAME");
+        int kinfo = dbPrimary.getInt("KEY_SEQ");
+        tablepks.put(nomeColonna, kinfo);
+      }
+    }
   }
 }

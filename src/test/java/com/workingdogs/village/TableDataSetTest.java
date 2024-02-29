@@ -17,6 +17,10 @@
  */
 package com.workingdogs.village;
 
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Date;
 import java.util.HashMap;
@@ -50,15 +54,17 @@ public class TableDataSetTest
   {
     preparaDatabase();
 
-    try(Statement stm = dbe.getConn().createStatement())
+    try (Statement stm = dbe.getConn().createStatement())
     {
       stm.executeUpdate("DELETE FROM mic_antibiotici");
       stm.executeUpdate("DELETE FROM mic_batteri");
+      stm.executeUpdate("DELETE FROM tblPosts");
     }
 
     AAA_testSchema();
     ABA_testFetchRecords();
     ACA_testSave_boolean();
+    ACB_testSave_timestamp();
     ADA_testRemoveDeletedRecords();
     AEA_testRefresh();
     AZA_testGetSelectString();
@@ -66,6 +72,8 @@ public class TableDataSetTest
     BAB_testFetchByGenericValues();
     CCA_test_fetchOneRecordOrNew();
     DAA_saveWithInsertAndGetGeneratedKeys();
+//    EAA_tdsCompat();
+//    EAC_tdsCompat();
   }
 
   /**
@@ -125,9 +133,9 @@ public class TableDataSetTest
   public synchronized void ACA_testSave_boolean()
      throws Exception
   {
-    System.out.println("save");
+    System.out.println("testSave_boolean");
     boolean intransaction = false;
-    try(TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
+    try (TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
     {
       List<Record> lsRecs = instance.fetchAllRecords();
       Record r = instance.addRecord();
@@ -148,22 +156,51 @@ public class TableDataSetTest
   }
 
   /**
+   * Test of save method, of class TableDataSet.
+   */
+  public synchronized void ACB_testSave_timestamp()
+     throws Exception
+  {
+    System.out.println("testSave_timestamp");
+    boolean intransaction = false;
+    try (TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
+    {
+      List<Record> lsRecs = instance.fetchAllRecords();
+      Record r = instance.addRecord();
+      r.setValue("idbatteri", 3);
+      r.setValue("codice", "bat3");
+      r.setValue("descrizione", "Batterio3");
+      r.setValue("tiporecord", 1);
+      r.setValue("stato_rec", 0);
+      r.setValue("id_user", 0);
+      r.setValue("id_ucrea", 0);
+      r.setValue("ult_modif", "2023-08-07 10:50:36");
+      r.setValue("creazione", "20230807105036");
+      r.setValue("codiceregionale", "BB");
+      int expResult = 3;
+      int result = instance.save(intransaction);
+      assertEquals(expResult, result);
+    }
+  }
+
+  /**
    * Test of removeDeletedRecords method, of class TableDataSet.
    */
   public synchronized void ADA_testRemoveDeletedRecords()
      throws Exception
   {
     System.out.println("removeDeletedRecords");
-    try(TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
+    try (TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
     {
       List<Record> lsRecs = instance.fetchAllRecords();
-      assertEquals(2, lsRecs.size());
+      assertFalse(lsRecs.isEmpty());
+      int numBerforeDelete = lsRecs.size();
       Record todel = lsRecs.get(1);
       todel.markToBeDeleted();
       instance.save();
       instance.removeDeletedRecords();
       List<Record> lsRecs2 = instance.fetchAllRecords();
-      assertEquals(1, lsRecs2.size());
+      assertEquals(numBerforeDelete - 1, lsRecs2.size());
     }
   }
 
@@ -174,10 +211,10 @@ public class TableDataSetTest
      throws Exception
   {
     System.out.println("refresh");
-    try(TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
+    try (TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
     {
       List<Record> lsRecs = instance.fetchAllRecords();
-      assertEquals(1, lsRecs.size());
+      assertFalse(lsRecs.isEmpty());
       Record tomodify = lsRecs.get(0);
       tomodify.setValue("CODICEREGIONALE", "ZZ");
       assertEquals("ZZ", tomodify.getValue("CODICEREGIONALE").asString());
@@ -193,7 +230,7 @@ public class TableDataSetTest
      throws Exception
   {
     System.out.println("getSelectString");
-    try(TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
+    try (TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
     {
       String expResult = "SELECT * FROM mic_batteri";
       String result = instance.getSelectString();
@@ -205,7 +242,7 @@ public class TableDataSetTest
      throws Exception
   {
     System.out.println("fetchByPrimaryKeys");
-    try(TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
+    try (TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
     {
       List<Record> totRecs = instance.fetchAllRecords();
       assertFalse(totRecs.isEmpty());
@@ -220,7 +257,7 @@ public class TableDataSetTest
      throws Exception
   {
     System.out.println("fetchByGenericValues");
-    try(TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
+    try (TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
     {
       List<Record> totRecs = instance.fetchAllRecords();
       assertFalse(totRecs.isEmpty());
@@ -239,7 +276,7 @@ public class TableDataSetTest
   {
     System.out.println("fetchOneRecordOrNew");
     boolean intransaction = false;
-    try(TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
+    try (TableDataSet instance = new TableDataSet(dbe.getConn(), "mic_batteri"))
     {
       Record r = instance.fetchOneRecordOrNew("idbatteri=3", true);
       if(r.toBeSavedWithInsert())
@@ -265,7 +302,7 @@ public class TableDataSetTest
   {
     System.out.println("saveWithInsertAndGetGeneratedKeys");
     int count = 0;
-    try(TableDataSet instance = new TableDataSet(dbe.getConn(), "tblPosts"))
+    try (TableDataSet instance = new TableDataSet(dbe.getConn(), "tblPosts"))
     {
       instance.setPreferInsertAndGetGeneratedKeys(true);
 
@@ -301,6 +338,121 @@ public class TableDataSetTest
       instance.clear();
       List<Record> recs = instance.fetchAllRecords();
       System.out.println("** " + recs);
+    }
+  }
+
+  public synchronized void EAA_tdsCompat()
+     throws Exception
+  {
+    System.out.println("tdsCompat - inserimento in tabella, db differente da connessione");
+
+    Class.forName("net.sourceforge.jtds.jdbc.Driver");
+    try (Connection con = DriverManager.getConnection(
+       "jdbc:jtds:sqlserver://192.168.100.243:1433/DIAMANTE", "firma", "firma"))
+    {
+
+      DatabaseMetaData dbMeta = con.getMetaData();
+      try (ResultSet dbPrimary = dbMeta.getPrimaryKeys("DB_COMUNE", "dbo", "Medici_Proponenti"))
+      {
+        while(dbPrimary.next())
+          System.out.println("pri " + dbPrimary);
+      }
+
+      int count = 0;
+      try (TableDataSet tds = new TableDataSet(con, "DB_COMUNE..Medici_Proponenti"))
+      {
+        String where = "Codice_Mnemonico = 'ZZTEST'";
+        Record r = tds.fetchOneRecordOrNew(where, true);
+
+        if(r.toBeSavedWithInsert())
+        {
+          r.setValue("Codice_Numerico", tds.getNextID());
+          r.setValue("Codice_Mnemonico", "ZZTEST");
+        }
+
+        r.setValue("CognomeNome", "TEST MEDICO");
+        r.setValue("flagTipo", "F");
+        r.setValue("IDTipo", 4);
+        tds.save();
+
+        System.out.println("Inserito " + r);
+
+//        List<Record> lsRecs = tds.fetchAllRecords();
+//        if(!lsRecs.isEmpty())
+//          System.out.println("PRIMO MEDICO: " + lsRecs.get(0));
+      }
+    }
+  }
+
+  public synchronized void EAB_tdsCompat()
+     throws Exception
+  {
+    System.out.println("tdsCompat - inserimento in tabella, stesso db");
+
+    Class.forName("net.sourceforge.jtds.jdbc.Driver");
+    try (Connection con = DriverManager.getConnection(
+       "jdbc:jtds:sqlserver://192.168.100.243:1433/DB_COMUNE", "firma", "firma"))
+    {
+
+      DatabaseMetaData dbMeta = con.getMetaData();
+      try (ResultSet dbPrimary = dbMeta.getPrimaryKeys("DB_COMUNE", "dbo", "Medici_Proponenti"))
+      {
+        while(dbPrimary.next())
+          System.out.println("pri " + dbPrimary);
+      }
+
+      int count = 0;
+      try (TableDataSet tds = new TableDataSet(con, "Medici_Proponenti"))
+      {
+        String where = "Codice_Mnemonico = 'ZZTEST'";
+        Record r = tds.fetchOneRecordOrNew(where, true);
+
+        if(r.toBeSavedWithInsert())
+        {
+          r.setValue("Codice_Numerico", tds.getNextID());
+          r.setValue("Codice_Mnemonico", "ZZTEST");
+        }
+
+        r.setValue("CognomeNome", "TEST MEDICO");
+        r.setValue("flagTipo", "F");
+        r.setValue("IDTipo", 4);
+        tds.save();
+
+        System.out.println("Inserito " + r);
+
+//        List<Record> lsRecs = tds.fetchAllRecords();
+//        if(!lsRecs.isEmpty())
+//          System.out.println("PRIMO MEDICO: " + lsRecs.get(0));
+      }
+    }
+  }
+
+  public synchronized void EAC_tdsCompat()
+     throws Exception
+  {
+    System.out.println("tdsCompat - inserimento in tabella senza chiave primaria");
+
+    Class.forName("net.sourceforge.jtds.jdbc.Driver");
+    try (Connection con = DriverManager.getConnection(
+       "jdbc:jtds:sqlserver://192.168.100.243:1433/DB_COMUNE", "firma", "firma"))
+    {
+      try (TableDataSet tdr = new TableDataSet(con, "REPARTI", new KeyDef("ID")))
+      {
+        Record r = tdr.fetchOneRecordOrNew("codice = 'PROVA'", true);
+
+        if(r.toBeSavedWithInsert())
+        {
+          r.setValue("id", tdr.getNextID());
+          r.setValue("codice", "PROVA");
+        }
+
+        r.setValue("descrizione", "Reparto di prova");
+        r.setValue("altaspecialita", 0);
+        r.save();
+
+        int idReparto = r.getValue("id").asInt();
+        System.out.println("ID=" + idReparto);
+      }
     }
   }
 }

@@ -19,6 +19,7 @@ package com.workingdogs.village;
  * under the License.
  */
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -56,11 +57,22 @@ public class KeyDef
   private final ArrayList<String> mySelf = new ArrayList<>();
 
   /**
-   * Constructor for KeyDef. Make sure to always initialize KeyDef with an initial element because it is 1 based.
+   * Constructor for KeyDef.
+   * Make sure to always initialize KeyDef with an initial element because it is 1 based.
    */
   public KeyDef()
   {
     mySelf.add("");
+  }
+
+  /**
+   * Constructor for KeyDef.
+   * @param keyNames list of names of field in primary key.
+   */
+  public KeyDef(String... keyNames)
+  {
+    mySelf.add("");
+    mySelf.addAll(Arrays.asList(keyNames));
   }
 
   /**

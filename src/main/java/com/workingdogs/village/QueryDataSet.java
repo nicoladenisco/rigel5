@@ -187,10 +187,38 @@ public class QueryDataSet
     return results;
   }
 
+  public static Record fetchFirstRecord(Connection dbCon, String sSQL)
+     throws Exception
+  {
+    try (QueryDataSet qs = new QueryDataSet(dbCon, sSQL))
+    {
+      qs.fetchRecords(1);
+
+      if(qs.size() == 0)
+        return null;
+
+      return qs.getRecord(0);
+    }
+  }
+
+  public static Pair<Schema, Record> fetchFirstRecordAndSchema(Connection dbCon, String sSQL)
+     throws Exception
+  {
+    try (QueryDataSet qs = new QueryDataSet(dbCon, sSQL))
+    {
+      qs.fetchRecords(1);
+
+      if(qs.size() == 0)
+        return new Pair<>(qs.schema, null);
+
+      return new Pair<>(qs.schema, qs.getRecord(0));
+    }
+  }
+
   public static List<Record> fetchAllRecords(Connection dbCon, String sSQL)
      throws Exception
   {
-    try ( QueryDataSet qs = new QueryDataSet(dbCon, sSQL))
+    try (QueryDataSet qs = new QueryDataSet(dbCon, sSQL))
     {
       return qs.fetchAllRecords();
     }
@@ -199,7 +227,7 @@ public class QueryDataSet
   public static Pair<Schema, List<Record>> fetchAllRecordsAndSchema(Connection dbCon, String sSQL)
      throws Exception
   {
-    try ( QueryDataSet qs = new QueryDataSet(dbCon, sSQL))
+    try (QueryDataSet qs = new QueryDataSet(dbCon, sSQL))
     {
       return new Pair<>(qs.schema, qs.fetchAllRecords());
     }
@@ -208,7 +236,7 @@ public class QueryDataSet
   public static List<Record> fetchAllRecords(ResultSet rs)
      throws Exception
   {
-    try ( QueryDataSet qs = new QueryDataSet(rs))
+    try (QueryDataSet qs = new QueryDataSet(rs))
     {
       return qs.fetchAllRecords();
     }
@@ -217,7 +245,7 @@ public class QueryDataSet
   public static Pair<Schema, List<Record>> fetchAllRecordsAndSchema(ResultSet rs)
      throws Exception
   {
-    try ( QueryDataSet qs = new QueryDataSet(rs))
+    try (QueryDataSet qs = new QueryDataSet(rs))
     {
       return new Pair<>(qs.schema, qs.fetchAllRecords());
     }
@@ -229,7 +257,7 @@ public class QueryDataSet
     String sql1 = buildQueryNoWhere(select, from, filtro) + " WHERE 1 = -1";
     Schema s = new Schema();
 
-    try ( Statement stm = conn.createStatement();  ResultSet rs = stm.executeQuery(sql1))
+    try (Statement stm = conn.createStatement(); ResultSet rs = stm.executeQuery(sql1))
     {
       s.populate(rs.getMetaData(), null, conn);
     }
@@ -241,8 +269,8 @@ public class QueryDataSet
     for(FiltroData.betweenInfo bi : filtro.vBetween)
     {
       Column col = s.findInSchemaIgnoreCase(bi.nomecampo);
-      Value v1 = new Value(ps, col.typeEnum(), bi.val1);
-      Value v2 = new Value(ps, col.typeEnum(), bi.val2);
+      Value v1 = new Value(ps, col, col.typeEnum(), bi.val1);
+      Value v2 = new Value(ps, col, col.typeEnum(), bi.val2);
 
       if(v1.isNull() || v2.isNull())
         throw new DataSetException("Null not allowed in between values.");
@@ -264,7 +292,7 @@ public class QueryDataSet
         Collection sVals = (Collection) wi.val;
         for(Object v : sVals)
         {
-          Value val = new Value(ps, col.typeEnum(), v);
+          Value val = new Value(ps, col, col.typeEnum(), v);
 
           if(val.isNull())
             throw new DataSetException("Null not allowed in SqlEnum.IN values; use SqlEnum.ISNULL instead.");
@@ -274,7 +302,7 @@ public class QueryDataSet
       }
       else
       {
-        Value val = new Value(ps, col.typeEnum(), wi.val);
+        Value val = new Value(ps, col, col.typeEnum(), wi.val);
 
         if(val.isNull())
           throw new DataSetException("Null not allowed in where values; use SqlEnum.ISNULL instead.");
@@ -409,7 +437,7 @@ public class QueryDataSet
   public static List<Record> fetchAllRecords(Connection conn, String select, String from, FiltroData filtro)
      throws Exception
   {
-    try ( QueryDataSet qs = new QueryDataSet(conn, select, from, filtro))
+    try (QueryDataSet qs = new QueryDataSet(conn, select, from, filtro))
     {
       return qs.fetchAllRecords();
     }
@@ -418,7 +446,7 @@ public class QueryDataSet
   public static Pair<Schema, List<Record>> fetchAllRecordsAndSchema(Connection conn, String select, String from, FiltroData filtro)
      throws Exception
   {
-    try ( QueryDataSet qs = new QueryDataSet(conn, select, from, filtro))
+    try (QueryDataSet qs = new QueryDataSet(conn, select, from, filtro))
     {
       return new Pair<>(qs.schema, qs.fetchAllRecords());
     }
