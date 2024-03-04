@@ -26,7 +26,6 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
-import java.text.ParseException;
 import java.util.Calendar;
 import org.commonlib5.utils.DateTime;
 import org.commonlib5.utils.StringOper;
@@ -1661,46 +1660,11 @@ public class Value
    */
   protected long convertDateCommonFormat(String s)
   {
-    try
-    {
-      return DateTime.ISOformatFull.parse(s).getTime();
-    }
-    catch(ParseException ex)
-    {
-    }
+    long rv = DateTime.convertDateCommonFormat(s);
 
-    try
-    {
-      return DateTime.dfDataOra.parse(s).getTime();
-    }
-    catch(ParseException ex)
-    {
-    }
+    if(rv == 0)
+      throw new IllegalArgumentException("Unrecognized date/time format.");
 
-    try
-    {
-      return DateTime.dfDTMXDS.parse(s).getTime();
-    }
-    catch(ParseException ex)
-    {
-    }
-
-    try
-    {
-      return DateTime.ISOformat.parse(s).getTime();
-    }
-    catch(ParseException ex)
-    {
-    }
-
-    try
-    {
-      return DateTime.dfData.parse(s).getTime();
-    }
-    catch(ParseException ex)
-    {
-    }
-
-    throw new IllegalArgumentException("Unrecognized date/time format.");
+    return rv;
   }
 }
