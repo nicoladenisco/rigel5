@@ -17,8 +17,11 @@
  */
 package org.rigel5.table.html;
 
+import java.text.Format;
 import java.util.*;
+import javax.swing.table.TableModel;
 import org.rigel5.HtmlUtils;
+import org.rigel5.glue.RigelFormat;
 import org.rigel5.table.RigelColumnDescriptor;
 import org.rigel5.table.RigelTableModel;
 
@@ -43,6 +46,21 @@ public class FormTable extends hEditTable
   public FormTable(String sId)
   {
     super(sId);
+  }
+
+  @Override
+  public void setModel(TableModel newTableModel)
+  {
+    tableModel = newTableModel;
+
+    // NOTA: la versione della classe base imposta automaticamente nosize
+    // quando le colonne sono numerose; questo comportamento gradito in hTable
+    // è sgradito qui, in quanto distrugge l'estetica dei forms
+    //
+    // se il numero di colonne è grande disabilita l'emissione di size
+    //if(SetupHolder.getNoSizeLimit() != 0
+    //   && tableModel.getColumnCount() > SetupHolder.getNoSizeLimit())
+    //  nosize = true;
   }
 
   public synchronized void setColonne(int newColonne)
@@ -193,7 +211,10 @@ public class FormTable extends hEditTable
       wd = 70;
     }
     else
-      wh = wd = 50 / colonne;
+    {
+      wh = 30 / colonne;
+      wd = 70 / colonne;
+    }
 
     firstRow = true;
     rowOpen = false;
@@ -214,6 +235,14 @@ public class FormTable extends hEditTable
       sOut.append("\r\n");
     }
     sOut.append("-->\r\n");
+
+    for(int i = 0; i < tableModel.getColumnCount(); i++)
+    {
+      RigelColumnDescriptor rcd = getCD(i);
+      Format rf = rcd.getFormatter();
+      if(rf != null && rf instanceof RigelFormat)
+        ((RigelFormat) rf).prepareFormatRecord(getTM(), row, i);
+    }
 
     mr = mc = 0;
     for(int i = 0; i < numColonne; i++)
@@ -236,13 +265,21 @@ public class FormTable extends hEditTable
       String align = doAlign(row, i);
       String color = doColor(row, i);
       String style = doStyle(row, i);
-      String inner = doInnerCell(row, i, cellText, cellHtml);
-      String std = "";
+      String inner, std = "";
+
+      if(isColumnEditable(row, i) || cd.isHiddenEdit())
+      {
+        inner = doInnerCell(row, i, cellText, cellHtml);
+      }
+      else
+      {
+        inner = elaboraFixedText(row, i, cellText);
+      }
 
       if(showHeader)
       {
         String header = doFormCellHeader(row, i);
-        ArrayList<String> arStyles = new ArrayList<String>();
+        ArrayList<String> arStyles = new ArrayList<>();
         arStyles.add("rigel_form_header_cell");
         if(cd.isTestfornull() || cd.isTestforzero())
           arStyles.add("rigel_form_header_notnull");
@@ -257,7 +294,7 @@ public class FormTable extends hEditTable
         sOut.append("</TD>\r\n");
       }
 
-      ArrayList<String> arStyles = new ArrayList<String>();
+      ArrayList<String> arStyles = new ArrayList<>();
       arStyles.add("rigel_form_field_cell");
       if(cd.isTestfornull() || cd.isTestforzero())
         arStyles.add("rigel_form_field_notnull");
