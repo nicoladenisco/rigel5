@@ -18,7 +18,7 @@
 package org.rigel5.db;
 
 import com.workingdogs.village.DataSetException;
-import com.workingdogs.village.DerbyTestEnvironment;
+import org.rigel5.test.DerbyTestEnvironment;
 import com.workingdogs.village.Record;
 import com.workingdogs.village.TableDataSet;
 import java.sql.SQLException;
