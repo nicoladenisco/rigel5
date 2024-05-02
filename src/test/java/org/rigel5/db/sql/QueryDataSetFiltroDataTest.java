@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Nicola De Nisco
+ * Copyright (C) 2024 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,8 +15,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package com.workingdogs.village;
+package org.rigel5.db.sql;
 
+import com.workingdogs.village.DataSetException;
+import org.rigel5.test.DerbyTestEnvironment;
+import com.workingdogs.village.QueryDataSet;
+import com.workingdogs.village.Record;
+import com.workingdogs.village.TableDataSet;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -28,23 +33,20 @@ import java.util.logging.Logger;
 import org.apache.torque.criteria.SqlEnum;
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.rigel5.db.sql.FiltroData;
 
 /**
- * Test per QueryDataSet.
- * Implicitamente testa anche DataSet Schema e Column.
  *
  * @author Nicola De Nisco
  */
-public class QueryDataSetTest
+public class QueryDataSetFiltroDataTest
 {
   private DerbyTestEnvironment dbe;
 
-  public QueryDataSetTest()
+  public QueryDataSetFiltroDataTest()
   {
   }
 
@@ -71,7 +73,7 @@ public class QueryDataSetTest
     }
     catch(Exception ex)
     {
-      Logger.getLogger(TableDataSetTest.class.getName()).log(Level.SEVERE, null, ex);
+      Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
     }
   }
 
@@ -205,7 +207,7 @@ public class QueryDataSetTest
     fd.addWhere("IDBATTERI", SqlEnum.GREATER_EQUAL, 1);
     fd.addSelect("IDBATTERI");
     fd.addOrderby("IDBATTERI");
-    try (QueryDataSet qds = new QueryDataSet(dbCon, "codice", "mic_batteri", fd))
+    try (QueryDataSetFiltroData qds = new QueryDataSetFiltroData(dbCon, "codice", "mic_batteri", fd))
     {
       System.out.println("sSQL=" + qds.getSelectString());
       List<Record> result = qds.fetchAllRecords();
@@ -227,7 +229,7 @@ public class QueryDataSetTest
     fd.addWhere("codice", SqlEnum.ISNOTNULL);
     fd.addSelect("IDBATTERI");
     fd.addOrderby("IDBATTERI");
-    try (QueryDataSet qds = new QueryDataSet(dbCon, "codice", "mic_batteri", fd))
+    try (QueryDataSetFiltroData qds = new QueryDataSetFiltroData(dbCon, "codice", "mic_batteri", fd))
     {
       System.out.println("sSQL=" + qds.getSelectString());
       List<Record> result = qds.fetchAllRecords();
