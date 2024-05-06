@@ -129,11 +129,19 @@ public class FiltroData
 
   public FiltroData addWhere(RigelColumnDescriptor cd, SqlEnum criteria, Object val)
   {
-    String sVal = StringOper.okStrNull(val);
-    if(sVal == null)
+    if(val == null)
       throw new RuntimeException("Where component can not be empty.");
 
-    return addWhere(cd.getDataType(), cd.getName(), criteria, cd.parseValue(sVal));
+    if(val instanceof String)
+    {
+      String sVal = StringOper.okStrNull(val);
+      if(sVal == null)
+        throw new RuntimeException("Where component can not be empty.");
+
+      val = cd.parseValue(sVal);
+    }
+
+    return addWhere(cd.getDataType(), cd.getName(), criteria, val);
   }
 
   public static class betweenInfo
