@@ -17,6 +17,7 @@
  */
 package org.rigel5.db.torque;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -445,5 +446,13 @@ public class TableMapHelper
     }
 
     return null;
+  }
+
+  public static TableMapHelper getByObject(Object o)
+     throws Exception
+  {
+    Method getTableMap = o.getClass().getMethod("getTableMap");
+    TableMap tMap = (TableMap) getTableMap.invoke(o);
+    return new TableMapHelper(tMap);
   }
 }

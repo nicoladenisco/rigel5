@@ -17,7 +17,6 @@
  */
 package org.rigel5.table.html;
 
-import java.net.URLEncoder;
 import java.util.Map;
 import org.apache.commons.logging.*;
 import org.commonlib5.utils.StringOper;
@@ -276,10 +275,11 @@ public class HtmlMascheraRicercaGenericaNoscript implements MascheraRicercaGener
       html.append("</select></td>\r\n");
 
       if(cd.isComboRicerca())
+      {
         html.append("<td colspan=2>")
            .append(brg.getHtmlComboColonnaMaschera(formName, fieldName, cd, val, i18n))
            .append("</td>\r\n");
-
+      }
       else if(cd.isDate() && SetupHolder.getImgEditData() != null)
       {
         html.append("<td><input type=\"text\" size=\"20\""
@@ -287,8 +287,8 @@ public class HtmlMascheraRicercaGenericaNoscript implements MascheraRicercaGener
            + " value=\"" + val + "\" "
            + " onkeydown=\"return moveKey(document." + formName + ".VL" + fieldNameUp
            + " , document." + formName + ".VL" + fieldNameDw + ", event);\"> "
-           + "&nbsp;<a href=''"
-           + " onclick=\"apriCalendarioNoscript('" + formName + "','" + fieldName + "')\">"
+           + "&nbsp;<a href='#'"
+           + " onclick=\"rigel.apriCalIntR1('" + formName + "','" + fieldName + "')\">"
            + SetupHolder.getImgEditData() + "</a>"
            + "</td>\r\n");
 
@@ -297,8 +297,8 @@ public class HtmlMascheraRicercaGenericaNoscript implements MascheraRicercaGener
            + " value=\"" + vaf + "\" "
            + " onkeydown=\"return moveKey(document." + formName + ".VF" + fieldNameUp
            + " , document." + formName + ".VF" + fieldNameDw + ", event);\"> "
-           + "&nbsp;<a href=''"
-           + " onclick=\"apriCalendarioNoscript('" + formName + "','" + fieldName + "')\">"
+           + "&nbsp;<a href='#'"
+           + " onclick=\"rigel.apriCalIntR2('" + formName + "','" + fieldName + "')\">"
            + SetupHolder.getImgEditData() + "</a>"
            + "</td>\r\n");
       }
@@ -361,6 +361,7 @@ public class HtmlMascheraRicercaGenericaNoscript implements MascheraRicercaGener
    * Ritorna l'HTML completo della ricerca semplice.
    * @param nomeForm the value of nomeForm
    * @param sizeFld the value of sizeFld
+   * @param haveFilter
    * @param page the value of page
    * @param maxFields numero massimo campi ammessi in ricerca semplice
    * @throws Exception
@@ -374,8 +375,6 @@ public class HtmlMascheraRicercaGenericaNoscript implements MascheraRicercaGener
     int simpleSearchColumn = 0;
     int simpleSearchWeight = 0;
     int numSiSeColumn = 0;
-    String clearForm = "";
-    String funSubmit = "document." + formName + ".submit();";
     String funTest = "onkeypress=\"return rigel.testInvio('" + formName + "', event);\"";
 
     RigelHtmlPageComponent html = new RigelHtmlPageComponent(PageComponentType.HTML, "simplesearch");
@@ -404,8 +403,6 @@ public class HtmlMascheraRicercaGenericaNoscript implements MascheraRicercaGener
       int idx = cd.getFiltroTipo();
       if(idx == 0)
         defval = "";
-
-      clearForm += "document." + formName + ".VL" + fieldName + ".value='';\r\n";
 
       if(cd.isComboRicerca())
       {
@@ -440,13 +437,9 @@ public class HtmlMascheraRicercaGenericaNoscript implements MascheraRicercaGener
                .append(defval == null ? "" : defval).append("\" size=\"").append(sizeFld).append("\" ")
                .append(funTest).append(">");
 
-            // aggiunge calendario per i campi data
-            String nomeCampoInizio = "VL" + fieldName;
-            String sds = URLEncoder.encode("rigel.restart(" + nomeForm + "," + nomeCampoInizio + "+,VALUE)", "UTF-8");
-
             html
-               .append("&nbsp;<a onclick=\"apriCalendarioNoscript('")
-               .append(formName).append("','").append(sds).append("')\">")
+               .append("&nbsp;<a onclick=\"rigel.apriCalRic('")
+               .append(formName).append("','").append(fieldName).append("')\">")
                .append(SetupHolder.getImgEditData())
                .append("</a>");
           }
