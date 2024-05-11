@@ -64,7 +64,7 @@ public class AbstractAdjustSchema extends ParseSchemaBase
 
   // se è true, sostituisce il punto all'underscore nei nomi delle tabelle
   public boolean pointVsUndScore = false, forcePrimary = false, forceForeign = false,
-     forceIDUndScore = false, forceTableJavaName = false,
+     forceIDUndScore = false, forceTableJavaName = false, riferimentiCircolari = true,
      usePostgresql = false, useSchema = false, forcePrimaryIDtoNative = false;
   public String inputFile = null;
   public String infoFile = null;
@@ -114,8 +114,9 @@ public class AbstractAdjustSchema extends ParseSchemaBase
 
   public String chID(String name)
   {
-    if(name.startsWith("ID") && !name.startsWith("ID_"))
-      return "ID_" + name.substring(2);
+    if(forceIDUndScore)
+      if(name.startsWith("ID") && !name.startsWith("ID_"))
+        return "ID_" + name.substring(2);
 
     return name;
   }
@@ -307,7 +308,7 @@ public class AbstractAdjustSchema extends ParseSchemaBase
         Element foreignKey = (Element) (iterFk.next());
         String foreignTableName = pVsu(foreignKey.getAttributeValue("foreignTable").toUpperCase());
 
-        if(StringOper.isEqu(tableName, foreignTableName))
+        if(riferimentiCircolari && StringOper.isEqu(tableName, foreignTableName))
           throw new Exception("Tabella " + tableName + ": riferimento circolare a se stessa.");
 
         // recupera info sulla foreign table
@@ -664,28 +665,27 @@ public class AbstractAdjustSchema extends ParseSchemaBase
     return columnName;
   }
 
-  public String getNomeChiaveDaNomeTabella(String nomeTabella)
-  {
-    // cerca la tabella foreign
-    Element table = getTable(nomeTabella);
-    if(table == null)
-      return null;
-
-    String columnName = creaNomePrimaryKey(nomeTabella);
-
-    // verifica l'effettiva esistenza della colonna nella tabella foreign
-    Iterator iterColumn = (table.getChildren("column", ns)).iterator();
-    while(iterColumn.hasNext())
-    {
-      Element column = (Element) (iterColumn.next());
-      String nomeCol = column.getAttributeValue("name");
-      if(nomeCol.equals(columnName))
-        return columnName;
-    }
-
-    return null;
-  }
-
+//  public String getNomeChiaveDaNomeTabella(String nomeTabella)
+//  {
+//    // cerca la tabella foreign
+//    Element table = getTable(nomeTabella);
+//    if(table == null)
+//      return null;
+//
+//    String columnName = creaNomePrimaryKey(nomeTabella);
+//
+//    // verifica l'effettiva esistenza della colonna nella tabella foreign
+//    Iterator iterColumn = (table.getChildren("column", ns)).iterator();
+//    while(iterColumn.hasNext())
+//    {
+//      Element column = (Element) (iterColumn.next());
+//      String nomeCol = column.getAttributeValue("name");
+//      if(nomeCol.equals(columnName))
+//        return columnName;
+//    }
+//
+//    return null;
+//  }
   public Element getColumn(String tabella, String colonna)
      throws Exception
   {
@@ -751,7 +751,7 @@ public class AbstractAdjustSchema extends ParseSchemaBase
 
     if(ouputFile != null)
     {
-      try (OutputStreamWriter out = new FileWriter(ouputFile))
+      try(OutputStreamWriter out = new FileWriter(ouputFile))
       {
         xout.output(docOutput, out);
         out.flush();
@@ -764,7 +764,7 @@ public class AbstractAdjustSchema extends ParseSchemaBase
 
     if(infoFile != null)
     {
-      try (OutputStreamWriter out = new FileWriter(infoFile))
+      try(OutputStreamWriter out = new FileWriter(infoFile))
       {
 
         out.write("<!--\nTabelle senza STATO_REC:\n");
@@ -876,7 +876,8 @@ public class AbstractAdjustSchema extends ParseSchemaBase
     adjustNames();
 
     // aggiusta nomi delle chiavi primarie
-    adjustPrimaryKeys();
+    if(forcePrimary)
+      adjustPrimaryKeys();
 
     // ordina le tabelle
     sortTables();
