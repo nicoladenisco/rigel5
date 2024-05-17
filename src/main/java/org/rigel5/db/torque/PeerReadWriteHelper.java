@@ -30,7 +30,7 @@ import org.apache.torque.Torque;
  */
 public class PeerReadWriteHelper implements Closeable
 {
-  Connection dbCon = null;
+  protected Connection dbCon = null;
 
   public Connection getConnection()
      throws Exception
