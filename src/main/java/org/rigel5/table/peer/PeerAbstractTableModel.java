@@ -17,7 +17,7 @@
  */
 package org.rigel5.table.peer;
 
-import com.workingdogs.village.*;
+import com.workingdogs.village.Record;
 import java.beans.*;
 import java.lang.reflect.*;
 import java.sql.*;

@@ -17,7 +17,12 @@
  */
 package org.rigel5.db.sql;
 
-import com.workingdogs.village.*;
+import com.workingdogs.village.DataSetException;
+import com.workingdogs.village.QueryDataSet;
+import com.workingdogs.village.Record;
+import com.workingdogs.village.Column;
+import com.workingdogs.village.Schema;
+import com.workingdogs.village.Value;
 import java.lang.reflect.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
