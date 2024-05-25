@@ -397,15 +397,27 @@ public class CriteriaRigel extends Criteria
     return this;
   }
 
-  public CriteriaRigel addIn(ColumnMap cm, String[] codiciCampione)
+  public CriteriaRigel addIn(ColumnMap cm, Object[] ids)
   {
-    super.andIn(cm, codiciCampione);
+    super.andIn(cm, ids);
     return this;
   }
 
-  public CriteriaRigel addIn(ColumnMap cm, Collection<?> lsCodApp)
+  public CriteriaRigel addIn(ColumnMap cm, Collection<?> ids)
   {
-    super.andIn(cm, lsCodApp);
+    super.andIn(cm, ids);
+    return this;
+  }
+
+  public CriteriaRigel addNotIn(ColumnMap cm, Object[] ids)
+  {
+    super.andNotIn(cm, ids);
+    return this;
+  }
+
+  public CriteriaRigel addNotIn(ColumnMap cm, Collection<?> ids)
+  {
+    super.andNotIn(cm, ids);
     return this;
   }
 }

@@ -17,11 +17,13 @@
  */
 package org.rigel5.db;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.Properties;
+import org.commonlib5.utils.CommonFileUtils;
 
 /**
  * Classe di supporto per l'utilizzo del db Derby per le unit di test.
@@ -35,6 +37,7 @@ public class DerbyTestHelper
 
   public Connection con;
   public Properties props = new Properties();
+  public File dbPath = new File("/tmp/derbyDB");
 
   public void init()
      throws Exception
@@ -42,7 +45,7 @@ public class DerbyTestHelper
     // carica il driver e inizializza il motore db
     Class.forName(driver).newInstance();
 
-    con = DriverManager.getConnection(protocol + "derbyDB;create=true", props);
+    con = DriverManager.getConnection(protocol + dbPath.getAbsolutePath() + ";create=true", props);
   }
 
   public void shutdown()
@@ -52,10 +55,30 @@ public class DerbyTestHelper
     DriverManager.getConnection("jdbc:derby:;shutdown=true");
   }
 
+  public void clear()
+  {
+    try
+    {
+      CommonFileUtils.deleteDir(dbPath);
+    }
+    catch(Exception ex)
+    {
+    }
+  }
+
   public void buildDb1()
      throws Exception
   {
-    try (InputStream ires = this.getClass().getResourceAsStream("/db1.sql"))
+    try(InputStream ires = this.getClass().getResourceAsStream("/db1.sql"))
+    {
+      DbUtils.executeSqlScript(con, new InputStreamReader(ires, "UTF-8"), true);
+    }
+  }
+
+  public void buildDb2()
+     throws Exception
+  {
+    try(InputStream ires = this.getClass().getResourceAsStream("/db2.sql"))
     {
       DbUtils.executeSqlScript(con, new InputStreamReader(ires, "UTF-8"), true);
     }

@@ -55,14 +55,14 @@ public class DerbyTestEnvironment implements Closeable
   }
 
   public void open()
-     throws ClassNotFoundException, SQLException
+     throws Exception
   {
     temp = OsIdent.getSystemTemp();
     dbFile = new File(temp, "rigel5test.derby");
-    Logger.getLogger(DerbyTestEnvironment.class.getName()).log(Level.INFO,
-       "Database di test creato in " + dbFile.getAbsolutePath());
+    Logger.getLogger(DerbyTestEnvironment.class.getName())
+       .log(Level.INFO, "Database di test creato in {0}", dbFile.getAbsolutePath());
 
-    Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
+    Class.forName("org.apache.derby.jdbc.EmbeddedDriver").newInstance();
     connectionURL = "jdbc:derby:" + dbFile.getAbsolutePath() + ";create=true";
     conn = DriverManager.getConnection(connectionURL);
     createTestDatabase();

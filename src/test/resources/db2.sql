@@ -1,0 +1,120 @@
+-- -----------------------------------------------------------------------
+-- test test test
+-- -----------------------------------------------------------------------
+
+
+-- -----------------------------------------------------------------------
+-- TURBINE_PERMISSION
+-- -----------------------------------------------------------------------
+CREATE TABLE TURBINE_PERMISSION
+(
+    PERMISSION_ID INTEGER NOT NULL,
+    PERMISSION_NAME VARCHAR(64) NOT NULL,
+    PRIMARY KEY(PERMISSION_ID),
+    CONSTRAINT TURBINE_PERMISSION_UQ_1 UNIQUE (PERMISSION_NAME)
+);
+
+
+CREATE SEQUENCE TURBINE_PERMISSION_SEQ INCREMENT BY 1 START WITH 1 NO MAXVALUE NO CYCLE;
+
+-- -----------------------------------------------------------------------
+-- TURBINE_ROLE
+-- -----------------------------------------------------------------------
+CREATE TABLE TURBINE_ROLE
+(
+    ROLE_ID INTEGER NOT NULL,
+    ROLE_NAME VARCHAR(64) NOT NULL,
+    PRIMARY KEY(ROLE_ID),
+    CONSTRAINT TURBINE_ROLE_UQ_1 UNIQUE (ROLE_NAME)
+);
+
+
+CREATE SEQUENCE TURBINE_ROLE_SEQ INCREMENT BY 1 START WITH 1 NO MAXVALUE NO CYCLE;
+
+-- -----------------------------------------------------------------------
+-- TURBINE_GROUP
+-- -----------------------------------------------------------------------
+CREATE TABLE TURBINE_GROUP
+(
+    GROUP_ID INTEGER NOT NULL,
+    GROUP_NAME VARCHAR(64) NOT NULL,
+    PRIMARY KEY(GROUP_ID),
+    CONSTRAINT TURBINE_GROUP_UQ_1 UNIQUE (GROUP_NAME)
+);
+
+
+CREATE SEQUENCE TURBINE_GROUP_SEQ INCREMENT BY 1 START WITH 1 NO MAXVALUE NO CYCLE;
+
+-- -----------------------------------------------------------------------
+-- TURBINE_ROLE_PERMISSION
+-- -----------------------------------------------------------------------
+CREATE TABLE TURBINE_ROLE_PERMISSION
+(
+    ROLE_ID INTEGER NOT NULL,
+    PERMISSION_ID INTEGER NOT NULL,
+    PRIMARY KEY(ROLE_ID, PERMISSION_ID)
+);
+
+
+
+-- -----------------------------------------------------------------------
+-- TURBINE_USER
+-- -----------------------------------------------------------------------
+CREATE TABLE TURBINE_USER
+(
+    USER_ID INTEGER NOT NULL,
+    LOGIN_NAME VARCHAR(64) NOT NULL,
+    PASSWORD_VALUE VARCHAR(16) NOT NULL,
+    FIRST_NAME VARCHAR(64) NOT NULL,
+    LAST_NAME VARCHAR(64) NOT NULL,
+    EMAIL VARCHAR(64),
+    CONFIRM_VALUE VARCHAR(16),
+    MODIFIED_DATE TIMESTAMP,
+    CREATED TIMESTAMP,
+    LAST_LOGIN TIMESTAMP,
+    PRIMARY KEY(USER_ID),
+    CONSTRAINT TURBINE_USER_UQ_1 UNIQUE (LOGIN_NAME)
+);
+
+
+CREATE SEQUENCE TURBINE_USER_SEQ INCREMENT BY 1 START WITH 1 NO MAXVALUE NO CYCLE;
+
+-- -----------------------------------------------------------------------
+-- TURBINE_USER_GROUP_ROLE
+-- -----------------------------------------------------------------------
+CREATE TABLE TURBINE_USER_GROUP_ROLE
+(
+    USER_ID INTEGER NOT NULL,
+    GROUP_ID INTEGER NOT NULL,
+    ROLE_ID INTEGER NOT NULL,
+    PRIMARY KEY(USER_ID, GROUP_ID, ROLE_ID)
+);
+
+
+ALTER TABLE TURBINE_ROLE_PERMISSION
+    ADD CONSTRAINT TURBINE_ROLE_PERMISSION_FK_1
+    FOREIGN KEY (ROLE_ID)
+    REFERENCES TURBINE_ROLE (ROLE_ID);
+
+ALTER TABLE TURBINE_ROLE_PERMISSION
+    ADD CONSTRAINT TURBINE_ROLE_PERMISSION_FK_2
+    FOREIGN KEY (PERMISSION_ID)
+    REFERENCES TURBINE_PERMISSION (PERMISSION_ID);
+
+ALTER TABLE TURBINE_USER_GROUP_ROLE
+    ADD CONSTRAINT TURBINE_USER_GROUP_ROLE_FK_1
+    FOREIGN KEY (USER_ID)
+    REFERENCES TURBINE_USER (USER_ID);
+
+ALTER TABLE TURBINE_USER_GROUP_ROLE
+    ADD CONSTRAINT TURBINE_USER_GROUP_ROLE_FK_2
+    FOREIGN KEY (GROUP_ID)
+    REFERENCES TURBINE_GROUP (GROUP_ID);
+
+ALTER TABLE TURBINE_USER_GROUP_ROLE
+    ADD CONSTRAINT TURBINE_USER_GROUP_ROLE_FK_3
+    FOREIGN KEY (ROLE_ID)
+    REFERENCES TURBINE_ROLE (ROLE_ID);
+
+
+

@@ -159,6 +159,16 @@ public class TableHelper
     }
   }
 
+  public Classificatore<String, RelazioniBean> getEsportate()
+  {
+    return esportate;
+  }
+
+  public Classificatore<String, RelazioniBean> getImportate()
+  {
+    return importate;
+  }
+
   public static class RelazioniBean
   {
     public String pktable_cat,
