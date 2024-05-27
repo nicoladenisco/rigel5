@@ -298,6 +298,11 @@ public class CriteriaRigel extends Criteria
     return isBetweenTimestampDateTrunc(columnname, data, data);
   }
 
+  public CriteriaRigel isEqualDate(ColumnMap cm, Date data)
+  {
+    return isBetweenTimestampDateTrunc(cm, data, data);
+  }
+
   public static String isEqualDateSQL(String columnname, Date data)
   {
     return isBetweenTimestampDateTruncSQL(columnname, data, data);
