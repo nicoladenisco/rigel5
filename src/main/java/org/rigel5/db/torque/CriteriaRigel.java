@@ -220,7 +220,37 @@ public class CriteriaRigel extends Criteria
    * @param max the max value (include in query)
    * @return this object
    */
+  public CriteriaRigel isBetween(ColumnMap columnname, int min, int max)
+  {
+    super.and(columnname, min, Criteria.GREATER_EQUAL);
+    super.and(columnname, max, Criteria.LESS_EQUAL);
+    return this;
+  }
+
+  /**
+   * Represents the BETWEEN operator
+   *
+   * @param columnname the column name
+   * @param min the min value (incluse in query)
+   * @param max the max value (include in query)
+   * @return this object
+   */
   public CriteriaRigel isBetween(String columnname, double min, double max)
+  {
+    super.and(columnname, min, Criteria.GREATER_EQUAL);
+    super.and(columnname, max, Criteria.LESS_EQUAL);
+    return this;
+  }
+
+  /**
+   * Represents the BETWEEN operator
+   *
+   * @param columnname the column name
+   * @param min the min value (incluse in query)
+   * @param max the max value (include in query)
+   * @return this object
+   */
+  public CriteriaRigel isBetween(ColumnMap columnname, double min, double max)
   {
     super.and(columnname, min, Criteria.GREATER_EQUAL);
     super.and(columnname, max, Criteria.LESS_EQUAL);
@@ -250,7 +280,37 @@ public class CriteriaRigel extends Criteria
    * @param max the max value (include in query)
    * @return this object
    */
+  public CriteriaRigel isBetween(ColumnMap columnname, Date min, Date max)
+  {
+    super.and(columnname, min, Criteria.GREATER_EQUAL);
+    super.and(columnname, max, Criteria.LESS_EQUAL);
+    return this;
+  }
+
+  /**
+   * Represents the BETWEEN operator
+   *
+   * @param columnname the column name
+   * @param min the min value (incluse in query)
+   * @param max the max value (include in query)
+   * @return this object
+   */
   public CriteriaRigel isBetweenTimestamp(String columnname, Date min, Date max)
+  {
+    super.and(columnname, min, Criteria.GREATER_EQUAL);
+    super.and(columnname, max, Criteria.LESS_EQUAL);
+    return this;
+  }
+
+  /**
+   * Represents the BETWEEN operator
+   *
+   * @param columnname the column name
+   * @param min the min value (incluse in query)
+   * @param max the max value (include in query)
+   * @return this object
+   */
+  public CriteriaRigel isBetweenTimestamp(ColumnMap columnname, Date min, Date max)
   {
     super.and(columnname, min, Criteria.GREATER_EQUAL);
     super.and(columnname, max, Criteria.LESS_EQUAL);
@@ -306,6 +366,21 @@ public class CriteriaRigel extends Criteria
   public static String isEqualDateSQL(String columnname, Date data)
   {
     return isBetweenTimestampDateTruncSQL(columnname, data, data);
+  }
+
+  /**
+   * Represents the BETWEEN operator
+   *
+   * @param columnname the column name
+   * @param min the min value (incluse in query)
+   * @param max the max value (include in query)
+   * @return
+   */
+  public CriteriaRigel isBetween(ColumnMap columnname, String min, String max)
+  {
+    super.and(columnname, (Object) min, Criteria.GREATER_EQUAL);
+    super.and(columnname, (Object) max, Criteria.LESS_EQUAL);
+    return this;
   }
 
   /**
@@ -382,13 +457,6 @@ public class CriteriaRigel extends Criteria
   public CriteriaRigel addNotIn(ColumnMap cm, int[] idRes)
   {
     andNotIn(cm, ArrayOper.asList(idRes));
-    return this;
-  }
-
-  public CriteriaRigel isBetweenTimestamp(ColumnMap col, Date min, Date max)
-  {
-    super.and(col, min, Criteria.GREATER_EQUAL);
-    super.and(col, max, Criteria.LESS_EQUAL);
     return this;
   }
 
