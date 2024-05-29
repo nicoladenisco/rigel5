@@ -17,8 +17,12 @@
  */
 package org.rigel5.db;
 
-import com.workingdogs.village.*;
 import com.workingdogs.village.Column;
+import com.workingdogs.village.DataSetException;
+import com.workingdogs.village.QueryDataSet;
+import com.workingdogs.village.Record;
+import com.workingdogs.village.Schema;
+import com.workingdogs.village.TableDataSet;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.math.BigDecimal;

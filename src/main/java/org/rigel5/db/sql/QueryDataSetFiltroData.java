@@ -17,7 +17,12 @@
  */
 package org.rigel5.db.sql;
 
-import com.workingdogs.village.*;
+import com.workingdogs.village.Column;
+import com.workingdogs.village.DataSetException;
+import com.workingdogs.village.QueryDataSet;
+import com.workingdogs.village.Record;
+import com.workingdogs.village.Schema;
+import com.workingdogs.village.Value;
 import java.lang.reflect.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -60,7 +65,8 @@ public class QueryDataSetFiltroData extends QueryDataSet
     String sql1 = buildQueryNoWhere(select, from, filtro) + " WHERE 1 = -1";
     Schema s = new Schema();
 
-    try (Statement stm = conn.createStatement(); ResultSet rs = stm.executeQuery(sql1))
+    try(Statement stm = conn.createStatement();
+       ResultSet rs = stm.executeQuery(sql1))
     {
       s.populate(rs.getMetaData(), null, conn);
     }
@@ -240,7 +246,7 @@ public class QueryDataSetFiltroData extends QueryDataSet
   public static List<Record> fetchAllRecords(Connection conn, String select, String from, FiltroData filtro)
      throws Exception
   {
-    try (QueryDataSetFiltroData qs = new QueryDataSetFiltroData(conn, select, from, filtro))
+    try(QueryDataSetFiltroData qs = new QueryDataSetFiltroData(conn, select, from, filtro))
     {
       return qs.fetchAllRecords();
     }
@@ -249,7 +255,7 @@ public class QueryDataSetFiltroData extends QueryDataSet
   public static Pair<Schema, List<Record>> fetchAllRecordsAndSchema(Connection conn, String select, String from, FiltroData filtro)
      throws Exception
   {
-    try (QueryDataSetFiltroData qs = new QueryDataSetFiltroData(conn, select, from, filtro))
+    try(QueryDataSetFiltroData qs = new QueryDataSetFiltroData(conn, select, from, filtro))
     {
       return new Pair<>(qs.schema, qs.fetchAllRecords());
     }

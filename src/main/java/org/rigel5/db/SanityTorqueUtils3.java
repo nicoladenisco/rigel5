@@ -17,7 +17,7 @@
  */
 package org.rigel5.db;
 
-import com.workingdogs.village.*;
+import com.workingdogs.village.Record;
 import java.sql.Connection;
 import java.sql.Timestamp;
 import java.sql.Types;
