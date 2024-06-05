@@ -1168,6 +1168,13 @@ public class DbUtils
     return getSelectResults(qds, 0, -1);
   }
 
+  /**
+   * Esegue una query.
+   * @param queryString
+   * @return
+   * @throws Exception
+   * @deprecated usa la versione con connessione esplicita
+   */
   public static List<Record> executeQuery(String queryString)
      throws Exception
   {
@@ -1280,6 +1287,16 @@ public class DbUtils
   {
     Query query = SqlBuilder.buildQuery(criteria);
     return query.toString();
+  }
+
+  public static int[] doSelectForID(Criteria criteria, int numField, Connection con)
+     throws Exception
+  {
+    try(Stream<Record> resultStream = doSelectAsStream(criteria, new VillageRecordMapper(), con))
+    {
+      List<Record> result = resultStream.collect(Collectors.toList());
+      return extractIntArray(result, (r) -> r.getValue(numField).asInt());
+    }
   }
 
   /**
