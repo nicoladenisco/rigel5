@@ -398,6 +398,11 @@ public class CriteriaRigel extends Criteria
     return this;
   }
 
+  public CriteriaRigel addILike(ColumnMap cm, String value)
+  {
+    return (CriteriaRigel) and(cm, value, ILIKE);
+  }
+
   /**
    * Represents the ILIKE operator
    *
@@ -407,21 +412,7 @@ public class CriteriaRigel extends Criteria
    */
   public CriteriaRigel addILike(String tableColumn, String value)
   {
-    String table, column;
-    int dot = tableColumn.lastIndexOf('.');
-    if(dot == -1)
-    {
-      table = "";
-      column = tableColumn;
-    }
-    else
-    {
-      table = tableColumn.substring(0, dot);
-      column = tableColumn.substring(dot + 1);
-    }
-
-    addILike(table, column, value);
-    return this;
+    return (CriteriaRigel) and(tableColumn, value, ILIKE);
   }
 
   public CriteriaRigel andIn(ColumnMap cm, int[] idRes)
@@ -491,6 +482,29 @@ public class CriteriaRigel extends Criteria
   public CriteriaRigel addNotIn(ColumnMap cm, Collection<?> ids)
   {
     super.andNotIn(cm, ids);
+    return this;
+  }
+
+  public CriteriaRigel addVerbatimSql(final String sql)
+  {
+    return (CriteriaRigel) andVerbatimSql(sql, null);
+  }
+
+  public CriteriaRigel setIn(ColumnMap columnname, Collection<?> lFiltri)
+  {
+    if(lFiltri != null && !lFiltri.isEmpty())
+      addIn(columnname, lFiltri);
+
+    return this;
+  }
+
+  public CriteriaRigel isBetweenDate(ColumnMap columnname, Date min, Date max)
+     throws Exception
+  {
+    if(min == null || max == null)
+      return this;
+
+    isBetweenTimestampDateTrunc(columnname, min, max);
     return this;
   }
 }
