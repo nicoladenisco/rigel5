@@ -1078,11 +1078,7 @@ public class DbUtils
   public static int[] queryForID(Connection con, int numField, String sSQL)
      throws Exception
   {
-    List<Record> lsRecs = executeQuery(sSQL, con);
-    return lsRecs.stream()
-       .mapToInt(LEU.rethrowFunctionInt((r) -> r.getValue(numField).asInt()))
-       .filter((i) -> i != 0)
-       .sorted().distinct().toArray();
+    return queryForID(con, sSQL, (r) -> r.getInt(numField));
   }
 
   /**
@@ -1097,14 +1093,88 @@ public class DbUtils
   public static int[] queryForID(int numField, ResultSet rs)
      throws Exception
   {
+    return queryForID(rs, (r) -> r.getInt(numField));
+  }
+
+  /**
+   * Esegue una query ritornando l'array di interi prodotto dalla lambda.
+   * Di solito utilizzata per estrarre le chiavi di una tabella secondaria.
+   * ES: SELECT idcollegata FROM tabellaCollegata WHERE idmaster=100
+   * @param con connessione al db
+   * @param sSQL query per il risultato
+   * @param extractor estrattore di interi dal resultset
+   * @return array di interi del primo campo della query
+   * @throws Exception
+   */
+  public static int[] queryForID(Connection con, String sSQL, FunctionTrowException<ResultSet, Integer> extractor)
+     throws Exception
+  {
+    try(ResultSet rs = con.createStatement().executeQuery(sSQL))
+    {
+      return queryForID(rs, extractor);
+    }
+  }
+
+  /**
+   * Esegue una query ritornando l'array di interi prodotto dalla lambda.
+   * Di solito utilizzata per estrarre le chiavi di una tabella secondaria.
+   * ES: SELECT idcollegata FROM tabellaCollegata WHERE idmaster=100
+   * @param rs ResultSet appositamente creato
+   * @param extractor estrattore di interi dal resultset
+   * @return array di interi del primo campo della query
+   * @throws Exception
+   */
+  public static int[] queryForID(ResultSet rs, FunctionTrowException<ResultSet, Integer> extractor)
+     throws Exception
+  {
     ArrayList<Integer> rv = new ArrayList<>(128);
     while(rs.next())
-      rv.add(rs.getInt(numField));
+      rv.add(extractor.apply(rs));
 
     return rv.stream()
        .mapToInt((i) -> i)
        .filter((i) -> i != 0)
        .sorted().distinct().toArray();
+  }
+
+  /**
+   * Esegue una query ritornando l'array di stringhe prodotto dalla lambda.
+   * Di solito utilizzata per estrarre le chiavi di una tabella secondaria.
+   * ES: SELECT idcollegata FROM tabellaCollegata WHERE idmaster=100
+   * @param con connessione al db
+   * @param sSQL query per il risultato
+   * @param extractor estrattore di stringhe dal resultset
+   * @return array di stringhe del primo campo della query
+   * @throws Exception
+   */
+  public static String[] queryForString(Connection con, String sSQL, FunctionTrowException<ResultSet, String> extractor)
+     throws Exception
+  {
+    try(ResultSet rs = con.createStatement().executeQuery(sSQL))
+    {
+      return queryForString(rs, extractor);
+    }
+  }
+
+  /**
+   * Esegue una query ritornando l'array di stringhe prodotto dalla lambda.
+   * Di solito utilizzata per estrarre le chiavi di una tabella secondaria.
+   * ES: SELECT idcollegata FROM tabellaCollegata WHERE idmaster=100
+   * @param rs ResultSet appositamente creato
+   * @param extractor estrattore di stringhe dal resultset
+   * @return array di stringhe del primo campo della query
+   * @throws Exception
+   */
+  public static String[] queryForString(ResultSet rs, FunctionTrowException<ResultSet, String> extractor)
+     throws Exception
+  {
+    ArrayList<String> rv = new ArrayList<>(128);
+    while(rs.next())
+      rv.add(StringOper.okStrNull(extractor.apply(rs)));
+
+    return rv.stream()
+       .filter((s) -> s != null)
+       .sorted().distinct().toArray(String[]::new);
   }
 
   /**
