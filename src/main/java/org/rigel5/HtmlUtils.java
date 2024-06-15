@@ -243,7 +243,7 @@ public class HtmlUtils
   public static String mergeUrlPair(String url, Object... params)
   {
     if((params.length & 1) != 0)
-      throw new IllegalArgumentException();
+      throw new IllegalArgumentException("params list must be pair");
 
     for(int i = 0; i < params.length; i += 2)
     {
@@ -259,7 +259,7 @@ public class HtmlUtils
   public static String mergeUrlPairTestUnique(String url, Object... params)
   {
     if((params.length & 1) != 0)
-      throw new IllegalArgumentException();
+      throw new IllegalArgumentException("params list must be pair");
 
     for(int i = 0; i < params.length; i += 2)
     {

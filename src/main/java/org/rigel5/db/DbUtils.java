@@ -1369,6 +1369,16 @@ public class DbUtils
     }
   }
 
+  public static String[] doSelectForString(Criteria criteria, int numField, Connection con)
+     throws Exception
+  {
+    try(Stream<Record> resultStream = doSelectAsStream(criteria, new VillageRecordMapper(), con))
+    {
+      List<Record> result = resultStream.collect(Collectors.toList());
+      return extractStringArray(result, (r) -> r.getValue(numField).asOkString());
+    }
+  }
+
   /**
    * Returns all results.
    *
