@@ -1252,9 +1252,9 @@ public class hEditTable extends hTable
       if(key != null)
       {
         Object defVal = param.get(key);
-        if(defVal == null)
+        if(StringOper.okStrNull(defVal) == null)
           defVal = param.get(radiceNomeParametri + key);
-        if(defVal != null)
+        if(StringOper.okStrNull(defVal) != null)
           cd.setValueAscii(newObj, defVal.toString());
       }
     }
@@ -1286,9 +1286,9 @@ public class hEditTable extends hTable
       if(key != null)
       {
         Object defVal = param.get(key);
-        if(defVal == null)
+        if(StringOper.okStrNull(defVal) == null)
           defVal = param.get(radiceNomeParametri + key);
-        if(defVal != null)
+        if(StringOper.okStrNull(defVal) != null)
           cd.setValueAscii(newObj, defVal.toString());
       }
     }
