@@ -18,10 +18,12 @@
 package org.rigel5;
 
 import java.text.Format;
+import java.text.ParsePosition;
+import org.rigel5.table.RigelTableModel;
 
 /**
  * Estensione format.
- * Usato principalmente per l'internazionalizzazione.
+ * Consente di formattare campi speciali.
  *
  * @author Nicola De Nisco
  */
@@ -32,6 +34,27 @@ abstract public class RigelExtendedFormat extends Format
    * @param i18n
    * @throws Exception
    */
-  abstract public void prepareToRender(RigelI18nInterface i18n)
-     throws Exception;
+  public void prepareToRender(RigelI18nInterface i18n)
+     throws Exception
+  {
+  }
+
+  /**
+   * Prima di iniziare la renderizzazione del record.
+   * @param tm
+   * @param row
+   * @param col
+   * @throws Exception
+   */
+  public void prepareFormatRecord(RigelTableModel tm, int row, int col)
+     throws Exception
+  {
+  }
+
+  @Override
+  public Object parseObject(String source, ParsePosition pos)
+  {
+    pos.setIndex(source.length());
+    return source;
+  }
 }

@@ -21,7 +21,7 @@ import java.text.Format;
 import java.util.*;
 import javax.swing.table.TableModel;
 import org.rigel5.HtmlUtils;
-import org.rigel5.glue.RigelFormat;
+import org.rigel5.RigelExtendedFormat;
 import org.rigel5.table.RigelColumnDescriptor;
 import org.rigel5.table.RigelTableModel;
 
@@ -240,8 +240,8 @@ public class FormTable extends hEditTable
     {
       RigelColumnDescriptor rcd = getCD(i);
       Format rf = rcd.getFormatter();
-      if(rf != null && rf instanceof RigelFormat)
-        ((RigelFormat) rf).prepareFormatRecord(getTM(), row, i);
+      if(rf != null && rf instanceof RigelExtendedFormat)
+        ((RigelExtendedFormat) rf).prepareFormatRecord(getTM(), row, i);
     }
 
     mr = mc = 0;

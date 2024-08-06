@@ -27,7 +27,6 @@ import org.rigel5.RigelCustomUrlBuilder;
 import org.rigel5.RigelExtendedFormat;
 import org.rigel5.RigelI18nInterface;
 import org.rigel5.SetupHolder;
-import org.rigel5.glue.RigelFormat;
 import org.rigel5.table.*;
 
 /**
@@ -410,8 +409,8 @@ public class hTable
       RigelColumnDescriptor cd = getCD(i);
       if(cd.isVisible())
       {
-        if(cd.getFormatter() != null && cd.getFormatter() instanceof RigelFormat)
-          ((RigelFormat) cd.getFormatter()).prepareFormatRecord(getTM(), row, i);
+        if(cd.getFormatter() != null && cd.getFormatter() instanceof RigelExtendedFormat)
+          ((RigelExtendedFormat) cd.getFormatter()).prepareFormatRecord(getTM(), row, i);
 
         String cellText = doCellText(row, i, tableModel.getValueAt(row, i));
         String cellHtml = doCellHtml(row, i, cellText);
