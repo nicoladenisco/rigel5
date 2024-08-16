@@ -33,6 +33,7 @@ import org.apache.commons.csv.CSVRecord;
 import org.apache.torque.map.ColumnMap;
 import org.commonlib5.exec.ExecHelper;
 import org.commonlib5.utils.ArrayMap;
+import org.commonlib5.utils.FileScanner;
 import org.commonlib5.utils.OsIdent;
 import org.commonlib5.utils.StringOper;
 import org.jdom2.Document;
@@ -59,7 +60,7 @@ abstract public class AbstractAlignDatabase
 
   public static class StepUpdate
   {
-    public ArrayList<ItemUpdate> lsItem = new ArrayList<ItemUpdate>();
+    public final List<ItemUpdate> lsItem = new ArrayList<>();
     public boolean uniqueTransaction = false;
   }
 
@@ -272,7 +273,7 @@ abstract public class AbstractAlignDatabase
   {
     System.out.println("=== Elaborazione " + fileSql.getAbsolutePath() + " ===");
 
-    try ( InputStreamReader rd = new InputStreamReader(new FileInputStream(fileSql), "UTF-8"))
+    try(InputStreamReader rd = new InputStreamReader(new FileInputStream(fileSql), "UTF-8"))
     {
       executeStreamSql(rd);
     }
@@ -281,7 +282,8 @@ abstract public class AbstractAlignDatabase
   protected void executeStreamSql(Reader rd)
      throws Exception
   {
-    try ( Statement query = con.createStatement();  BufferedReader in = new BufferedReader(rd))
+    try(Statement query = con.createStatement();
+       BufferedReader in = new BufferedReader(rd))
     {
       String str;
       StringBuilder sb = new StringBuilder(SB_STATEMENT_SIZE);
@@ -322,7 +324,7 @@ abstract public class AbstractAlignDatabase
   {
     System.out.println("=== Elaborazione " + fileSql.getAbsolutePath() + " ===");
 
-    try ( InputStreamReader rd = new InputStreamReader(new FileInputStream(fileSql), "UTF-8"))
+    try(InputStreamReader rd = new InputStreamReader(new FileInputStream(fileSql), "UTF-8"))
     {
       executeStreamSqlIgnoraErrori(rd);
     }
@@ -335,7 +337,7 @@ abstract public class AbstractAlignDatabase
   public void executeFileSQL(File fileSQL, boolean ignoraErrori)
      throws Exception
   {
-    try ( InputStreamReader fr = new InputStreamReader(
+    try(InputStreamReader fr = new InputStreamReader(
        new FileInputStream(fileSQL), StandardCharsets.UTF_8))
     {
       if(ignoraErrori)
@@ -349,7 +351,7 @@ abstract public class AbstractAlignDatabase
   {
     try
     {
-      try ( BufferedReader in = new BufferedReader(rd))
+      try(BufferedReader in = new BufferedReader(rd))
       {
         String str, sSQL;
         StringBuilder sb = new StringBuilder(SB_STATEMENT_SIZE);
@@ -397,7 +399,7 @@ abstract public class AbstractAlignDatabase
       if(!executeMacro(sSQL))
       {
         // esegue la modifica
-        try ( Statement st = con.createStatement())
+        try(Statement st = con.createStatement())
         {
           if(sSQL.endsWith(";"))
             sSQL = StringOper.left(sSQL, -1);
@@ -502,7 +504,7 @@ abstract public class AbstractAlignDatabase
 
     try
     {
-      try ( Statement st = con.createStatement())
+      try(Statement st = con.createStatement())
       {
         st.executeUpdate(
            "ALTER TABLE " + tabella
@@ -571,7 +573,7 @@ abstract public class AbstractAlignDatabase
            + " ADD CONSTRAINT " + indice
            + " UNIQUE(" + colonne + ");";
 
-        try ( Statement st = con.createStatement())
+        try(Statement st = con.createStatement())
         {
           st.executeUpdate(sSQL);
         }
@@ -632,7 +634,7 @@ abstract public class AbstractAlignDatabase
 
     DatabaseMetaData databaseMetaData = con.getMetaData();
     ArrayList<String> viewNames = new ArrayList<String>();
-    try ( ResultSet rSet = databaseMetaData.getTables(null, null, null, DbUtils.VIEWS_FILTER))
+    try(ResultSet rSet = databaseMetaData.getTables(null, null, null, DbUtils.VIEWS_FILTER))
     {
       while(rSet.next())
       {
@@ -666,7 +668,7 @@ abstract public class AbstractAlignDatabase
         if(optionShowsql)
           System.out.println("SQL=" + sSQL);
 
-        try ( Statement st = con.createStatement())
+        try(Statement st = con.createStatement())
         {
           st.executeUpdate(sSQL);
         }
@@ -713,7 +715,7 @@ abstract public class AbstractAlignDatabase
       return;
     }
 
-    try ( Statement st = con.createStatement())
+    try(Statement st = con.createStatement())
     {
       // rimuove i valori che vanno in conflitto con la chiave esterna
       String sSQL
@@ -759,7 +761,7 @@ abstract public class AbstractAlignDatabase
     if(verbose)
       System.out.println("macro_createzero: " + sSQL);
 
-    try ( Statement st = con.createStatement())
+    try(Statement st = con.createStatement())
     {
       st.executeUpdate(sSQL);
     }
@@ -789,7 +791,7 @@ abstract public class AbstractAlignDatabase
     }
 
     DatabaseMetaData dbMeta = con.getMetaData();
-    try ( ResultSet rs = dbMeta.getIndexInfo(null, nomeSchema, nomeTabella, false, false))
+    try(ResultSet rs = dbMeta.getIndexInfo(null, nomeSchema, nomeTabella, false, false))
     {
       if(testResultset(rs, nomeIndice))
         return true;
@@ -798,7 +800,7 @@ abstract public class AbstractAlignDatabase
     if(nomeSchema != null)
       nomeSchema = nomeSchema.toLowerCase();
 
-    try ( ResultSet rs = dbMeta.getIndexInfo(null, nomeSchema, nomeTabella.toLowerCase(), false, false))
+    try(ResultSet rs = dbMeta.getIndexInfo(null, nomeSchema, nomeTabella.toLowerCase(), false, false))
     {
       if(testResultset(rs, nomeIndice))
         return true;
@@ -848,7 +850,8 @@ abstract public class AbstractAlignDatabase
     // recupera tutte le chiavi primarie in collisione
     ArrayList<String> arPrimary = new ArrayList<String>();
 
-    try ( Statement st = con.createStatement();  ResultSet rs = st.executeQuery(sSQL))
+    try(Statement st = con.createStatement();
+       ResultSet rs = st.executeQuery(sSQL))
     {
       while(rs.next())
       {
@@ -895,7 +898,7 @@ abstract public class AbstractAlignDatabase
     if(verbose)
       System.out.println("CL=" + uSQL);
 
-    try ( Statement su = con.createStatement())
+    try(Statement su = con.createStatement())
     {
       su.executeUpdate(uSQL);
     }
@@ -918,7 +921,7 @@ abstract public class AbstractAlignDatabase
       {
         String uSQL = sSQL + nomeColonna + "=NULL" + where + nomeColonna + "=''";
 
-        try ( Statement su = con.createStatement())
+        try(Statement su = con.createStatement())
         {
           if(veryverbose)
             System.out.println("uSQL=" + uSQL);
@@ -941,7 +944,8 @@ abstract public class AbstractAlignDatabase
     if(verbose)
       System.out.println("CD=" + sSQL);
 
-    try ( Statement st = con.createStatement();  ResultSet rs = st.executeQuery(sSQL))
+    try(Statement st = con.createStatement();
+       ResultSet rs = st.executeQuery(sSQL))
     {
       while(rs.next())
       {
@@ -977,9 +981,9 @@ abstract public class AbstractAlignDatabase
        + "  FROM " + nomeTabella
        + " WHERE " + nomeCampo + " IS NULL";
 
-    try ( Statement sq = con.createStatement())
+    try(Statement sq = con.createStatement())
     {
-      try ( ResultSet rs = sq.executeQuery(sSQL))
+      try(ResultSet rs = sq.executeQuery(sSQL))
       {
         String sUPD;
         while(rs.next())
@@ -997,7 +1001,7 @@ abstract public class AbstractAlignDatabase
                + " WHERE " + nomePrimary + "='" + rs.getLong(1) + "'";
           }
 
-          try ( Statement su = con.createStatement())
+          try(Statement su = con.createStatement())
           {
             su.executeUpdate(sUPD);
           }
@@ -1138,7 +1142,7 @@ abstract public class AbstractAlignDatabase
       nomeTabella = nomeTabella.substring(pos + 1);
     }
 
-    try ( ResultSet rs = con.getMetaData().getColumns(null, nomeSchema, nomeTabella, null))
+    try(ResultSet rs = con.getMetaData().getColumns(null, nomeSchema, nomeTabella, null))
     {
       while(rs.next())
       {
@@ -1153,7 +1157,7 @@ abstract public class AbstractAlignDatabase
     if(nomeSchema != null)
       nomeSchema = nomeSchema.toLowerCase();
 
-    try ( ResultSet rs = con.getMetaData().getColumns(null, nomeSchema, nomeTabella.toLowerCase(), null))
+    try(ResultSet rs = con.getMetaData().getColumns(null, nomeSchema, nomeTabella.toLowerCase(), null))
     {
       while(rs.next())
       {
@@ -1296,7 +1300,7 @@ abstract public class AbstractAlignDatabase
   protected void executeFileCsv(String tabella, String chiave, File csvFile, Element fileCsv)
      throws Exception
   {
-    try ( Reader in = new InputStreamReader(new FileInputStream(csvFile), "UTF-8"))
+    try(Reader in = new InputStreamReader(new FileInputStream(csvFile), "UTF-8"))
     {
       CSVParser parser = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(in);
 
@@ -1413,5 +1417,18 @@ abstract public class AbstractAlignDatabase
 
     if(forceAnno == 0 || forceSettimana == 0)
       throw new RuntimeException("Valori non consentiti per lo step di partenza.");
+  }
+
+  public void rigeneraViste(File dirSql)
+     throws Exception
+  {
+    List<File> lsFiles = FileScanner.scan(dirSql, 99, "*-viste.sql");
+    if(lsFiles.isEmpty())
+      return;
+
+    for(File fvista : lsFiles)
+    {
+      executeFileSQL(fvista, true);
+    }
   }
 }
