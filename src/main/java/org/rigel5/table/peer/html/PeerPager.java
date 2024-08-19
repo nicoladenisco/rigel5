@@ -90,7 +90,8 @@ public class PeerPager extends CommonPager
   {
     cSelezione.setOffset((int) start);
     cSelezione.setLimit((int) limit);
-    cSelezione.setIgnoreCase(true);
+    //se nella selezione si utilizzano campi interi, questo provoca errore
+    //cSelezione.setIgnoreCase(true);
 
     List v = getRecords(cSelezione);
     if(!v.isEmpty())

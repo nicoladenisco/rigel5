@@ -754,27 +754,9 @@ abstract public class PeerAbstractTableModel extends RigelObjectTableModel
     if(cSelezione == null)
       return getTotalRecords();
 
-    cSelezione.setIgnoreCase(true);
-    String critSql = DbUtils.createQueryString(cSelezione);
-
-    int pos = critSql.indexOf(" FROM ");
-    if(pos == -1)
-      return getTotalRecords();
-
-    int posOrder = critSql.indexOf(" ORDER BY ");
-    if(posOrder != -1)
-      critSql = critSql.substring(0, posOrder);
-
-    String sSQL = "SELECT COUNT(*) AS NUMRECORDS " + critSql.substring(pos);
-
 //   * RIMOSSO CODICE CON CACHE (02/02/2012)
 //   * ECCESSIVAMENTE POCO USER FRIENDLY (LA PAGINAZIONE NON SI AGGIORNA)
-    //log.debug("sSQL="+sSQL);
-    List v = DbUtils.executeQuery(sSQL);
-    if(!v.isEmpty())
-      totalRecordsFilter = ((Record) (v.get(0))).getValue(1).asLong();
-
-    return totalRecordsFilter;
+    return totalRecordsFilter = DbUtils.getRecordCount(cSelezione);
   }
 
   @Override

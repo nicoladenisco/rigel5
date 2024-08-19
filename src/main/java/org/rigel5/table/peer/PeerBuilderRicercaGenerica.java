@@ -204,7 +204,8 @@ public class PeerBuilderRicercaGenerica implements BuilderRicercaGenerica
     sOut = "<select name=\"" + nomeCombo + "\" onChange=\"" + setComboFunjs + "\">";
 
     if(cd.isComboSelf())
-      sOut += cd.getHtmlComboColonnaSelf(0, 0, ptm, nomeTabella, tmap.getNomeCampo(cd.getName()), defVal);
+      sOut += cd.getHtmlComboColonnaSelf(0, 0, ptm,
+         tmap.getFullyQualifiedTableName(), tmap.getNomeCampo(cd.getName()), defVal);
     else
       sOut += cd.getHtmlComboColonnaAttached(0, 0, ptm, defVal, i18n, false);
     sOut += "</select>";
