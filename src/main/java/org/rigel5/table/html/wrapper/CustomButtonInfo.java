@@ -43,7 +43,7 @@ public class CustomButtonInfo implements Cloneable
   private String html;
   private boolean lineEdit;
   private CustomButtonRuntimeInterface cbri = null;
-  private final List<CustomButtonInfo> innerButtons = new ArrayList<CustomButtonInfo>();
+  private final List<CustomButtonInfo> innerButtons = new ArrayList<>();
 
   public CustomButtonInfo()
   {

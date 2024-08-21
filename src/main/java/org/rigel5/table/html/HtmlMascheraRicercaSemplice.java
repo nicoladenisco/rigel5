@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -18,11 +18,8 @@
 package org.rigel5.table.html;
 
 import java.net.URLEncoder;
-import org.rigel5.RigelI18nInterface;
 import org.rigel5.SetupHolder;
-import org.rigel5.table.BuilderRicercaGenerica;
 import org.rigel5.table.RigelColumnDescriptor;
-import org.rigel5.table.RigelTableModel;
 
 /**
  * Generazione HTML per filtro semplificato.
@@ -32,19 +29,19 @@ import org.rigel5.table.RigelTableModel;
  * ne ordinamento.
  * Il suo scopo è di fornire una maschera di filtro a partire da un TableModel
  * per usi diversi di quelli previsti da Rigel.
+ * @deprecated usi spinti di rigel vengono gestiti meglio dal relativo tool
  */
 public class HtmlMascheraRicercaSemplice extends HtmlMascheraRicercaGenerica
 {
   protected String fldPrefix = "";
 
-  public HtmlMascheraRicercaSemplice(BuilderRicercaGenerica brg, RigelTableModel rtm, RigelI18nInterface i18n)
+  public String getFldPrefix()
   {
-    super(brg, rtm, i18n);
+    return fldPrefix;
   }
 
-  public HtmlMascheraRicercaSemplice(BuilderRicercaGenerica brg, RigelTableModel rtm, RigelI18nInterface i18n, String fldPrefix)
+  public void setFldPrefix(String fldPrefix)
   {
-    super(brg, rtm, i18n);
     this.fldPrefix = fldPrefix;
   }
 

@@ -45,13 +45,14 @@ import org.rigel5.table.RigelTableModel;
 public class HtmlMascheraRicercaGenericaNoscript implements MascheraRicercaGenerica
 {
   /** Logging */
-  private static Log log = LogFactory.getLog(HtmlMascheraRicercaGenericaNoscript.class);
+  private static final Log log = LogFactory.getLog(HtmlMascheraRicercaGenericaNoscript.class);
   protected BuilderRicercaGenerica brg = null;
   protected RigelTableModel rtm = null;
   protected String formName = "fo";
   protected RigelI18nInterface i18n = null;
 
-  public HtmlMascheraRicercaGenericaNoscript(BuilderRicercaGenerica brg, RigelTableModel rtm, RigelI18nInterface i18n)
+  @Override
+  public void init(BuilderRicercaGenerica brg, RigelTableModel rtm, RigelI18nInterface i18n)
   {
     this.brg = brg;
     this.rtm = rtm;

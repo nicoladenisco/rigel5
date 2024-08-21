@@ -18,6 +18,7 @@
 package org.rigel5.table;
 
 import java.util.Map;
+import org.rigel5.RigelI18nInterface;
 import org.rigel5.table.html.RigelHtmlPage;
 
 /**
@@ -27,6 +28,16 @@ import org.rigel5.table.html.RigelHtmlPage;
  */
 public interface MascheraRicercaGenerica
 {
+  /**
+   * Inizializza con i dati utili.
+   * @param brg
+   * @param rtm
+   * @param i18n
+   * @throws Exception
+   */
+  public void init(BuilderRicercaGenerica brg, RigelTableModel rtm, RigelI18nInterface i18n)
+     throws Exception;
+
   /**
    * Costruisce l'oggetto filtro.
    * Viene genericamente chiamata alla POST

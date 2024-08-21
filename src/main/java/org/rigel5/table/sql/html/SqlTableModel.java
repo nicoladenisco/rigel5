@@ -19,9 +19,9 @@ package org.rigel5.table.sql.html;
 
 import javax.swing.table.*;
 import org.rigel5.RigelI18nInterface;
+import org.rigel5.SetupHolder;
 import org.rigel5.db.sql.QueryBuilder;
 import org.rigel5.table.MascheraRicercaGenerica;
-import org.rigel5.table.html.HtmlMascheraRicercaGenerica;
 import org.rigel5.table.html.hTable;
 import org.rigel5.table.sql.SqlAbstractTableModel;
 import org.rigel5.table.sql.SqlBuilderRicercaGenerica;
@@ -104,6 +104,8 @@ public class SqlTableModel extends SqlAbstractTableModel
      throws Exception
   {
     String nometab = query.getVista();
-    return new HtmlMascheraRicercaGenerica(new SqlBuilderRicercaGenerica(this, nometab), this, i18n);
+    MascheraRicercaGenerica mgr = (MascheraRicercaGenerica) SetupHolder.getGenricercalisteclass().newInstance();
+    mgr.init(new SqlBuilderRicercaGenerica(this, nometab), this, i18n);
+    return mgr;
   }
 }

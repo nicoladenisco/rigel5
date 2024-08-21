@@ -22,6 +22,7 @@ import org.commonlib5.utils.ClassOper;
 import org.commonlib5.utils.StringOper;
 import org.rigel5.db.ConnectionProducer;
 import org.rigel5.db.sql.QueryBuilder;
+import org.rigel5.table.html.HtmlMascheraRicercaGenerica;
 
 /**
  * La classe SetupHolder mantiene una serie di settaggi
@@ -114,6 +115,9 @@ public class SetupHolder
 
   /* Default per protezione anti CSRF */
   private static boolean attivaProtezioneCSRF = true;
+
+  /** costruttore maschera di ricerca */
+  private static Class genricercalisteclass = HtmlMascheraRicercaGenerica.class;
 
   //////////////////////////////////////////////////////////////////
   //
@@ -400,5 +404,15 @@ public class SetupHolder
   public static void setAttivaProtezioneCSRF(boolean v)
   {
     attivaProtezioneCSRF = v;
+  }
+
+  public static Class getGenricercalisteclass()
+  {
+    return genricercalisteclass;
+  }
+
+  public static void setGenricercalisteclass(Class cls)
+  {
+    genricercalisteclass = cls;
   }
 }

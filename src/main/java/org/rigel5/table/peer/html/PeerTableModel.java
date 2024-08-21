@@ -19,8 +19,8 @@ package org.rigel5.table.peer.html;
 
 import javax.swing.table.*;
 import org.rigel5.RigelI18nInterface;
+import org.rigel5.SetupHolder;
 import org.rigel5.table.MascheraRicercaGenerica;
-import org.rigel5.table.html.HtmlMascheraRicercaGenerica;
 import org.rigel5.table.html.hTable;
 import org.rigel5.table.peer.PeerAbstractTableModel;
 import org.rigel5.table.peer.PeerBuilderRicercaGenerica;
@@ -76,6 +76,8 @@ public class PeerTableModel extends PeerAbstractTableModel
   public MascheraRicercaGenerica getMascheraRG(RigelI18nInterface i18n)
      throws Exception
   {
-    return new HtmlMascheraRicercaGenerica(new PeerBuilderRicercaGenerica(this, map), this, i18n);
+    MascheraRicercaGenerica mgr = (MascheraRicercaGenerica) SetupHolder.getGenricercalisteclass().newInstance();
+    mgr.init(new PeerBuilderRicercaGenerica(this, map), this, i18n);
+    return mgr;
   }
 }

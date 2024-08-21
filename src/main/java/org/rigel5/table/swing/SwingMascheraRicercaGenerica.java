@@ -22,6 +22,7 @@ import java.awt.event.*;
 import java.util.*;
 import javax.swing.*;
 import org.apache.commons.logging.*;
+import org.rigel5.RigelI18nInterface;
 import org.rigel5.table.BuilderRicercaGenerica;
 import org.rigel5.table.MascheraRicercaGenerica;
 import org.rigel5.table.RigelColumnDescriptor;
@@ -39,7 +40,7 @@ import org.rigel5.table.html.RigelHtmlPage;
 public class SwingMascheraRicercaGenerica extends JPanel implements MascheraRicercaGenerica
 {
   /** Logging */
-  private static Log log = LogFactory.getLog(SwingMascheraRicercaGenerica.class);
+  private static final Log log = LogFactory.getLog(SwingMascheraRicercaGenerica.class);
   JPanel jPanelComando = new JPanel();
   JButton butOk = new JButton();
   JButton butPulisci = new JButton();
@@ -48,7 +49,7 @@ public class SwingMascheraRicercaGenerica extends JPanel implements MascheraRice
   JLabel jLabel1 = new JLabel();
   JPanel jPanelSelezione = new JPanel();
   GridLayout gridLayout1 = new GridLayout();
-  ArrayList<MascheraFiltroListner> listners = new ArrayList<MascheraFiltroListner>();
+  ArrayList<MascheraFiltroListner> listners = new ArrayList<>();
   BuilderRicercaGenerica brg = null;
   public Object retCrit = null;
   protected RigelTableModel ptm = null;
@@ -56,7 +57,9 @@ public class SwingMascheraRicercaGenerica extends JPanel implements MascheraRice
   JComboBox cb[] = null;
   JTextField tf[] = null;
 
-  public SwingMascheraRicercaGenerica(BuilderRicercaGenerica brg, RigelTableModel rtm)
+  @Override
+  public void init(BuilderRicercaGenerica brg, RigelTableModel rtm, RigelI18nInterface i18n)
+     throws Exception
   {
     try
     {

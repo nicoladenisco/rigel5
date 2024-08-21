@@ -150,7 +150,9 @@ public class SqlTableModel extends SqlAbstractTableModel
      throws Exception
   {
     String nometab = query.getVista();
-    return new SwingMascheraRicercaGenerica(new SqlBuilderRicercaGenerica(this, nometab), this);
+    MascheraRicercaGenerica mgr = new SwingMascheraRicercaGenerica();
+    mgr.init(new SqlBuilderRicercaGenerica(this, nometab), this, i18n);
+    return mgr;
   }
 
   /**

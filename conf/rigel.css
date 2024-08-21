@@ -1,0 +1,124 @@
+/*
+ * Foglio di stile per libreria Rigel.
+ * Contiene una impostazione delle classi usate da rigel.
+ */
+
+.rigel_simple_search {
+  margin-bottom: 10px;
+  background-color: aquamarine;
+  padding: 3px;
+}
+
+.rigel_formtable {
+  font-size: 14px;
+  line-height: 20px;
+  background-color: #CCCCFF;
+}
+.rigel_formtable tr {
+  font-size: 14px;
+  line-height: 20px;
+  background-color: #CCCCFF;
+}
+.rigel_formtable tr td {
+  font-size: 14px;
+  line-height: 20px;
+  background-color: #CCCCFF;
+}
+
+.rigel_formtable tr :hover {
+  background-color: aqua;
+}
+
+.rigel_formtable tr:hover td {
+  background-color: aqua;
+}
+
+.rigel_formtable a
+{
+  font-size: 13px;
+  color: blue;
+  font-weight: bold;
+}
+
+.rigel_form_field_cell:hover {
+  background-color: revert !important;
+}
+/*
+.rigel_form_field_cell button, input, optgroup, select, textarea {
+  background-color: revert !important;
+}
+*/
+
+.rigel_table_header_row {
+  background-color: cornsilk;
+}
+
+.rigel_hedittable {
+  font-size: 14px;
+  line-height: 20px;
+  background-color: #CCCCFF;
+}
+.rigel_hedittable tr {
+  font-size: 14px;
+  line-height: 20px;
+  background-color: #CCCCFF;
+}
+.rigel_hedittable tr td {
+  font-size: 14px;
+  line-height: 20px;
+  background-color: #CCCCFF;
+}
+
+.rigel_hedittable tr :hover {
+  background-color: aqua;
+}
+
+.rigel_hedittable tr:hover td {
+  background-color: aqua;
+}
+
+.rigel_hedittable a
+{
+  font-size: 13px;
+  color: blue;
+  font-weight: bold;
+}
+
+.dlg-rigel-body-style {
+  font-size: 12px !important;
+  cursor: pointer;
+}
+
+.aldefault {
+  text-align: left;
+}
+
+.alsinistra {
+  text-align: left;
+}
+
+.alcentro {
+  text-align: center;
+}
+
+.aldestra {
+  text-align: right;
+}
+
+.rigel_body {
+  font-size: 14px;
+}
+
+.rigel_navbar {
+  background-color: aquamarine;
+  font-size: 10px;
+}
+
+.rigel_navbar_left {
+  font-size: 18px;
+  padding-left: 10px;
+}
+.rigel_navbar_right {
+  font-size: 18px;
+  padding-right: 10px;
+}

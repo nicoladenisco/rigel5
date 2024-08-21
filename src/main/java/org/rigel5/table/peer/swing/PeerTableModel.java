@@ -144,7 +144,9 @@ public class PeerTableModel extends PeerAbstractTableModel
   public MascheraRicercaGenerica getMascheraRG(RigelI18nInterface i18n)
      throws Exception
   {
-    return new SwingMascheraRicercaGenerica(new PeerBuilderRicercaGenerica(this, map), this);
+    MascheraRicercaGenerica mgr = new SwingMascheraRicercaGenerica();
+    mgr.init(new PeerBuilderRicercaGenerica(this, map), this, i18n);
+    return mgr;
   }
 
   /**
