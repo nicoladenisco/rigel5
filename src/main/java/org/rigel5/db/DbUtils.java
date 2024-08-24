@@ -1821,6 +1821,13 @@ public class DbUtils
     return position;
   }
 
+  /**
+   * Esegue uno statemente.
+   * @param sSQL
+   * @return
+   * @throws TorqueException
+   * @deprecated
+   */
   public static int executeStatement(String sSQL)
      throws TorqueException
   {

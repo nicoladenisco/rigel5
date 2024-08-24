@@ -211,10 +211,6 @@ public class AlternateColorTableAppBase extends AlternateColorTableAppGeneric
       colText = "[\u2193]" + colText;
 
     return "<a onclick=\"rigel.simpleSort('" + formName + "', '" + (col + 1) + "')\">" + colText + "</a>";
-
-//       cd.isEscludiRicerca() ? colText
-//              : HtmlUtils.makeHrefJScript("SimpleSort_" + formName + "('" + (col + 1) + "')",
-//          colText, "txt-yellow-bold-12-nul");
   }
 
   /**
