@@ -54,6 +54,7 @@ import org.apache.torque.util.Transaction;
 import org.commonlib5.lambda.FunctionTrowException;
 import org.commonlib5.lambda.LEU;
 import org.commonlib5.utils.ArrayMap;
+import org.commonlib5.utils.DateTime;
 import org.commonlib5.utils.Pair;
 import org.commonlib5.utils.StringOper;
 import org.rigel5.SetupHolder;
@@ -583,6 +584,25 @@ public class DbUtils
     return lsPks;
   }
 
+  /**
+   * Verifica se la query produce record.
+   * I risultati non vengono prelevati dal db, quindi l'impegno di risorse è minimo.
+   *
+   * @param con connessione al db
+   * @param sSQL query da eseguire
+   * @return vero se la query ha prodotto risultati
+   * @throws Exception
+   */
+  public static boolean haveRecords(Connection con, String sSQL)
+     throws Exception
+  {
+    try(Statement stm = con.createStatement();
+       ResultSet rs = stm.executeQuery(sSQL))
+    {
+      return rs.next();
+    }
+  }
+
   public static boolean disableForeignKeys(String nomeTabella)
   {
     try
@@ -897,6 +917,22 @@ public class DbUtils
   public static java.sql.Timestamp currentTimestamp()
   {
     return new java.sql.Timestamp(System.currentTimeMillis());
+  }
+
+  public static java.sql.Timestamp cvtTimestampIG(java.util.Date d)
+  {
+    if(d == null)
+      return null;
+
+    return new java.sql.Timestamp(DateTime.inizioGiorno(d).getTime());
+  }
+
+  public static java.sql.Timestamp cvtTimestampFG(java.util.Date d)
+  {
+    if(d == null)
+      return null;
+
+    return new java.sql.Timestamp(DateTime.fineGiorno(d).getTime());
   }
 
   /**
