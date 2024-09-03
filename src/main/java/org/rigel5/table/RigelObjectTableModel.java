@@ -153,7 +153,7 @@ abstract public class RigelObjectTableModel extends RigelTableModel
     return vBuf == null || vBuf.isEmpty() ? null : vBuf.get(row);
   }
 
-  public ArrayList getVBuf()
+  public List getVBuf()
   {
     return vBuf;
   }

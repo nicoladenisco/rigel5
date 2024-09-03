@@ -752,12 +752,23 @@ public class hTable
 
   /**
    * Ritorna il cast RigelTableModel se il table model
-   * collegato è realmente una istanza di RigelTableModel.
+   * collegato è realmente una istanza di RigelTableModel;
+   * altrimenti ritorna null.
    * @return
    */
   public RigelTableModel getTM()
   {
     return (tableModel instanceof RigelTableModel) ? (RigelTableModel) tableModel : null;
+  }
+
+  /**
+   * Ritorna la caption della colonna indicata.
+   * @param col
+   * @return
+   */
+  public String getCaption(int col)
+  {
+    return StringOper.okStr(getCD(col).getCaption());
   }
 
   public String preHeader()
