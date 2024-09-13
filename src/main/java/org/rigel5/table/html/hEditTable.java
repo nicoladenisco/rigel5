@@ -43,7 +43,7 @@ import org.rigel5.table.sql.html.SqlTableModel;
 public class hEditTable extends hTable
 {
   /** Logging */
-  private static Log log = LogFactory.getLog(hEditTable.class);
+  private static final Log log = LogFactory.getLog(hEditTable.class);
 
   protected boolean colonnaAnnulla = true;
   protected String captionAnnulla = "An";
