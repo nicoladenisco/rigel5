@@ -122,3 +122,15 @@
   font-size: 18px;
   padding-right: 10px;
 }
+
+.rigel_search_param a {
+  color: blue;
+}
+
+.rigel_search_param a:hover {
+  color: blue;
+}
+
+.rigel_search_param a:visited {
+  color: blue;
+}
