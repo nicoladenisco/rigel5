@@ -22,6 +22,7 @@ import java.util.*;
 import javax.servlet.http.*;
 import javax.swing.table.TableColumnModel;
 import org.commonlib5.utils.StringOper;
+import org.json.JSONObject;
 import org.rigel5.SetupHolder;
 import org.rigel5.db.sql.QueryBuilder;
 import org.rigel5.table.RigelColumnDescriptor;
@@ -29,6 +30,7 @@ import org.rigel5.table.RigelTableModel;
 import org.rigel5.table.html.RigelHtmlPage;
 import org.rigel5.table.sql.SqlGroupBy;
 import org.rigel5.table.sql.html.HtmlSqlWrapperBase;
+import org.rigel5.table.xml.jsonTable;
 import org.rigel5.table.xml.xTable;
 
 /**
@@ -212,6 +214,10 @@ public class SqlWrapperListaXml extends HtmlSqlWrapperBase
   /**
    * Produce XML richiedendo RECORD_PER_PASSATA records al database
    * in una serie di passate successive. Minimizza quindi l'impatto di memoria.
+   * @param xtbl
+   * @param stm
+   * @param out
+   * @throws Exception
    */
   protected void doXmlParts(xTable xtbl, SqlTableModel stm, Writer out)
      throws Exception
@@ -255,6 +261,23 @@ public class SqlWrapperListaXml extends HtmlSqlWrapperBase
       getColumnSizes(xtbl.getArColSizes(), xtbl.getColumnModel(), out);
 
     out.write("</" + xtbl.getTableStatement() + ">\r\n");
+  }
+
+  /**
+   * Produce JSON piuttosto che xml.
+   * @param jtbl
+   * @param stm
+   * @param out
+   * @throws Exception
+   */
+  protected void doJson(jsonTable jtbl, SqlTableModel stm, JSONObject out)
+     throws Exception
+  {
+    jtbl.normalizeCols();
+    jtbl.clearColSizes();
+
+    stm.rebind();
+    jtbl.doRows(out);
   }
 
   protected void getColumnSizes(int[] arSizes, TableColumnModel tm, Writer out)

@@ -676,4 +676,14 @@ abstract public class RigelTableModel extends AbstractTableModel
     }
     return allPbr;
   }
+
+  public TableColumnModel getColumnModel()
+  {
+    return dtcmdl;
+  }
+
+  public void setColumnModel(TableColumnModel dtcmdl)
+  {
+    this.dtcmdl = dtcmdl;
+  }
 }

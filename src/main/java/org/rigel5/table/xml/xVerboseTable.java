@@ -42,8 +42,8 @@ public class xVerboseTable extends xTable
       return "";
 
     String fldName = cd.getCaption();
-    String fldInfo = doFormCellHeader(row, col);
-    String fldData = doFormCellValue(row, col, cd).trim();
+    String fldInfo = doFormatCellHeader(row, col);
+    String fldData = doFormatCellValue(row, col, cd).trim();
 
     return
         "<" + fldName + doAlign(row, col) + doColor(row, col) + ">\r\n"+
