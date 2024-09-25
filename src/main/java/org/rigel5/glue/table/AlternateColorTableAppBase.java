@@ -37,6 +37,7 @@ public class AlternateColorTableAppBase extends AlternateColorTableAppGeneric
   protected boolean authEdit = true;
   protected boolean authCustom = true;
   protected boolean authDelete = true;
+  protected boolean datatable = false;
   protected int selezioneColumn = -1;
   protected int editColumn = -1;
   protected String popupEditFunction = "apriFinestraEdit";
@@ -195,6 +196,9 @@ public class AlternateColorTableAppBase extends AlternateColorTableAppGeneric
      throws Exception
   {
     String colText = getColumnCaption(col);
+
+    if(datatable)
+      return colText;
 
     RigelColumnDescriptor cd;
     if((cd = getCD(col)) == null)
@@ -407,5 +411,15 @@ public class AlternateColorTableAppBase extends AlternateColorTableAppGeneric
   {
     this.popupEditFunction = popupEditFunction;
     cub = null;
+  }
+
+  public boolean isDatatable()
+  {
+    return datatable;
+  }
+
+  public void setDatatable(boolean datatable)
+  {
+    this.datatable = datatable;
   }
 }

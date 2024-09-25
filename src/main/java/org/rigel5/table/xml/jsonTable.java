@@ -18,11 +18,12 @@
 package org.rigel5.table.xml;
 
 import java.awt.Color;
-import java.io.Writer;
 import java.util.Date;
 import javax.swing.table.*;
 import org.apache.commons.logging.*;
 import org.commonlib5.utils.StringOper;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.rigel5.SetupHolder;
 import org.rigel5.table.ForeignDataHolder;
 import org.rigel5.table.RigelColumnDescriptor;
@@ -33,36 +34,23 @@ import org.rigel5.table.RigelTableModel;
  *
  * @author Nicola De Nisco
  */
-public class xTable
+public class jsonTable
 {
   /** Logging */
-  private static Log log = LogFactory.getLog(xTable.class);
+  private static Log log = LogFactory.getLog(jsonTable.class);
   //
   protected TableModel tableModel;
   protected TableColumnModel columnModel;
-  protected String tableStatement;
-  protected String rowStatement;
-  protected String colStatement;
-  protected String headerStatement;
   protected boolean showHeader = true;
-  protected String colheadStatement;
   protected float normWidth[];
   protected String imgEditData = null;
   protected String imgEditForeign = null;
   protected boolean showFieldsName = false;
   /** array per la raccolta occupazione di colonne */
   protected int[] arColSizes = null;
-  protected int tipoColSize = 0;
-  public static final int COL_SIZE_MAX = 0;
-  public static final int COL_SIZE_AVG = 1;
 
-  public xTable()
+  public jsonTable()
   {
-    tableStatement = "records";
-    headerStatement = "fields";
-    rowStatement = "record";
-    colheadStatement = "fld";
-    colStatement = "df";
   }
 
   public void setModel(TableModel newTableModel)
@@ -95,85 +83,15 @@ public class xTable
     return showHeader;
   }
 
-  public void setTableStatement(String newTableStatement)
-  {
-    tableStatement = newTableStatement;
-  }
-
-  public String getTableStatement()
-  {
-    return tableStatement;
-  }
-
-  public void setRowStatement(String newRowStatement)
-  {
-    rowStatement = newRowStatement;
-  }
-
-  public String getRowStatement()
-  {
-    return rowStatement;
-  }
-
-  public void setColStatement(String newColStatement)
-  {
-    colStatement = newColStatement;
-  }
-
-  public String getColStatement()
-  {
-    return colStatement;
-  }
-
-  public void setHeaderStatement(String newHeaderStatement)
-  {
-    headerStatement = newHeaderStatement;
-  }
-
-  public String getHeaderStatement()
-  {
-    return headerStatement;
-  }
-
-  public void setColheadStatement(String newColheadStatement)
-  {
-    colheadStatement = newColheadStatement;
-  }
-
-  public String getColheadStatement()
-  {
-    return colheadStatement;
-  }
-
-  /**
-   * Tipo di calcolo per il col size.
-   * Una delle costanti COL_SIZE_...
-   * @return tipo corrente
-   */
-  public int getTipoColSize()
-  {
-    return tipoColSize;
-  }
-
-  /**
-   * Tipo di calcolo per il col size.
-   * Una delle costanti COL_SIZE_...
-   * @param tipoColSize tipo da impostare
-   */
-  public void setTipoColSize(int tipoColSize)
-  {
-    this.tipoColSize = tipoColSize;
-  }
-
   /**
    * Restituisce il contenuto della tabella completa
    * @param out output della tabella
    * @throws java.lang.Exception
    */
-  public void doXml(Writer out)
+  public void doJson(JSONObject out)
      throws Exception
   {
-    doXml(out, 0, tableModel.getRowCount());
+    doJson(out, 0, tableModel.getRowCount());
   }
 
   /**
@@ -183,7 +101,7 @@ public class xTable
    * @param rStart
    * @throws java.lang.Exception
    */
-  public void doXml(Writer out, int rStart, int numRec)
+  public void doJson(JSONObject out, int rStart, int numRec)
      throws Exception
   {
     if(rStart > tableModel.getRowCount())
@@ -193,14 +111,11 @@ public class xTable
       numRec = tableModel.getRowCount() - rStart;
 
     normalizeCols();
-    out.write("<" + tableStatement + ">\r\n");
 
     if(showHeader)
       doHeader(out);
 
     doRows(out, rStart, numRec);
-
-    out.write("</" + tableStatement + ">\r\n");
   }
 
   /**
@@ -208,84 +123,84 @@ public class xTable
    * @param out
    * @throws java.lang.Exception
    */
-  public void doHeader(Writer out)
+  public void doHeader(JSONObject out)
      throws Exception
   {
-    out.write("<" + headerStatement + ">\r\n");
-    out.write(preHeader());
+    JSONObject tmp;
+    JSONArray header = new JSONArray();
+
+    if((tmp = preHeader()) != null)
+      header.put(tmp);
 
     for(int i = 0; i < columnModel.getColumnCount(); i++)
     {
-      out.write(doCellHeader(i));
+      if((tmp = doCellHeader(i)) != null)
+        header.put(tmp);
     }
 
-    out.write(postHeader());
-    out.write("</" + headerStatement + ">\r\n");
+    if((tmp = postHeader()) != null)
+      header.put(tmp);
+
+    out.put("header", header);
   }
 
-  public String doCellHeader(int col)
+  public JSONObject doCellHeader(int col)
   {
     RigelColumnDescriptor cd;
     if((cd = getCD(col)) == null)
-      return "";
+      return null;
 
     if(!cd.isVisible())
-      return "";
+      return null;
 
-    return "<" + colheadStatement + " name=\"" + cd.getCaption() + "\"" + " WIDTH=\"" + normWidth[col] + "\" " + doAlign(-1, col) + ">\n"
-       + doFormatCellHeader(0, col)
-       + "</" + colheadStatement + ">\r\n";
-  }
-
-  public String doFormatCellHeader(int row, int col)
-  {
-    RigelColumnDescriptor cd = getCD(col);
-
-    String sOut = "    <name>" + cd.getCaption() + "</name>\n";
+    JSONObject h = new JSONObject();
+    h.put("name", cd.getCaption());
+    h.put("width", normWidth[col]);
+    h.put("align", doAlign(-1, col));
 
     switch(cd.getDataType())
     {
       case RigelColumnDescriptor.PDT_BOOLEAN:
-        sOut += "    <type>BOOLEAN</type>\n";
+        h.put("type", "BOOLEAN");
         break;
       case RigelColumnDescriptor.PDT_DATE:
-        sOut += "    <type>DATE</type>\n";
+        h.put("type", "DATE");
         break;
       case RigelColumnDescriptor.PDT_TIMESTAMP_CMPDATEONLY:
       case RigelColumnDescriptor.PDT_TIMESTAMP_CMPHOURONLY:
       case RigelColumnDescriptor.PDT_TIMESTAMP_CMPTOSEC:
       case RigelColumnDescriptor.PDT_TIMESTAMP_CMPTOMIN:
       case RigelColumnDescriptor.PDT_TIMESTAMP:
-        sOut += "    <type>DATETIME</type>\n";
+        h.put("type", "DATETIME");
         break;
       case RigelColumnDescriptor.PDT_TIME:
-        sOut += "    <type>TIME</type>\n";
+        h.put("type", "TIME");
         break;
       case RigelColumnDescriptor.PDT_INTEGER:
       case RigelColumnDescriptor.PDT_FLOAT:
       case RigelColumnDescriptor.PDT_DOUBLE:
       case RigelColumnDescriptor.PDT_MONEY:
       case RigelColumnDescriptor.PDT_NUMBERKEY:
-        sOut += "    <type>NUMBER</type>\n";
+        h.put("type", "NUMBER");
         break;
       default:
       case RigelColumnDescriptor.PDT_STRINGKEY:
       case RigelColumnDescriptor.PDT_STRING:
-        sOut += "    <type>STRING</type>\n";
-        sOut += "    <size>" + cd.getSize() + "</size>\n";
+        h.put("type", "STRING");
+        h.put("size", cd.getSize());
         break;
     }
 
-    return sOut;
+    return h;
   }
 
-  public void doRows(Writer out)
+  public void doRows(JSONObject out)
      throws Exception
   {
     doRows(out, 0, tableModel.getRowCount());
   }
 
-  public void doRows(Writer out, int rStart, int numRec)
+  public void doRows(JSONObject out, int rStart, int numRec)
      throws Exception
   {
     if(rStart > tableModel.getRowCount())
@@ -294,34 +209,45 @@ public class xTable
     if(rStart + numRec > tableModel.getRowCount())
       numRec = tableModel.getRowCount() - rStart;
 
-    if(arColSizes == null)
-      arColSizes = new int[tableModel.getColumnCount()];
+    arColSizes = new int[tableModel.getColumnCount()];
 
-    for(int i = 0; i < numRec; i++)
-      doRow(out, rStart++);
+    JSONArray data = new JSONArray();
+    out.put("data", data);
 
-    if(tipoColSize == COL_SIZE_AVG && arColSizes != null)
+    if(numRec > 0)
     {
+      for(int i = 0; i < numRec; i++)
+      {
+        JSONArray dataRow = new JSONArray();
+        data.put(dataRow);
+        doRow(dataRow, rStart++);
+      }
+
       for(int i = 0; i < arColSizes.length; i++)
       {
         arColSizes[i] /= numRec;
       }
     }
+
+    out.put("normalized-size", new JSONArray(arColSizes));
   }
 
-  public void doRow(Writer out, int row)
+  public void doRow(JSONArray out, int row)
      throws Exception
   {
-    out.write("<" + rowStatement + ">\r\n");
-    out.write(preValues(row));
+    JSONObject tmp;
 
-    for(int i = 0; i < columnModel.getColumnCount(); i++)
+    if((tmp = preValues(row)) != null)
+      out.put(tmp);
+
+    for(int col = 0; col < columnModel.getColumnCount(); col++)
     {
-      out.write(doCell(row, i));
+      if((tmp = doCell(row, col)) != null)
+        out.put(tmp);
     }
 
-    out.write(postValues(row));
-    out.write("</" + rowStatement + ">\r\n");
+    if((tmp = postValues(row)) != null)
+      out.put(tmp);
   }
 
   public String doColor(int row, int col)
@@ -332,14 +258,7 @@ public class xTable
 
     Color c = cd.getColor();
     if(c != null)
-    {
-      //String s = Integer.toString(c.getRGB(), 16);
-      //s = s.substring(s.length()-6, s.length());
-      String s = (c.getRed() < 10 ? "0" : "") + Integer.toString(c.getRed(), 16)
-         + (c.getGreen() < 10 ? "0" : "") + Integer.toString(c.getGreen(), 16)
-         + (c.getBlue() < 10 ? "0" : "") + Integer.toString(c.getBlue(), 16);
-      return " bgcolor=\"#" + s + "\"";
-    }
+      return fmtColor(c);
 
     return "";
   }
@@ -355,67 +274,63 @@ public class xTable
     switch(cd.getHtmlAlign())
     {
       case RigelColumnDescriptor.HTML_ALIGN_LEFT:
-        sAlign = " align=\"left\"";
+        sAlign = "left";
         break;
       case RigelColumnDescriptor.HTML_ALIGN_CENTER:
-        sAlign = " align=\"center\"";
+        sAlign = "center";
         break;
       case RigelColumnDescriptor.HTML_ALIGN_RIGHT:
-        sAlign = " align=\"right\"";
+        sAlign = "right";
         break;
     }
 
     return sAlign;
   }
 
-  public String doCell(int row, int col)
+  public JSONObject doCell(int row, int col)
      throws Exception
   {
     RigelColumnDescriptor cd;
     if((cd = getCD(col)) == null)
-      return "";
+      return null;
 
     if(!cd.isVisible())
-      return "";
+      return null;
 
     String fldData = doFormatCellValue(row, col, cd);
     return doCellOutput(row, col, cd, fldData);
   }
 
-  protected String doCellOutput(int row, int col, RigelColumnDescriptor cd, String fldData)
+  protected JSONObject doCellOutput(int row, int col, RigelColumnDescriptor cd, String fldData)
   {
-    if(showFieldsName)
-    {
-      String tag = fmtTag(cd.getCaption());
-      return fldData.equals("<val/>") ? "<" + tag + "/>\r\n"
-                : "<" + tag + doAlign(row, col) + doColor(row, col) + ">"
-         + fldData
-         + "</" + tag + ">\r\n";
-    }
-    else
-    {
-      return fldData.equals("<val/>")
-                ? "<" + colStatement + " name=\"" + cd.getCaption() + "\"/>\r\n"
-                : "<" + colStatement + " name=\"" + cd.getCaption() + "\"" + doAlign(row, col) + doColor(row, col) + ">"
-         + fldData
-         + "</" + colStatement + ">\r\n";
-    }
+    JSONObject c = new JSONObject();
+
+    c.put("name", cd.getCaption());
+    c.put("value", fldData);
+    c.put("align", doAlign(row, col));
+    c.put("color", doColor(row, col));
+
+    return c;
   }
 
   public String fmtId(String id)
   {
-    if(id == null || id.trim().length() == 0)
-      return "<id/>";
-
-    return "<id><![CDATA[" + id + "]]></id>";
+    return StringOper.okStr(id);
   }
 
   public String fmtVal(String val)
   {
-    if(val == null || val.trim().length() == 0)
-      return "<val/>";
+    return StringOper.okStr(val);
+  }
 
-    return "<val><![CDATA[" + val + "]]></val>";
+  public String fmtColor(Color c)
+  {
+    //String s = Integer.toString(c.getRGB(), 16);
+    //s = s.substring(s.length()-6, s.length());
+    String s = (c.getRed() < 10 ? "0" : "") + Integer.toString(c.getRed(), 16)
+       + (c.getGreen() < 10 ? "0" : "") + Integer.toString(c.getGreen(), 16)
+       + (c.getBlue() < 10 ? "0" : "") + Integer.toString(c.getBlue(), 16);
+    return s;
   }
 
   /**
@@ -448,53 +363,27 @@ public class xTable
   {
     String val = StringOper.okStrNull(formatCell(row, col, tableModel.getValueAt(row, cd.getModelIndex())));
     if(val == null)
-      return "<val/>";
+      return "";
 
     if(cd.getForeignMode() != RigelColumnDescriptor.DISP_FLD_ONLY)
     {
       if((val = StringOper.okStrNull(getForeignData(cd, val))) == null)
-        return "<val/>";
+        return "";
     }
     else
     {
       if((val = elaboraFixedText(cd, val)) == null)
-        return "<val/>";
+        return "";
     }
-
-    // rimuove eventuali tag spuri
-    val = val.replaceAll("</.+>", "");
-    val = val.replaceAll("<.+>", "");
-
-    // accumula lunghezze dati
-    updateColSize(row, col, val);
 
     return fmtVal(val);
-  }
-
-  protected void updateColSize(int row, int col, String val)
-  {
-    if(arColSizes == null || arColSizes.length < col)
-      return;
-
-    int vrif = val.length();
-    switch(tipoColSize)
-    {
-      default:
-      case COL_SIZE_MAX:
-        if(val.contains(" "))
-          vrif /= 2;
-        if(arColSizes[col] < vrif)
-          arColSizes[col] = vrif;
-        break;
-      case COL_SIZE_AVG:
-        arColSizes[col] += vrif;
-        break;
-    }
   }
 
   /**
    * Produce la stringa rappresentazione del dato.
    * Se la colonna ha un formattatore esplicito lo usa.
+   * @param row
+   * @param col
    * @param value
    * @return
    * @throws java.lang.Exception
@@ -646,24 +535,24 @@ public class xTable
     return (tc instanceof RigelColumnDescriptor) ? ((RigelColumnDescriptor) (tc)) : null;
   }
 
-  public String preHeader()
+  public JSONObject preHeader()
   {
-    return "";
+    return null;
   }
 
-  public String postHeader()
+  public JSONObject postHeader()
   {
-    return "";
+    return null;
   }
 
-  public String preValues(int row)
+  public JSONObject preValues(int row)
   {
-    return "";
+    return null;
   }
 
-  public String postValues(int row)
+  public JSONObject postValues(int row)
   {
-    return "";
+    return null;
   }
 
   public void setImgEditData(String imgEditData)
