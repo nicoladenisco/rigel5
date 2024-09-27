@@ -372,6 +372,10 @@ public class FormTable extends hEditTable
   protected String moveKey(int row, int col)
      throws Exception
   {
+    // in caso di una sola riga non può esserci navigazione fra righe
+    if(mrMax <= 1)
+      return "";
+
     try
     {
       int rowu = mr, rowd = mr, realColumnUp, realColumnDw;
