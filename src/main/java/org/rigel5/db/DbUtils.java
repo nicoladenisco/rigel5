@@ -179,7 +179,7 @@ public class DbUtils
   public static long getRecordCount(Criteria c)
      throws Exception
   {
-    try(TorqueConnection connection = Transaction.begin())
+    try (TorqueConnection connection = Transaction.begin())
     {
       return getRecordCount(c, connection);
     }
@@ -217,7 +217,7 @@ public class DbUtils
       String sSQL1 = "SELECT * " + sSQL.substring(idx);
       String sSQL2 = qb.getCountRecordsQuery(sSQL1);
 
-      try(PreparedStatement statement = con.prepareStatement(sSQL2))
+      try (PreparedStatement statement = con.prepareStatement(sSQL2))
       {
         if(query.getFetchSize() != null)
           statement.setFetchSize(query.getFetchSize());
@@ -227,7 +227,7 @@ public class DbUtils
            query.getPreparedStatementReplacements(),
            0);
 
-        try(ResultSet resultSet = statement.executeQuery())
+        try (ResultSet resultSet = statement.executeQuery())
         {
           if(resultSet.next())
             return resultSet.getLong(1);
@@ -245,7 +245,7 @@ public class DbUtils
   public static long deleteFromCriteria(Criteria c)
      throws Exception
   {
-    try(TorqueConnection connection = Transaction.begin())
+    try (TorqueConnection connection = Transaction.begin())
     {
       long rv = deleteFromCriteria(c, connection);
       Transaction.commit(connection);
@@ -272,7 +272,7 @@ public class DbUtils
 
       String sSQL1 = "DELETE " + sSQL.substring(idx);
 
-      try(PreparedStatement statement = con.prepareStatement(sSQL1))
+      try (PreparedStatement statement = con.prepareStatement(sSQL1))
       {
         if(query.getFetchSize() != null)
           statement.setFetchSize(query.getFetchSize());
@@ -596,7 +596,7 @@ public class DbUtils
   public static boolean haveRecords(Connection con, String sSQL)
      throws Exception
   {
-    try(Statement stm = con.createStatement();
+    try (Statement stm = con.createStatement();
        ResultSet rs = stm.executeQuery(sSQL))
     {
       return rs.next();
@@ -740,7 +740,7 @@ public class DbUtils
   public static boolean existTableExact(Connection con, String nomeTabella)
      throws Exception
   {
-    try(ResultSet rs = con.getMetaData().getTables(null, null, null, TABLES_FILTER))
+    try (ResultSet rs = con.getMetaData().getTables(null, null, null, TABLES_FILTER))
     {
       while(rs.next())
       {
@@ -773,7 +773,7 @@ public class DbUtils
      String nomeSchema, String nomeTabella, String nomeColonna)
      throws SQLException
   {
-    try(ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
+    try (ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
     {
       while(rs.next())
       {
@@ -791,7 +791,7 @@ public class DbUtils
   {
     ArrayMap<String, Integer> rv = new ArrayMap<>();
 
-    try(ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
+    try (ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
     {
       while(rs.next())
       {
@@ -878,7 +878,7 @@ public class DbUtils
   public static Schema schemaQuery(Connection con, String sSQL)
      throws Exception
   {
-    try(QueryDataSet qds = new QueryDataSet(con, sSQL))
+    try (QueryDataSet qds = new QueryDataSet(con, sSQL))
     {
       return qds.schema();
     }
@@ -887,7 +887,7 @@ public class DbUtils
   public static Schema schemaTable(Connection con, String nomeTabella)
      throws Exception
   {
-    try(TableDataSet tds = new TableDataSet(con, nomeTabella))
+    try (TableDataSet tds = new TableDataSet(con, nomeTabella))
     {
       return tds.schema();
     }
@@ -1073,7 +1073,7 @@ public class DbUtils
   {
     ArrayMap<String, Integer> rv = new ArrayMap<>();
 
-    try(ResultSet rs = con.getMetaData().getPrimaryKeys(con.getCatalog(), nomeSchema, nomeTabella))
+    try (ResultSet rs = con.getMetaData().getPrimaryKeys(con.getCatalog(), nomeSchema, nomeTabella))
     {
       while(rs.next())
       {
@@ -1145,7 +1145,7 @@ public class DbUtils
   public static int[] queryForID(Connection con, String sSQL, FunctionTrowException<ResultSet, Integer> extractor)
      throws Exception
   {
-    try(ResultSet rs = con.createStatement().executeQuery(sSQL))
+    try (ResultSet rs = con.createStatement().executeQuery(sSQL))
     {
       return queryForID(rs, extractor);
     }
@@ -1186,7 +1186,7 @@ public class DbUtils
   public static String[] queryForString(Connection con, String sSQL, FunctionTrowException<ResultSet, String> extractor)
      throws Exception
   {
-    try(ResultSet rs = con.createStatement().executeQuery(sSQL))
+    try (ResultSet rs = con.createStatement().executeQuery(sSQL))
     {
       return queryForString(rs, extractor);
     }
@@ -1398,7 +1398,7 @@ public class DbUtils
   public static int[] doSelectForID(Criteria criteria, int numField, Connection con)
      throws Exception
   {
-    try(Stream<Record> resultStream = doSelectAsStream(criteria, new VillageRecordMapper(), con))
+    try (Stream<Record> resultStream = doSelectAsStream(criteria, new VillageRecordMapper(), con))
     {
       List<Record> result = resultStream.collect(Collectors.toList());
       return extractIntArray(result, (r) -> r.getValue(numField).asInt());
@@ -1408,7 +1408,7 @@ public class DbUtils
   public static String[] doSelectForString(Criteria criteria, int numField, Connection con)
      throws Exception
   {
-    try(Stream<Record> resultStream = doSelectAsStream(criteria, new VillageRecordMapper(), con))
+    try (Stream<Record> resultStream = doSelectAsStream(criteria, new VillageRecordMapper(), con))
     {
       List<Record> result = resultStream.collect(Collectors.toList());
       return extractStringArray(result, (r) -> r.getValue(numField).asOkString());
@@ -1427,7 +1427,7 @@ public class DbUtils
   public static List<Record> doSelect(Criteria criteria, Connection con)
      throws Exception
   {
-    try(Stream<Record> resultStream = doSelectAsStream(criteria, new VillageRecordMapper(), con))
+    try (Stream<Record> resultStream = doSelectAsStream(criteria, new VillageRecordMapper(), con))
     {
       List<Record> result = resultStream.collect(Collectors.toList());
 
@@ -1518,7 +1518,7 @@ public class DbUtils
     if(query.getFromClause().isEmpty())
       throw new TorqueException("Missing from clause.");
 
-    try(PreparedStatement statement = connection.prepareStatement(query.toString()))
+    try (PreparedStatement statement = connection.prepareStatement(query.toString()))
     {
       if(query.getFetchSize() != null)
         statement.setFetchSize(query.getFetchSize());
@@ -1529,7 +1529,7 @@ public class DbUtils
          0);
 
       int count = 0;
-      try(ResultSet rs = statement.executeQuery())
+      try (ResultSet rs = statement.executeQuery())
       {
         while(rs.next())
         {
@@ -1731,7 +1731,7 @@ public class DbUtils
     }
     query.append(")");
 
-    try(PreparedStatement ps = connection.prepareStatement(query.toString()))
+    try (PreparedStatement ps = connection.prepareStatement(query.toString()))
     {
       populatePreparedStatement(replacementObjects, ps, 1);
 
@@ -1776,7 +1776,7 @@ public class DbUtils
     query.getFromClause().add(new FromElement(fullTableName));
     query.getUpdateValues().putAll(updateValues);
 
-    try(PreparedStatement preparedStatement = connection.prepareStatement(query.toString()))
+    try (PreparedStatement preparedStatement = connection.prepareStatement(query.toString()))
     {
       int position = 1;
       List<JdbcTypedValue> replacementObjects = new ArrayList<>();
@@ -1881,7 +1881,7 @@ public class DbUtils
   public static int executeStatement(String sSQL, Connection con)
      throws TorqueException
   {
-    try(Statement st = con.createStatement())
+    try (Statement st = con.createStatement())
     {
       return st.executeUpdate(sSQL);
     }
@@ -1918,7 +1918,7 @@ public class DbUtils
 
           if(!sSQL.isEmpty())
           {
-            try(PreparedStatement ps = con.prepareStatement(sSQL))
+            try (PreparedStatement ps = con.prepareStatement(sSQL))
             {
               count += ps.executeUpdate();
             }
@@ -1954,7 +1954,7 @@ public class DbUtils
       StringBuilder sb1 = new StringBuilder(1024);
       StringBuilder sb2 = new StringBuilder(1024);
 
-      try(ResultSet rs = con.getMetaData().getColumns(conp.getCatalog(), nomeSchemap, nomeTabellap, null))
+      try (ResultSet rs = con.getMetaData().getColumns(conp.getCatalog(), nomeSchemap, nomeTabellap, null))
       {
         for(int i = 0; rs.next(); i++)
         {
@@ -2108,6 +2108,27 @@ public class DbUtils
     TableHelperDelete instance = new TableHelperDelete(con, false);
     instance.loadDataEasy(tableName);
     instance.prepareDeleteCascade(primaryName, idToDel);
+
+    List<String> recurse = instance.getRecurse();
+    if(!recurse.isEmpty())
+      throw new SQLException("Relazioni circolari: " + recurse);
+
+    return instance.executeDelete();
+  }
+
+  public static long deleteCascade(Connection con, TableMap tm, ObjectKey<?> valPrimary)
+     throws Exception
+  {
+    String tableFullName = tm.getName();
+    ColumnMap primaryKey = tm.getPrimaryKey();
+    int valPrimayInt = StringOper.parse(valPrimary, 0);
+
+    if(valPrimayInt == 0)
+      throw new SQLException("Chiave primaria == 0; operazione non consentita.");
+
+    TableHelperDelete instance = new TableHelperDelete(con, false);
+    instance.loadDataEasy(tableFullName);
+    instance.prepareDeleteCascade(primaryKey.getColumnName(), valPrimayInt);
 
     List<String> recurse = instance.getRecurse();
     if(!recurse.isEmpty())
