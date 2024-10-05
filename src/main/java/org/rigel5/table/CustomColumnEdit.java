@@ -62,9 +62,12 @@ public interface CustomColumnEdit
    * @throws Exception
    * @return HTML del campo
    */
-  public String getHtmlEdit(RigelColumnDescriptor cd, TableModel model,
+  public default String getHtmlEdit(RigelColumnDescriptor cd, TableModel model,
      int row, int col, String cellText, String cellHtml, String nomeCampo, RigelI18nInterface i18n)
-     throws Exception;
+     throws Exception
+  {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
 
   /**
    * Ritorna vero se questo plugin implementa una logica speciale di parsing.
