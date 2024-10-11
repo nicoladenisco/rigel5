@@ -909,4 +909,14 @@ abstract public class WrapperCacheBase
 
     throw new MissingListException(i18n.msg("Disp %s non trovata o non inizializzabile.", type));
   }
+
+  public String[] getBasePath()
+  {
+    return basePath;
+  }
+
+  public void setBasePath(String[] basePath)
+  {
+    this.basePath = basePath;
+  }
 }

@@ -686,4 +686,16 @@ abstract public class RigelTableModel extends AbstractTableModel
   {
     this.dtcmdl = dtcmdl;
   }
+
+  public List<RigelColumnDescriptor> getVisibleColumn()
+  {
+    ArrayList<RigelColumnDescriptor> rv = new ArrayList<>(vColumn.size());
+    for(int i = 0; i < vColumn.size(); i++)
+    {
+      RigelColumnDescriptor column = (RigelColumnDescriptor) vColumn.elementAt(i);
+      if(column.isVisible())
+        rv.add(column);
+    }
+    return rv;
+  }
 }
