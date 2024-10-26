@@ -71,84 +71,11 @@ public class SqlBuilderRicercaGenerica implements BuilderRicercaGenerica
 
       if(idxCombo == IDX_CRITERIA_LIKE && cd.getDataType() == RigelColumnDescriptor.PDT_STRING) // LIKE
       {
-        SqlEnum critItem = CriteriaRigel.LIKE;
-
-        String filtro = "";
-        String valFiltro = cd.getFiltroValore();
-        StringTokenizer stok = new StringTokenizer(valFiltro);
-        while(stok.hasMoreTokens())
-        {
-          String s = stok.nextToken();
-          filtro += "%" + s.trim() + "% ";
-        }
-        fd.addWhere(cd, critItem, filtro.trim());
+        buildForLike(cd, fd);
       }
       else if(idxCombo == IDX_CRITERIA_BETWEEN) // BETWEEN
       {
-        String valFiltro = cd.getFiltroValore();
-        String[] ss = StringOper.split(valFiltro, '|');
-
-        if(ss.length == 1 && cd.isDate())
-        {
-          // caso speciale: campo date con intervallo da ricerca semplice con combo box
-          Calendar now = new GregorianCalendar();
-          Object valFiltroDa = null;
-          Object valFiltroA = DateTime.fineGiorno(now.getTime());
-
-          switch(valFiltro)
-          {
-            case "0": // tutti
-              valFiltroDa = valFiltroA = null;
-              break;
-
-            case "1": // Oggi
-              valFiltroDa = DateTime.inizioGiorno(now.getTime());
-              break;
-
-            case "2": // Ieri e oggi
-              now.add(Calendar.DAY_OF_YEAR, -1);
-              valFiltroDa = DateTime.inizioGiorno(now.getTime());
-              break;
-
-            case "3": // Ultimi due giorni
-              now.add(Calendar.DAY_OF_YEAR, -2);
-              valFiltroDa = DateTime.inizioGiorno(now.getTime());
-              break;
-
-            case "4": // Ultima settimana
-              now.add(Calendar.WEEK_OF_YEAR, -1);
-              valFiltroDa = DateTime.inizioGiorno(now.getTime());
-              break;
-
-            case "5": // Ultimi 15 giorni
-              now.add(Calendar.DAY_OF_YEAR, -15);
-              valFiltroDa = DateTime.inizioGiorno(now.getTime());
-              break;
-
-            case "6": // Ultimi 6 mesi
-              now.add(Calendar.MONTH, -6);
-              valFiltroDa = DateTime.inizioGiorno(now.getTime());
-              break;
-
-            case "7": // Ultimo anno
-              now.add(Calendar.YEAR, -1);
-              valFiltroDa = DateTime.inizioGiorno(now.getTime());
-              break;
-          }
-
-          if(valFiltroDa != null && valFiltroA != null)
-          {
-            fd.addBetween(cd, valFiltroDa, valFiltroA);
-          }
-        }
-        else if(ss.length >= 2)
-        {
-          // parsing e riformattazione corretta del valore di filtro
-          Object valFiltroDa = cd.parseValue(ss[0]);
-          Object valFiltroA = cd.parseValue(ss[1]);
-          cd.setFiltroValore(cd.formatValueRicerca(valFiltroDa) + "|" + cd.formatValueRicerca(valFiltroA));
-          fd.addBetween(cd, valFiltroDa, valFiltroA);
-        }
+        buildForBetween(cd, fd);
       }
       else
       {
@@ -199,6 +126,106 @@ public class SqlBuilderRicercaGenerica implements BuilderRicercaGenerica
     }
 
     return fd;
+  }
+
+  protected void buildForBetween(SqlColumnDescriptor cd, FiltroData fd)
+  {
+    String valFiltro = cd.getFiltroValore();
+    String[] ss = StringOper.split(valFiltro, '|');
+
+    if(ss.length == 1 && cd.isDate())
+    {
+      // caso speciale: campo date con intervallo da ricerca semplice con combo box
+      Calendar now = new GregorianCalendar();
+      Object valFiltroDa = null;
+      Object valFiltroA = DateTime.fineGiorno(now.getTime());
+
+      switch(valFiltro)
+      {
+        case "0": // tutti
+          valFiltroDa = valFiltroA = null;
+          break;
+
+        case "1": // Oggi
+          valFiltroDa = DateTime.inizioGiorno(now.getTime());
+          break;
+
+        case "2": // Ieri e oggi
+          now.add(Calendar.DAY_OF_YEAR, -1);
+          valFiltroDa = DateTime.inizioGiorno(now.getTime());
+          break;
+
+        case "3": // Ultimi due giorni
+          now.add(Calendar.DAY_OF_YEAR, -2);
+          valFiltroDa = DateTime.inizioGiorno(now.getTime());
+          break;
+
+        case "4": // Ultima settimana
+          now.add(Calendar.WEEK_OF_YEAR, -1);
+          valFiltroDa = DateTime.inizioGiorno(now.getTime());
+          break;
+
+        case "5": // Ultimi 15 giorni
+          now.add(Calendar.DAY_OF_YEAR, -15);
+          valFiltroDa = DateTime.inizioGiorno(now.getTime());
+          break;
+
+        case "6": // Ultimi 6 mesi
+          now.add(Calendar.MONTH, -6);
+          valFiltroDa = DateTime.inizioGiorno(now.getTime());
+          break;
+
+        case "7": // Ultimo anno
+          now.add(Calendar.YEAR, -1);
+          valFiltroDa = DateTime.inizioGiorno(now.getTime());
+          break;
+      }
+
+      if(valFiltroDa != null && valFiltroA != null)
+      {
+        fd.addBetween(cd, valFiltroDa, valFiltroA);
+      }
+    }
+    else if(ss.length >= 2)
+    {
+      // parsing e riformattazione corretta del valore di filtro
+      Object valFiltroDa = cd.parseValue(ss[0]);
+      Object valFiltroA = cd.parseValue(ss[1]);
+      cd.setFiltroValore(cd.formatValueRicerca(valFiltroDa) + "|" + cd.formatValueRicerca(valFiltroA));
+      fd.addBetween(cd, valFiltroDa, valFiltroA);
+    }
+  }
+
+  protected void buildForLike(SqlColumnDescriptor cd, FiltroData fd)
+  {
+    SqlEnum critItem = SqlEnum.LIKE;
+    String filtro = "";
+    String valFiltro = StringOper.okStr(cd.getFiltroValore());
+
+    // supporto alle regular expression
+    if(valFiltro.startsWith("ri:"))
+    {
+      // confronto case insensitive (usiamo MINUS_ALL non essendo previsto un operatore specifico)
+      critItem = SqlEnum.MINUS_ALL;
+      filtro = valFiltro.substring(3);
+    }
+    else if(valFiltro.startsWith("re:"))
+    {
+      // confronto case sensitive (usiamo MINUS non essendo previsto un operatore specifico)
+      critItem = SqlEnum.MINUS;
+      filtro = valFiltro.substring(3);
+    }
+    else
+    {
+      StringTokenizer stok = new StringTokenizer(valFiltro);
+      while(stok.hasMoreTokens())
+      {
+        String s = stok.nextToken();
+        filtro += "%" + s.trim() + "% ";
+      }
+    }
+
+    fd.addWhere(cd, critItem, filtro.trim());
   }
 
   @Override

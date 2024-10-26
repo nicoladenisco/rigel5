@@ -152,11 +152,19 @@ public class HtmlMascheraRicercaGenericaNoscript implements MascheraRicercaGener
       {
         if(val != null)
         {
-          int pos = val.indexOf('|');
-          if(pos == -1)
-            cd.setFiltroTipo(idx);
+          if(val.startsWith("re:") || val.startsWith("ri:"))
+          {
+            // regular expression; vedi sqlbuilderricercagenerica
+            cd.setFiltroTipo(BuilderRicercaGenerica.IDX_CRITERIA_LIKE);
+          }
           else
-            cd.setFiltroTipo(8);
+          {
+            int pos = val.indexOf('|');
+            if(pos == -1)
+              cd.setFiltroTipo(idx);
+            else
+              cd.setFiltroTipo(BuilderRicercaGenerica.IDX_CRITERIA_BETWEEN);
+          }
         }
 
         if(brg.isBetween(cd.getFiltroTipo()) && vaf != null && vaf.trim().length() > 0)

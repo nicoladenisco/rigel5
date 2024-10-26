@@ -47,6 +47,29 @@ var rigel = {
     return true;
   }
   ,
+  testInvio(baseUri, numPerPage, numPagine, formname, e)
+  {
+    if (e == null)
+      e = event;
+    if (e.keyCode == 13) {
+      this.goto(baseUri, numPerPage, numPagine, formname)
+      return false;
+    }
+    return true;
+  }
+  ,
+  goto(baseUri, numPerPage, numPagine, formname)
+  {
+    var nPage = $("#id_in_" + formname).val();
+    if (nPage <= 0 || nPage > numPagine) {
+      alert("Valore di pagina non consentito.");
+    } else {
+      rStart = (nPage - 1) * numPerPage;
+      window.location.href = baseUri + "?rstart=" + rStart;
+    }
+    return false;
+  }
+  ,
   apriEditTool(url, tipo)
   {
     apriFinestraEdit(url, tipo);

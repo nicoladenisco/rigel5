@@ -365,12 +365,17 @@ abstract public class QueryBuilder implements Closeable
   {
     StringBuilder whre = new StringBuilder();
 
+    // nota MINUS e MINUS_ALL sono in realta usati per le regular expression
     for(FiltroData.whereInfo wi : fd.vWhere)
     {
       if(SqlEnum.ISNULL.equals(wi.criteria))
         whre.append(" AND ").append(wi.nomecampo).append(" IS NULL");
       else if(SqlEnum.ISNOTNULL.equals(wi.criteria))
         whre.append(" AND ").append(wi.nomecampo).append(" IS NOT NULL");
+      else if(SqlEnum.MINUS.equals(wi.criteria))
+        whre.append(" AND (").append(wi.nomecampo).append(" ~ ").append(adjValue(wi.type, wi.val)).append(")");
+      else if(SqlEnum.MINUS_ALL.equals(wi.criteria))
+        whre.append(" AND (").append(wi.nomecampo).append(" ~* ").append(adjValue(wi.type, wi.val)).append(")");
       else if(SqlEnum.IN.equals(wi.criteria))
       {
         ArrayList<String> sVals = new ArrayList<>();
@@ -487,7 +492,8 @@ abstract public class QueryBuilder implements Closeable
 
     long rv = -1;
     String sSQL = getTotalRecordsQueryAddFilter((FiltroData) (fl.getOggFiltro()));
-    try (Statement st = con.createStatement(); ResultSet rs = st.executeQuery(sSQL))
+    try (Statement st = con.createStatement();
+       ResultSet rs = st.executeQuery(sSQL))
     {
       if(rs.next())
         rv = rs.getLong(1);
@@ -509,7 +515,8 @@ abstract public class QueryBuilder implements Closeable
   {
     long rv = -1;
     String sSQL = getTotalRecordsQueryAddFilter(null);
-    try (Statement st = con.createStatement(); ResultSet rs = st.executeQuery(sSQL))
+    try (Statement st = con.createStatement();
+       ResultSet rs = st.executeQuery(sSQL))
     {
       if(rs.next())
         rv = rs.getLong(1);
@@ -537,7 +544,8 @@ abstract public class QueryBuilder implements Closeable
       return rv;
 
     long count;
-    try (Statement st = con.createStatement(); ResultSet rs = st.executeQuery(sSQL))
+    try (Statement st = con.createStatement();
+       ResultSet rs = st.executeQuery(sSQL))
     {
       count = rs.next() ? rs.getLong(1) : 0;
     }
@@ -621,7 +629,8 @@ abstract public class QueryBuilder implements Closeable
       return rv;
 
     rv = new ArrayList<>();
-    try (Statement st = con.createStatement(); ResultSet rs = st.executeQuery(sSQL))
+    try (Statement st = con.createStatement();
+       ResultSet rs = st.executeQuery(sSQL))
     {
       int numCol = rs.getMetaData().getColumnCount();
       ForeignDataHolder zero = null;
@@ -826,7 +835,8 @@ abstract public class QueryBuilder implements Closeable
       return rv;
 
     rv = new ArrayList<>();
-    try (Statement st = con.createStatement(); ResultSet rs = st.executeQuery(sSQL))
+    try (Statement st = con.createStatement();
+       ResultSet rs = st.executeQuery(sSQL))
     {
       int numCol = rs.getMetaData().getColumnCount();
       ForeignDataHolder zero = null;
@@ -971,7 +981,8 @@ abstract public class QueryBuilder implements Closeable
       return rv;
 
     rv = new ArrayList<>();
-    try (Statement st = con.createStatement(); ResultSet rs = st.executeQuery(sSQL))
+    try (Statement st = con.createStatement();
+       ResultSet rs = st.executeQuery(sSQL))
     {
       while(rs.next())
       {

@@ -135,6 +135,48 @@ public class CriteriaRigel extends Criteria
   }
 
   /**
+   * Aggiunge al criteria indicato la regola confronto like senza case.
+   * @param columnName
+   * @param value
+   * @param tableName nome della tabella
+   */
+  public void addRegExp(String tableName, String columnName, String value)
+  {
+    andVerbatimSql("(" + tableName + "." + columnName + " ~ '" + value + "')", null);
+  }
+
+  /**
+   * Aggiunge al criteria indicato la regola confronto like senza case.
+   * @param columnName
+   * @param value
+   * @param tableName nome della tabella
+   */
+  public void addIRegexp(String tableName, String columnName, String value)
+  {
+    andVerbatimSql("(" + tableName + "." + columnName + " ~* '" + value + "')", null);
+  }
+
+  /**
+   * Aggiunge al criteria indicato la regola confronto like senza case.
+   * @param column
+   * @param value
+   */
+  public void addRegExp(ColumnMap column, String value)
+  {
+    andVerbatimSql("(" + column.getColumnName() + " ~ '" + value + "')", null);
+  }
+
+  /**
+   * Aggiunge al criteria indicato la regola confronto like senza case.
+   * @param column
+   * @param value
+   */
+  public void addIRegexp(ColumnMap column, String value)
+  {
+    andVerbatimSql("(" + column.getColumnName() + " ~* '" + value + "')", null);
+  }
+
+  /**
    * Aggiunge ad una query SQL già composta la regola confronto like senza case.
    * @param sSQL una query SQL completa
    * @param tableName nome della tabella
