@@ -361,6 +361,11 @@ abstract public class QueryBuilder implements Closeable
     return upd.length() == 0 ? null : upd.substring(1);
   }
 
+  protected String simpleVal(FiltroData.whereInfo wi)
+  {
+    return StringOper.CvtSQLstring(StringOper.okStr(wi.val));
+  }
+
   public synchronized String makeFiltroWhere(FiltroData fd)
   {
     StringBuilder whre = new StringBuilder();
@@ -373,9 +378,9 @@ abstract public class QueryBuilder implements Closeable
       else if(SqlEnum.ISNOTNULL.equals(wi.criteria))
         whre.append(" AND ").append(wi.nomecampo).append(" IS NOT NULL");
       else if(SqlEnum.MINUS.equals(wi.criteria))
-        whre.append(" AND (").append(wi.nomecampo).append(" ~ ").append(adjValue(wi.type, wi.val)).append(")");
+        whre.append(" AND (").append(wi.nomecampo).append(" ~ ").append(simpleVal(wi)).append(")");
       else if(SqlEnum.MINUS_ALL.equals(wi.criteria))
-        whre.append(" AND (").append(wi.nomecampo).append(" ~* ").append(adjValue(wi.type, wi.val)).append(")");
+        whre.append(" AND (").append(wi.nomecampo).append(" ~* ").append(simpleVal(wi)).append(")");
       else if(SqlEnum.IN.equals(wi.criteria))
       {
         ArrayList<String> sVals = new ArrayList<>();

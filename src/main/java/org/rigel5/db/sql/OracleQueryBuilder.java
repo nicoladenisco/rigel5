@@ -17,15 +17,18 @@
  */
 package org.rigel5.db.sql;
 
+import java.lang.reflect.Array;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.torque.TorqueException;
+import org.apache.torque.criteria.SqlEnum;
 import org.commonlib5.utils.StringOper;
 import org.rigel5.db.DbUtils;
 import static org.rigel5.db.DbUtils.TABLES_FILTER;
@@ -410,5 +413,60 @@ public class OracleQueryBuilder extends QueryBuilder
     }
 
     return super.getTransactionID(con);
+  }
+
+  public synchronized String makeFiltroWhere(FiltroData fd)
+  {
+    StringBuilder whre = new StringBuilder();
+
+    // nota MINUS e MINUS_ALL sono in realta usati per le regular expression
+    for(FiltroData.whereInfo wi : fd.vWhere)
+    {
+      if(SqlEnum.ISNULL.equals(wi.criteria))
+        whre.append(" AND ").append(wi.nomecampo).append(" IS NULL");
+      else if(SqlEnum.ISNOTNULL.equals(wi.criteria))
+        whre.append(" AND ").append(wi.nomecampo).append(" IS NOT NULL");
+      else if(SqlEnum.MINUS.equals(wi.criteria))
+        whre.append(" AND (regexp_like(").append(wi.nomecampo).append(", '").append(simpleVal(wi)).append("', 'c'))");
+      else if(SqlEnum.MINUS_ALL.equals(wi.criteria))
+        whre.append(" AND (regexp_like(").append(wi.nomecampo).append(", '").append(simpleVal(wi)).append("', 'i'))");
+      else if(SqlEnum.IN.equals(wi.criteria))
+      {
+        ArrayList<String> sVals = new ArrayList<>();
+
+        if(wi.val instanceof Collection)
+          for(Object oVal : (Collection) wi.val)
+            sVals.add(adjValue(wi.type, oVal));
+        else if(wi.val.getClass().isArray())
+          for(int i = 0; i < Array.getLength(wi.val); i++)
+            sVals.add(adjValue(wi.type, Array.get(wi.val, i)));
+        else if(wi.val instanceof String)
+          sVals.add(adjValue(wi.type, wi.val.toString()));
+
+        if(!sVals.isEmpty())
+          whre.append(" AND (").append(adjCampo(wi.type, wi.nomecampo))
+             .append(" IN (").append(StringOper.join(sVals.iterator(), ',')).append("))");
+      }
+      else if(wi.val != null)
+        whre.append(" AND (").append(adjCampo(wi.type, wi.nomecampo)).append(" ").append(wi.criteria)
+           .append(" ").append(adjValue(wi.type, wi.val)).append(")");
+    }
+
+    for(FiltroData.betweenInfo bi : fd.vBetween)
+    {
+      String nomeCampo = adjCampo(bi.type, bi.nomecampo);
+      String valMin = adjValue(bi.type, bi.val1);
+      String valMax = adjValue(bi.type, bi.val2);
+
+      whre.append(" AND ((").append(nomeCampo).append(" >= ").append(valMin)
+         .append(") AND (").append(nomeCampo).append(" <= ").append(valMax).append("))");
+    }
+
+    for(String stm : fd.vFreeWhere)
+    {
+      whre.append(" AND (").append(stm).append(")");
+    }
+
+    return whre.length() == 0 ? null : whre.substring(5);
   }
 }
