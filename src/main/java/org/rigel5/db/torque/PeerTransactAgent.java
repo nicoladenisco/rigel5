@@ -48,7 +48,9 @@ import org.rigel5.db.TransactAgent;
  * Se la funzione run restituisce true la transazione viene confermata
  * e una commit viene eseguita.
  * </p>
- * <code><pre>
+ * <pre>
+ * <code>
+ *
  * esempio:
  * ...
  * ...
@@ -57,28 +59,30 @@ import org.rigel5.db.TransactAgent;
  *    public boolean run(DBConnection dbCon, boolean transactionSupported)
  *       throws Exception
  *     {
- *	PeerTableModel ptm = (PeerTableModel)(wl.getPtm());
- *	int numEle = ptm.getRowCount();
+ *        PeerTableModel ptm = (PeerTableModel)(wl.getPtm());
+ *        int numEle = ptm.getRowCount();
  *
- *	for(int i=0 ; i&lt;numEle ; i++)
- *	{
- *	  BaseObject obj = (BaseObject)(ptm.getRowRecord(i));
- *	  if(ptm.isRowDeleted(i)) {
- *	    obj.delete(dbCon);
- *	  } else if(obj.isModified())
- *	    obj.save(dbCon);
- *	}
- *	ptm.removeDeleted();
+ *        for(int i=0 ; i&lt;numEle ; i++)
+ *        {
+ *          BaseObject obj = (BaseObject)(ptm.getRowRecord(i));
+ *          if(ptm.isRowDeleted(i)) {
+ *            obj.delete(dbCon);
+ *          } else if(obj.isModified())
+ *            obj.save(dbCon);
+ *        }
+ *        ptm.removeDeleted();
  *
- *      // conferma la transazione ed esce
- *	return true;
+ *        // conferma la transazione ed esce
+ *        return true;
  *     }
  *   };
  *
  *   ta.runNow();
  * ...
  * ...
- * </pre></code>
+ *
+ * </code>
+ * </pre>
  * @author Nicola De Nisco
  * @version 1.0
  */

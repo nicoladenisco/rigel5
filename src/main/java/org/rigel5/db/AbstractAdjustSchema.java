@@ -598,12 +598,11 @@ public class AbstractAdjustSchema extends ParseSchemaBase
   }
 
   /**
-   * <p>
    * Sorts the child elements, using the specified comparator.Any other intervening content (Text, Comments, etc.) are
    * not moved.(Note that this means that the elements will now be in a different
    * order with respect to any comments, which may cause a problem
-   * if the comments describe the elements.)</p>
-   * <p>
+   * if the comments describe the elements.)
+   * <br>
    * This method overcomes two problems with the standard Collections.sort():
    * <ul>
    * <li>Collections.sort() doesn't bother to remove an item from its old
@@ -614,7 +613,6 @@ public class AbstractAdjustSchema extends ParseSchemaBase
    * Otherwise, all the formatting whitespace would move to the beginning
    * or end of the content list.
    * </ul>
-   * </p>
    * @param parent
    * @param c
    */
@@ -751,7 +749,7 @@ public class AbstractAdjustSchema extends ParseSchemaBase
 
     if(ouputFile != null)
     {
-      try(OutputStreamWriter out = new FileWriter(ouputFile))
+      try (OutputStreamWriter out = new FileWriter(ouputFile))
       {
         xout.output(docOutput, out);
         out.flush();
@@ -764,7 +762,7 @@ public class AbstractAdjustSchema extends ParseSchemaBase
 
     if(infoFile != null)
     {
-      try(OutputStreamWriter out = new FileWriter(infoFile))
+      try (OutputStreamWriter out = new FileWriter(infoFile))
       {
 
         out.write("<!--\nTabelle senza STATO_REC:\n");

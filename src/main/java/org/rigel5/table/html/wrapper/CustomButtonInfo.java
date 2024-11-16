@@ -112,7 +112,7 @@ public class CustomButtonInfo implements Cloneable
    * per consentire l'aggancio a funzione custom.
    * @param ptm table model di riferimento
    * @param row indice del record
-   * @return la stringa con l'url completa: jsform.jsp?codice1=xxxx&codice2=yyyy
+   * @return la stringa con l'url completa
    * @throws Exception
    */
   public String makeUrlRiga(RigelTableModel ptm, int row)

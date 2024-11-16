@@ -1755,7 +1755,7 @@ abstract public class RigelColumnDescriptor extends TableColumn
    * al browser.
    * @param row riga per cui si chiede la risoluzione
    * @param ptm table model con i dati
-   * @return i parametri sotto forma di stringa (&nome=valore&nome=valore...)
+   * @return i parametri sotto forma di stringa
    * @throws Exception
    */
   public String makeForeignFormParamsForUrl(int row, RigelTableModel ptm)
