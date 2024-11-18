@@ -95,7 +95,7 @@ public class HtmlUtils
    * Costruisce un tag di link a risorsa.
    * Costruisce il tag con una serie di parametri e opzioni.
    * @param where url a cui puntare
-   * @param param mappa di parametri (nome -> valore)
+   * @param param mappa di parametri (nome,valore)
    * @param link html del link
    * @param cls classe da usare per il tag a (può essere null)
    * @return HTML del tag

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -41,8 +41,11 @@ public interface RigelCustomUrlBuilder
    * Generalmente fa aprire una popup con all'interno la maschera
    * per selezionare il valore del campo.
    * @param popup vero se la maschera e' in popup
+   * @param tableModel
    * @param cd
    * @param fldName
+   * @param row
+   * @param col
    * @return
    * @throws Exception
    */
@@ -57,8 +60,11 @@ public interface RigelCustomUrlBuilder
    * Generalmente fa aprire una popup con all'interno la maschera
    * per visualizzare il valore del campo.
    * @param popup vero se la maschera e' in popup
+   * @param tableModel
    * @param cd
    * @param fldName
+   * @param row
+   * @param col
    * @return
    * @throws Exception
    */
@@ -77,7 +83,7 @@ public interface RigelCustomUrlBuilder
    * @param cd colonna corrente
    * @param fldName nome del campo
    * @param row riga di riferimento
-   * @param jlc eventuale parametro di ritorno
+   * @param extraParams
    * @return la uri corretta (normalmente la chiamata ad una funzione javascript)
    * @throws Exception
    */
@@ -96,7 +102,7 @@ public interface RigelCustomUrlBuilder
    * @param cd colonna corrente
    * @param fldName nome del campo
    * @param row riga di riferimento
-   * @param jlc eventuale parametro di ritorno
+   * @param extraParams
    * @return la uri corretta (normalmente la chiamata ad una funzione javascript)
    * @throws Exception
    */
@@ -112,9 +118,7 @@ public interface RigelCustomUrlBuilder
    * @param popup vero se la maschera e' in popup
    * @param inputUrl parametri già pronti per l'editing
    * @param tableModel gestore della tabella
-   * @param cd colonna corrente
-   * @param fldName nome del campo
-   * @param jlc eventuale parametro di ritorno
+   * @param extraParams
    * @return la uri corretta (normalmente la chiamata ad una funzione javascript)
    * @throws Exception
    */
@@ -133,7 +137,7 @@ public interface RigelCustomUrlBuilder
    * @param cd colonna corrente
    * @param fldName nome del campo
    * @param row riga di riferimento
-   * @param jlc eventuale parametro di ritorno
+   * @param extraParams
    * @return la uri corretta (normalmente la chiamata ad una funzione javascript)
    * @throws Exception
    */
@@ -154,7 +158,7 @@ public interface RigelCustomUrlBuilder
    * @param cd colonna corrente
    * @param fldName nome del campo
    * @param row riga di riferimento
-   * @param jlc eventuale parametro di ritorno
+   * @param extraParams
    * @return la uri corretta (normalmente la chiamata ad una funzione javascript)
    * @throws Exception
    */
@@ -172,7 +176,7 @@ public interface RigelCustomUrlBuilder
    * @param cd colonna corrente
    * @param fldName nome del campo
    * @param row riga di riferimento
-   * @param jlc eventuale parametro di ritorno
+   * @param extraParams
    * @return la uri corretta (normalmente la chiamata ad una funzione javascript)
    * @throws Exception
    */
@@ -226,9 +230,11 @@ public interface RigelCustomUrlBuilder
   /**
    * Ritorna la url dell'icona associata ad un custom button.
    * @param popup vero se la maschera e' in popup
+   * @param tableModel
    * @param cd
    * @param fldName
    * @param row
+   * @param cb
    * @return
    * @throws Exception
    */

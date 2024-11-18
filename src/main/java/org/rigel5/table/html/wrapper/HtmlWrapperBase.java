@@ -189,7 +189,7 @@ abstract public class HtmlWrapperBase extends WrapperBase
    * separati da virgola.
    * @param row indice del record
    * @param col indice di colonna (ignorato)
-   * @return la stringa con l'url completa: jsform.jsp?codice1=xxxx&codice2=yyyy
+   * @return la stringa con l'url completa
    * @throws Exception
    */
   public String makeUrlEditRiga(int row, int col)

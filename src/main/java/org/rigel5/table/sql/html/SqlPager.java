@@ -69,7 +69,9 @@ public class SqlPager extends CommonPager
    * Imposta dei filtri supplementari sul criterio di selezione.
    * Puo' essere ridefinita per implementare dei filtri ulteriori o
    * un ordinamento di default.* Puo'
-   * <pre><code>
+   * <pre>
+   * <code>
+   *
    * private SqlPager bleCli = new SqlPager("Clifor")
    * {
    *   protected void addExtraFilter(SqlTableModel stm)
@@ -86,9 +88,9 @@ public class SqlPager extends CommonPager
    * }
    * };
    *
-   * </code</pre>
-   * @
-   * param stm gestore dati sql
+   * </code>
+   * </pre>
+   * @param stm gestore dati sql
    * @throws Exception
    */
   protected void addExtraFilter(SqlTableModel stm)

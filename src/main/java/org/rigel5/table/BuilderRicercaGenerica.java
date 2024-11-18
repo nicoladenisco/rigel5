@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -86,7 +86,6 @@ public interface BuilderRicercaGenerica
 
   /**
    * Restituisce i tipi di criteria supportati.
-   * @see SqlEnum.
    * @return
    */
   public SqlEnum[] getTipiCriteria();
@@ -133,5 +132,3 @@ public interface BuilderRicercaGenerica
      RigelColumnDescriptor cd, String defVal, RigelI18nInterface i18n)
      throws Exception;
 }
-
-
