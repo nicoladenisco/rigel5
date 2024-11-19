@@ -120,14 +120,16 @@
 
     <!-- https://mvnrepository.com/artifact/org.apache.torque/torque -->
     <dependency>
-      <groupId>io.github.nicoladenisco</groupId>
+      <!-- groupId>io.github.nicoladenisco</groupId -->
+      <groupId>org.apache.torque</groupId>
       <artifactId>torque</artifactId>
       <version>${torque.version}</version>
       <type>pom</type>
     </dependency>
     <!-- https://mvnrepository.com/artifact/org.apache.torque/torque-runtime -->
     <dependency>
-      <groupId>io.github.nicoladenisco</groupId>
+      <!-- groupId>io.github.nicoladenisco</groupId -->
+      <groupId>org.apache.torque</groupId>
       <artifactId>torque-runtime</artifactId>
       <version>${torque.version}</version>
     </dependency>
