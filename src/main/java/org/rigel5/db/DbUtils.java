@@ -1145,7 +1145,8 @@ public class DbUtils
   public static int[] queryForID(Connection con, String sSQL, FunctionTrowException<ResultSet, Integer> extractor)
      throws Exception
   {
-    try (ResultSet rs = con.createStatement().executeQuery(sSQL))
+    try (Statement stm = con.createStatement();
+       ResultSet rs = stm.executeQuery(sSQL))
     {
       return queryForID(rs, extractor);
     }
@@ -1186,7 +1187,8 @@ public class DbUtils
   public static String[] queryForString(Connection con, String sSQL, FunctionTrowException<ResultSet, String> extractor)
      throws Exception
   {
-    try (ResultSet rs = con.createStatement().executeQuery(sSQL))
+    try (Statement stm = con.createStatement();
+       ResultSet rs = stm.executeQuery(sSQL))
     {
       return queryForString(rs, extractor);
     }

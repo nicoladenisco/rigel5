@@ -493,6 +493,12 @@ public class CriteriaRigel extends Criteria
     return this;
   }
 
+  public CriteriaRigel whereIn(ColumnMap cm, int[] idRes)
+  {
+    super.whereIn(cm, ArrayOper.asList(idRes));
+    return this;
+  }
+
   public CriteriaRigel isBetweenTimestampDateTrunc(ColumnMap col, Date min, Date max)
   {
     min = DateTime.inizioGiorno(min);
