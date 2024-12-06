@@ -30,14 +30,18 @@ import java.util.regex.Pattern;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.torque.map.ColumnMap;
 import org.commonlib5.exec.ExecHelper;
 import org.commonlib5.utils.ArrayMap;
+import org.commonlib5.utils.ClassOper;
 import org.commonlib5.utils.FileScanner;
 import org.commonlib5.utils.OsIdent;
 import org.commonlib5.utils.StringOper;
 import org.jdom2.Document;
 import org.jdom2.Element;
+import org.jdom2.Namespace;
 import org.jdom2.input.SAXBuilder;
 import org.rigel5.db.torque.TableMapHelper;
 
@@ -49,6 +53,8 @@ import org.rigel5.db.torque.TableMapHelper;
  */
 abstract public class AbstractAlignDatabase
 {
+  private final static Log log = LogFactory.getLog(AbstractAlignDatabase.class);
+
   public static class ItemUpdate
   {
     String name;
@@ -77,9 +83,13 @@ abstract public class AbstractAlignDatabase
   protected String adapter;
   protected List<File> buildScripts = new ArrayList<>();
   protected String clobType = "CLOB";
+  protected boolean alterFkCorrectPostgres = false;
 
   public static final int osType = OsIdent.checkOStype();
   public static final int SB_STATEMENT_SIZE = 1024;
+  public static final Pattern alterPostgres = Pattern.compile(
+     "ALTER TABLE (.+) +ADD CONSTRAINT +.+\\.(.+) +FOREIGN KEY +(.+)",
+     Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
 
   /**
    * Imposta connesione da utilizzare per l'aggiornamento del db.
@@ -91,7 +101,10 @@ abstract public class AbstractAlignDatabase
     this.con = con;
     this.adapter = adapter;
     if("postgresql".equals(adapter))
+    {
       this.clobType = "TEXT";
+      this.alterFkCorrectPostgres = true;
+    }
   }
 
   /**
@@ -149,7 +162,7 @@ abstract public class AbstractAlignDatabase
          || (major == annoInstall && minor > settimanaInstall))
       {
         if(verbose)
-          System.out.println("Esecuzione modifiche major=" + major + " minor=" + minor);
+          log.info("Esecuzione modifiche major=" + major + " minor=" + minor);
 
         StepUpdate step = parseStep(elemento);
         executeStep(elemento, step);
@@ -160,7 +173,7 @@ abstract public class AbstractAlignDatabase
         elemento = null;
       }
       else if(verbose)
-        System.out.println("Gia aggiornato major=" + major + " minor=" + minor);
+        log.info("Gia aggiornato major=" + major + " minor=" + minor);
     }
 
     if(forceLast && !forceFrom && elemento != null)
@@ -168,7 +181,7 @@ abstract public class AbstractAlignDatabase
       int major = StringOper.parse(elemento.getAttributeValue("major"), 0);
       int minor = StringOper.parse(elemento.getAttributeValue("minor"), 0);
       if(verbose)
-        System.out.println("Riapplicazione ultimo step di modifica major=" + major + " minor=" + minor);
+        log.info("Riapplicazione ultimo step di modifica major=" + major + " minor=" + minor);
 
       StepUpdate step = parseStep(elemento);
       executeStep(elemento, step);
@@ -188,7 +201,7 @@ abstract public class AbstractAlignDatabase
     {
       if(!StringOper.isEquAny(e.getName(), "file-sql", "file-csv", "execute", "statement"))
       {
-        System.out.println("Elemento " + e.getName() + " non valido: viene ignorato.");
+        log.info("Elemento " + e.getName() + " non valido: viene ignorato.");
         continue;
       }
 
@@ -260,7 +273,7 @@ abstract public class AbstractAlignDatabase
     toRead = new File(dirScripts, sFile);
     if(!toRead.canRead())
     {
-      System.out.println("WARNING: Non riesco a leggere " + toRead.getAbsolutePath());
+      log.info("WARNING: Non riesco a leggere " + toRead.getAbsolutePath());
       return null;
     }
 
@@ -271,9 +284,9 @@ abstract public class AbstractAlignDatabase
   protected void executeFileSql(Element e, File fileSql)
      throws Exception
   {
-    System.out.println("=== Elaborazione " + fileSql.getAbsolutePath() + " ===");
+    log.info("=== Elaborazione " + fileSql.getAbsolutePath() + " ===");
 
-    try (InputStreamReader rd = new InputStreamReader(new FileInputStream(fileSql), "UTF-8"))
+    try(InputStreamReader rd = new InputStreamReader(new FileInputStream(fileSql), "UTF-8"))
     {
       executeStreamSql(rd);
     }
@@ -282,7 +295,7 @@ abstract public class AbstractAlignDatabase
   protected void executeStreamSql(Reader rd)
      throws Exception
   {
-    try (Statement query = con.createStatement();
+    try(Statement st = con.createStatement();
        BufferedReader in = new BufferedReader(rd))
     {
       String str;
@@ -303,14 +316,14 @@ abstract public class AbstractAlignDatabase
           sSQL = StringOper.left(sSQL, -1);
 
           if(veryverbose)
-            System.out.println("sSQL=" + sSQL);
+            log.info("sSQL=" + sSQL);
           else
-            System.out.println('!');
+            log.info('!');
 
           if(!executeMacro(sSQL))
           {
             // esegue la modifica
-            query.executeUpdate(sSQL);
+            executeStatement(st, sSQL);
           }
 
           // ricrea il buffer per il comando SQL
@@ -322,9 +335,9 @@ abstract public class AbstractAlignDatabase
 
   protected void executeFileSqlIgnoraErrori(Element e, File fileSql)
   {
-    System.out.println("=== Elaborazione " + fileSql.getAbsolutePath() + " ===");
+    log.info("=== Elaborazione " + fileSql.getAbsolutePath() + " ===");
 
-    try (InputStreamReader rd = new InputStreamReader(new FileInputStream(fileSql), "UTF-8"))
+    try(InputStreamReader rd = new InputStreamReader(new FileInputStream(fileSql), "UTF-8"))
     {
       executeStreamSqlIgnoraErrori(rd);
     }
@@ -337,7 +350,7 @@ abstract public class AbstractAlignDatabase
   public void executeFileSQL(File fileSQL, boolean ignoraErrori)
      throws Exception
   {
-    try (InputStreamReader fr = new InputStreamReader(
+    try(InputStreamReader fr = new InputStreamReader(
        new FileInputStream(fileSQL), StandardCharsets.UTF_8))
     {
       if(ignoraErrori)
@@ -351,7 +364,7 @@ abstract public class AbstractAlignDatabase
   {
     try
     {
-      try (BufferedReader in = new BufferedReader(rd))
+      try(BufferedReader in = new BufferedReader(rd))
       {
         String str, sSQL;
         StringBuilder sb = new StringBuilder(SB_STATEMENT_SIZE);
@@ -381,7 +394,7 @@ abstract public class AbstractAlignDatabase
       }
 
       if(!veryverbose)
-        System.out.println('!');
+        log.info('!');
     }
     catch(Exception e)
     {
@@ -394,17 +407,17 @@ abstract public class AbstractAlignDatabase
     try
     {
       if(veryverbose)
-        System.out.println("sSQL=" + sSQL);
+        log.info("sSQL=" + sSQL);
 
       if(!executeMacro(sSQL))
       {
         // esegue la modifica
-        try (Statement st = con.createStatement())
+        try(Statement st = con.createStatement())
         {
           if(sSQL.endsWith(";"))
             sSQL = StringOper.left(sSQL, -1);
 
-          st.executeUpdate(sSQL);
+          executeStatement(st, sSQL);
         }
       }
 
@@ -416,15 +429,41 @@ abstract public class AbstractAlignDatabase
       // in caso di errore SQL visualizza il messaggio ma continua
       // se non siamo in veryverbose scrive qui la stringa sql
       if(!veryverbose)
-        System.out.println("\nsSQL=" + sSQL);
+        log.info("\nsSQL=" + sSQL);
 
-      System.out.println(se.getMessage());
+      log.info(se.getMessage());
     }
     catch(Exception se)
     {
       // in caso di errore generico visualizza stack ma continua
       se.printStackTrace();
     }
+  }
+
+  public int executeStatement(Statement st, String sSQL)
+     throws Exception
+  {
+    if(alterFkCorrectPostgres)
+    {
+      // correzione per generazione bacata di Torque
+      // ALTER TABLE DVM.SAT_DEVICES ADD CONSTRAINT DVM.SAT_DEVICES_FK_1 FOREIGN KEY (ID_SAT_HOSTS) REFERENCES DVM.SAT_HOSTS (SAT_HOSTS_ID)
+      // diventa
+      // ALTER TABLE DVM.SAT_DEVICES ADD CONSTRAINT SAT_DEVICES_FK_1 FOREIGN KEY (ID_SAT_HOSTS) REFERENCES DVM.SAT_HOSTS (SAT_HOSTS_ID)
+      // ovvero il nome del constraint non deve avere lo schema (viene ricavato dalla tabella)
+      // altrimenti Postgres solleva eccezione per errore di sintassi
+      if(sSQL.toUpperCase().startsWith("ALTER"))
+      {
+        String s = sSQL.replace("\r\n", " ").replace("\n", " ");
+
+        Matcher m = alterPostgres.matcher(s);
+        if(m.find())
+        {
+          sSQL = "ALTER TABLE " + m.group(1) + " ADD CONSTRAINT " + m.group(2) + " FOREIGN KEY " + m.group(3);
+        }
+      }
+    }
+
+    return st.executeUpdate(sSQL);
   }
 
   static final Pattern pMacro = Pattern.compile("macro_(.+)\\((.+)\\);", Pattern.CASE_INSENSITIVE);
@@ -497,14 +536,14 @@ abstract public class AbstractAlignDatabase
     if(testIndice(tabella, indice))
     {
       if(verbose)
-        System.out.println("L'indice " + indice + " già esiste; comando ignorato.");
+        log.info("L'indice " + indice + " già esiste; comando ignorato.");
 
       return;
     }
 
     try
     {
-      try (Statement st = con.createStatement())
+      try(Statement st = con.createStatement())
       {
         st.executeUpdate(
            "ALTER TABLE " + tabella
@@ -518,7 +557,7 @@ abstract public class AbstractAlignDatabase
       if(pIgnore.matcher(e.getMessage()).find())
       {
         if(verbose)
-          System.out.println("L'indice " + indice + " già esiste; comando ignorato.");
+          log.info("L'indice " + indice + " già esiste; comando ignorato.");
 
         return;
       }
@@ -557,7 +596,7 @@ abstract public class AbstractAlignDatabase
     if(testIndice(tabella, indice))
     {
       if(verbose)
-        System.out.println("L'indice " + indice + " già esiste; comando ignorato.");
+        log.info("L'indice " + indice + " già esiste; comando ignorato.");
 
       return;
     }
@@ -573,13 +612,13 @@ abstract public class AbstractAlignDatabase
            + " ADD CONSTRAINT " + indice
            + " UNIQUE(" + colonne + ");";
 
-        try (Statement st = con.createStatement())
+        try(Statement st = con.createStatement())
         {
           st.executeUpdate(sSQL);
         }
 
         if(verbose)
-          System.out.println("OK: " + sSQL);
+          log.info("OK: " + sSQL);
 
         return;
       }
@@ -594,7 +633,7 @@ abstract public class AbstractAlignDatabase
         if(pIgnore.matcher(e.getMessage()).find())
         {
           if(verbose)
-            System.out.println("L'indice " + indice + " già esiste; comando ignorato.");
+            log.info("L'indice " + indice + " già esiste; comando ignorato.");
 
           return;
         }
@@ -609,7 +648,7 @@ abstract public class AbstractAlignDatabase
           eliminaDuplicati(tabella, primary, colonnaRimuovere, valoreRimuovere);
 
           if(verbose)
-            System.out.println("CA=Rimosso il valore " + valoreRimuovere + " dalla colonna " + colonnaRimuovere);
+            log.info("CA=Rimosso il valore " + valoreRimuovere + " dalla colonna " + colonnaRimuovere);
 
           continue;
         }
@@ -634,7 +673,7 @@ abstract public class AbstractAlignDatabase
 
     DatabaseMetaData databaseMetaData = con.getMetaData();
     ArrayList<String> viewNames = new ArrayList<String>();
-    try (ResultSet rSet = databaseMetaData.getTables(null, null, null, DbUtils.VIEWS_FILTER))
+    try(ResultSet rSet = databaseMetaData.getTables(null, null, null, DbUtils.VIEWS_FILTER))
     {
       while(rSet.next())
       {
@@ -654,7 +693,7 @@ abstract public class AbstractAlignDatabase
       }
     }
 
-    System.out.println("Dropping " + viewNames.size() + " views.");
+    log.info("Dropping " + viewNames.size() + " views.");
 
     for(String vn : viewNames)
     {
@@ -666,20 +705,20 @@ abstract public class AbstractAlignDatabase
           sSQL = "DROP VIEW " + vn + " CASCADE;";
 
         if(optionShowsql)
-          System.out.println("SQL=" + sSQL);
+          log.info("SQL=" + sSQL);
 
-        try (Statement st = con.createStatement())
+        try(Statement st = con.createStatement())
         {
           st.executeUpdate(sSQL);
         }
 
         if(verbose || optionVerbose)
-          System.out.println("OK: " + sSQL);
+          log.info("OK: " + sSQL);
       }
       catch(SQLException ex)
       {
         if(verbose || optionVerbose)
-          System.out.println("ERROR: " + ex.getMessage());
+          log.info("ERROR: " + ex.getMessage());
       }
     }
   }
@@ -710,12 +749,12 @@ abstract public class AbstractAlignDatabase
     if(testIndice(tabella, indice))
     {
       if(verbose)
-        System.out.println("L'indice " + indice + " già esiste; comando ignorato.");
+        log.info("L'indice " + indice + " già esiste; comando ignorato.");
 
       return;
     }
 
-    try (Statement st = con.createStatement())
+    try(Statement st = con.createStatement())
     {
       // rimuove i valori che vanno in conflitto con la chiave esterna
       String sSQL
@@ -726,7 +765,7 @@ abstract public class AbstractAlignDatabase
       st.executeUpdate(sSQL);
 
       if(verbose)
-        System.out.println("macro_createforeign: " + sSQL);
+        log.info("macro_createforeign: " + sSQL);
 
       // applica la chiave esterna
       sSQL
@@ -737,12 +776,12 @@ abstract public class AbstractAlignDatabase
       st.executeUpdate(sSQL);
 
       if(verbose)
-        System.out.println("macro_createforeign: " + sSQL);
+        log.info("macro_createforeign: " + sSQL);
     }
     catch(SQLException ex)
     {
       if(verbose)
-        System.out.println("ERROR: " + ex.getMessage());
+        log.info("ERROR: " + ex.getMessage());
     }
   }
 
@@ -759,16 +798,16 @@ abstract public class AbstractAlignDatabase
     String sSQL = DbUtils.costruisciSQLzero(con, params);
 
     if(verbose)
-      System.out.println("macro_createzero: " + sSQL);
+      log.info("macro_createzero: " + sSQL);
 
-    try (Statement st = con.createStatement())
+    try(Statement st = con.createStatement())
     {
       st.executeUpdate(sSQL);
     }
     catch(SQLException ex)
     {
       if(verbose)
-        System.out.println("ERROR: " + ex.getMessage());
+        log.info("ERROR: " + ex.getMessage());
     }
   }
 
@@ -791,7 +830,7 @@ abstract public class AbstractAlignDatabase
     }
 
     DatabaseMetaData dbMeta = con.getMetaData();
-    try (ResultSet rs = dbMeta.getIndexInfo(null, nomeSchema, nomeTabella, false, false))
+    try(ResultSet rs = dbMeta.getIndexInfo(null, nomeSchema, nomeTabella, false, false))
     {
       if(testResultset(rs, nomeIndice))
         return true;
@@ -800,7 +839,7 @@ abstract public class AbstractAlignDatabase
     if(nomeSchema != null)
       nomeSchema = nomeSchema.toLowerCase();
 
-    try (ResultSet rs = dbMeta.getIndexInfo(null, nomeSchema, nomeTabella.toLowerCase(), false, false))
+    try(ResultSet rs = dbMeta.getIndexInfo(null, nomeSchema, nomeTabella.toLowerCase(), false, false))
     {
       if(testResultset(rs, nomeIndice))
         return true;
@@ -850,7 +889,7 @@ abstract public class AbstractAlignDatabase
     // recupera tutte le chiavi primarie in collisione
     ArrayList<String> arPrimary = new ArrayList<String>();
 
-    try (Statement st = con.createStatement();
+    try(Statement st = con.createStatement();
        ResultSet rs = st.executeQuery(sSQL))
     {
       while(rs.next())
@@ -896,9 +935,9 @@ abstract public class AbstractAlignDatabase
       uSQL += " WHERE " + primary + " IN (" + StringOper.join(arPrimary, ',', '\'', min, max) + ")";
 
     if(verbose)
-      System.out.println("CL=" + uSQL);
+      log.info("CL=" + uSQL);
 
-    try (Statement su = con.createStatement())
+    try(Statement su = con.createStatement())
     {
       su.executeUpdate(uSQL);
     }
@@ -921,10 +960,10 @@ abstract public class AbstractAlignDatabase
       {
         String uSQL = sSQL + nomeColonna + "=NULL" + where + nomeColonna + "=''";
 
-        try (Statement su = con.createStatement())
+        try(Statement su = con.createStatement())
         {
           if(veryverbose)
-            System.out.println("uSQL=" + uSQL);
+            log.info("uSQL=" + uSQL);
 
           su.executeUpdate(uSQL);
         }
@@ -942,9 +981,9 @@ abstract public class AbstractAlignDatabase
     }
 
     if(verbose)
-      System.out.println("CD=" + sSQL);
+      log.info("CD=" + sSQL);
 
-    try (Statement st = con.createStatement();
+    try(Statement st = con.createStatement();
        ResultSet rs = st.executeQuery(sSQL))
     {
       while(rs.next())
@@ -981,9 +1020,9 @@ abstract public class AbstractAlignDatabase
        + "  FROM " + nomeTabella
        + " WHERE " + nomeCampo + " IS NULL";
 
-    try (Statement sq = con.createStatement())
+    try(Statement sq = con.createStatement())
     {
-      try (ResultSet rs = sq.executeQuery(sSQL))
+      try(ResultSet rs = sq.executeQuery(sSQL))
       {
         String sUPD;
         while(rs.next())
@@ -1001,7 +1040,7 @@ abstract public class AbstractAlignDatabase
                + " WHERE " + nomePrimary + "='" + rs.getLong(1) + "'";
           }
 
-          try (Statement su = con.createStatement())
+          try(Statement su = con.createStatement())
           {
             su.executeUpdate(sUPD);
           }
@@ -1015,14 +1054,14 @@ abstract public class AbstractAlignDatabase
   {
     if(buildScripts.isEmpty())
     {
-      System.out.println("ERROR: build scripts empty in build macro.");
+      log.info("ERROR: build scripts empty in build macro.");
       return;
     }
 
     for(File fileSQL : buildScripts)
     {
       if(verbose)
-        System.out.println("Build " + fileSQL.getAbsolutePath());
+        log.info("Build " + fileSQL.getAbsolutePath());
 
       executeFileSQL(fileSQL, true);
     }
@@ -1065,7 +1104,7 @@ abstract public class AbstractAlignDatabase
         if(campo == null)
         {
           if(verbose)
-            System.out.println("Tabella " + nomeTabella + " campo " + nomeCampo + " scartato perchè non trovato.");
+            log.info("Tabella " + nomeTabella + " campo " + nomeCampo + " scartato perchè non trovato.");
           continue;
         }
 
@@ -1103,7 +1142,7 @@ abstract public class AbstractAlignDatabase
       if(cAct.typeEnum() == Types.CLOB || "TEXT".equalsIgnoreCase(cAct.typeName()))
       {
         if(verbose)
-          System.out.println("Tabella " + nomeTabella + " campo " + nomeCampo + " scartato perchè già CLOB.");
+          log.info("Tabella " + nomeTabella + " campo " + nomeCampo + " scartato perchè già CLOB.");
         return;
       }
 
@@ -1121,7 +1160,7 @@ abstract public class AbstractAlignDatabase
     }
 
     if(verbose)
-      System.out.println("Tabella " + nomeTabella + " campo " + nomeCampo + " convertito in CLOB.");
+      log.info("Tabella " + nomeTabella + " campo " + nomeCampo + " convertito in CLOB.");
   }
 
   /**
@@ -1142,7 +1181,7 @@ abstract public class AbstractAlignDatabase
       nomeTabella = nomeTabella.substring(pos + 1);
     }
 
-    try (ResultSet rs = con.getMetaData().getColumns(null, nomeSchema, nomeTabella, null))
+    try(ResultSet rs = con.getMetaData().getColumns(null, nomeSchema, nomeTabella, null))
     {
       while(rs.next())
       {
@@ -1157,7 +1196,7 @@ abstract public class AbstractAlignDatabase
     if(nomeSchema != null)
       nomeSchema = nomeSchema.toLowerCase();
 
-    try (ResultSet rs = con.getMetaData().getColumns(null, nomeSchema, nomeTabella.toLowerCase(), null))
+    try(ResultSet rs = con.getMetaData().getColumns(null, nomeSchema, nomeTabella.toLowerCase(), null))
     {
       while(rs.next())
       {
@@ -1210,20 +1249,20 @@ abstract public class AbstractAlignDatabase
 
     if(comando == null)
     {
-      System.out.println("WARNING: script non dichiarato per la piattaforma.");
+      log.info("WARNING: script non dichiarato per la piattaforma.");
       return;
     }
 
     if(!comando.isEmpty())
     {
       if(verbose)
-        System.out.println("Eseguo: " + comando);
+        log.info("Eseguo: " + comando);
 
       try
       {
         ExecHelper eh = ExecHelper.execUsingShell(comando);
-        System.out.println("SDOUT:\n" + eh.getOutput());
-        System.out.println("SDERR:\n" + eh.getError());
+        log.info("SDOUT:\n" + eh.getOutput());
+        log.info("SDERR:\n" + eh.getError());
       }
       catch(Exception e)
       {
@@ -1244,7 +1283,7 @@ abstract public class AbstractAlignDatabase
       throw new Exception("Step non dichiarato correttamente: manca modify.");
 
     if(verbose)
-      System.out.println("Eseguo: " + csvFile.getAbsolutePath());
+      log.info("Eseguo: " + csvFile.getAbsolutePath());
 
     try
     {
@@ -1300,7 +1339,7 @@ abstract public class AbstractAlignDatabase
   protected void executeFileCsv(String tabella, String chiave, File csvFile, Element fileCsv)
      throws Exception
   {
-    try (Reader in = new InputStreamReader(new FileInputStream(csvFile), "UTF-8"))
+    try(Reader in = new InputStreamReader(new FileInputStream(csvFile), "UTF-8"))
     {
       CSVParser parser = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(in);
 
@@ -1358,7 +1397,7 @@ abstract public class AbstractAlignDatabase
 
       if(colMap == null)
       {
-        System.out.println("Tabella " + tabella + " non trovata nel database.");
+        log.info("Tabella " + tabella + " non trovata nel database.");
         return;
       }
 
@@ -1369,7 +1408,7 @@ abstract public class AbstractAlignDatabase
         // scarta i record che non hanno lo stesso numero di colonne
         if(numColonne != csvRecord.size())
         {
-          System.out.println(String.format("Record %d scartato: attesi %d campi, trovati %d campi.",
+          log.info(String.format("Record %d scartato: attesi %d campi, trovati %d campi.",
              csvRecord.getRecordNumber(), numColonne, csvRecord.size()));
           continue;
         }
@@ -1446,5 +1485,64 @@ abstract public class AbstractAlignDatabase
     {
       executeFileSQL(fvista, true);
     }
+  }
+
+  public void loadTablesFromSchemaDir(File dirSchema, String baseClass)
+     throws Exception
+  {
+    List<File> files = FileScanner.scan(dirSchema, 10, "*-schema.xml");
+
+    for(File f : files)
+      loadTablesFromSchemaFile(f, baseClass);
+  }
+
+  public void loadTablesFromSchemaFile(File fxml, String baseClass)
+     throws Exception
+  {
+    if(!fxml.exists())
+      return;
+
+    log.info("Leggo struttura db XML dal file " + fxml.getAbsolutePath());
+    SAXBuilder builder = new SAXBuilder();
+    Document d = builder.build(fxml);
+    Element root = d.getRootElement();
+    Namespace ns = d.getRootElement().getNamespace();
+
+    List<Element> tables = root.getChildren("table", ns);
+
+    for(Element table : tables)
+    {
+      // primo tentativo nome completo
+      String tableName = table.getAttributeValue("name");
+      if(!caricaClassePeer(tableName, baseClass))
+      {
+        // secondo tentativo senza nome dello schema
+        int pos = tableName.indexOf('.');
+        if(pos != -1)
+          caricaClassePeer(tableName.substring(pos + 1), baseClass);
+      }
+    }
+  }
+
+  private boolean caricaClassePeer(String tableName, String baseClass)
+  {
+    String pname = javaName(tableName) + "Peer";
+    Class cz = ClassOper.loadClass(pname, baseClass, null);
+    if(cz != null)
+    {
+      log.debug("Caricata classe " + cz.getName());
+      return true;
+    }
+
+    return false;
+  }
+
+  public String javaName(String name)
+  {
+    String[] aa = name.split("\\.|_");
+    StringBuilder sb = new StringBuilder();
+    for(String s : aa)
+      sb.append(s.substring(0, 1).toUpperCase()).append(s.substring(1).toLowerCase());
+    return sb.toString();
   }
 }

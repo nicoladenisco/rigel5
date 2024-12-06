@@ -84,7 +84,7 @@ public class TQUtils
     Configuration cfg = Torque.getConfiguration();
     String adpterName = cfg.getString("database." + dbname + ".adapter");
 
-    if("auto".equalsIgnoreCase(adpterName))
+    if(adpterName == null || "auto".equalsIgnoreCase(adpterName))
     {
       Adapter dbAdapter = Torque.getAdapter(dbname);
       adpterName = getAdapterName(dbAdapter);
