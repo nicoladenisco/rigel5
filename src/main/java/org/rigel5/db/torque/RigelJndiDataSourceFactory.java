@@ -25,10 +25,14 @@ import javax.naming.InitialContext;
 import javax.naming.NameAlreadyBoundException;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
+import org.apache.commons.beanutils.ConvertUtils;
+import org.apache.commons.beanutils.MappedPropertyDescriptor;
+import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.torque.TorqueException;
+import org.apache.torque.TorqueRuntimeException;
 import org.apache.torque.dsfactory.AbstractDataSourceFactory;
 
 /**
@@ -298,6 +302,87 @@ public class RigelJndiDataSourceFactory extends AbstractDataSourceFactory
         // not really a subctx, it is the ds name
         ctx.bind(subctx, ds);
       }
+    }
+  }
+
+  /**
+   * Encapsulates setting configuration properties on
+   * <code>DataSource</code> objects.
+   *
+   * Ridefinita dalla classe base per emettere warning e non error
+   * se DataSouce non accetta una chiave di setup.
+   *
+   * @param property the property to read from the configuration
+   * @param c the configuration to read the property from
+   * @param ds the <code>DataSource</code> instance to write the property to
+   * @throws Exception if anything goes wrong
+   */
+  @Override
+  protected void setProperty(String property, final Configuration c, final Object ds)
+     throws Exception
+  {
+    if(c == null || c.isEmpty())
+    {
+      return;
+    }
+
+    String key = property;
+    Class<?> dsClass = ds.getClass();
+    int dot = property.indexOf('.');
+    try
+    {
+      if(dot > 0)
+      {
+        property = property.substring(0, dot);
+
+        MappedPropertyDescriptor mappedPD = new MappedPropertyDescriptor(property, dsClass);
+        Class<?> propertyType = mappedPD.getMappedPropertyType();
+        Configuration subProps = c.subset(property);
+        // use reflection to set properties
+        Iterator<?> j = subProps.getKeys();
+        while(j.hasNext())
+        {
+          String subProp = (String) j.next();
+          String propVal = subProps.getString(subProp);
+          Object value = ConvertUtils.convert(propVal, propertyType);
+          PropertyUtils.setMappedProperty(ds, property, subProp, value);
+
+          log.debug("setMappedProperty({}, {}, {}, {})", ds, property, subProp, value);
+        }
+      }
+      else
+      {
+        if("password".equals(key))
+        {
+          // do not log value of password
+          // for this, ConvertUtils.convert cannot be used
+          // as it also logs the value of the converted property
+          // so it is assumed here that the password is a String
+          String value = c.getString(property);
+          PropertyUtils.setSimpleProperty(ds, property, value);
+
+          log.debug("setSimpleProperty({}, {}, (value not logged))", ds, property);
+        }
+        else
+        {
+          Class<?> propertyType = PropertyUtils.getPropertyType(ds, property);
+          Object value = ConvertUtils.convert(c.getString(property), propertyType);
+          PropertyUtils.setSimpleProperty(ds, property, value);
+
+          log.debug("setSimpleProperty({}, {}, {})", ds, property, value);
+        }
+      }
+    }
+    catch(RuntimeException e)
+    {
+      throw new TorqueRuntimeException(
+         "Runtime error setting property " + property, e);
+    }
+    catch(Exception e)
+    {
+      // la modifica riguarda solo questa linea: da error a warn
+      log.warn("Property: {}  value: {}  is not supported by DataSource: {}",
+         property, c.getString(key), ds.getClass().getName());
     }
   }
 }
