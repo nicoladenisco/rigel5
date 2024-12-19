@@ -169,6 +169,10 @@ public class CustomButtonInfo implements Cloneable
     if("#".equals(javascript))
       return javascript;
 
+    // se javascript non contiene macro, lo ritorna secco
+    if(!javascript.matches("[\\#\\@]"))
+      return javascript;
+
     return ptm.getValueMacroInside(row, 0, javascript, false, true);
   }
 
