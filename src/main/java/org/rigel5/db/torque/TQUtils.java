@@ -99,6 +99,7 @@ public class TQUtils
     tmp.put("oracle", "OracleQueryBuilder");
     tmp.put("mssql", "MSSQLQueryBuilder");
     tmp.put("mysql", "MysqlQueryBuilder");
+    tmp.put("derby", "DerbyQueryBuilder");
     tmp.put("postgresql", "Postgre73QueryBuilder");
     torqueRigelAdapterMap = Collections.unmodifiableMap(tmp);
   }

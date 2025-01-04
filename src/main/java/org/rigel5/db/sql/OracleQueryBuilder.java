@@ -253,7 +253,7 @@ public class OracleQueryBuilder extends QueryBuilder
     {
       boolean spub = !isSchemaPublic(schema) && StringOper.isOkStr(nomeSchema);
 
-      try (ResultSet rSet = con.getMetaData().getTables(null, schema, null, TABLES_FILTER))
+      try(ResultSet rSet = con.getMetaData().getTables(null, schema, null, TABLES_FILTER))
       {
         while(rSet.next())
         {
@@ -303,13 +303,13 @@ public class OracleQueryBuilder extends QueryBuilder
   {
     normalizeSchema(con);
     DatabaseMetaData databaseMetaData = con.getMetaData();
-    ArrayList<String> viewNames = new ArrayList<String>();
+    ArrayList<String> viewNames = new ArrayList<>();
 
     for(String schema : normalizedSchemas)
     {
       boolean spub = isSchemaPublic(schema);
 
-      try (ResultSet rSet = databaseMetaData.getTables(null, schema, null, VIEWS_FILTER))
+      try(ResultSet rSet = databaseMetaData.getTables(null, schema, null, VIEWS_FILTER))
       {
         while(rSet.next())
         {
@@ -340,13 +340,13 @@ public class OracleQueryBuilder extends QueryBuilder
   {
     normalizeSchema(con);
     DatabaseMetaData databaseMetaData = con.getMetaData();
-    ArrayList<String> tableNames = new ArrayList<String>();
+    ArrayList<String> tableNames = new ArrayList<>();
 
     for(String schema : normalizedSchemas)
     {
       boolean spub = isSchemaPublic(schema);
 
-      try (ResultSet rSet = databaseMetaData.getTables(null, schema, null, TABLES_FILTER))
+      try(ResultSet rSet = databaseMetaData.getTables(null, schema, null, TABLES_FILTER))
       {
         while(rSet.next())
         {
@@ -377,7 +377,7 @@ public class OracleQueryBuilder extends QueryBuilder
       return;
 
     normalizedSchemas.clear();
-    try (ResultSet rs = con.getMetaData().getSchemas())
+    try(ResultSet rs = con.getMetaData().getSchemas())
     {
       while(rs.next())
       {
@@ -403,9 +403,9 @@ public class OracleQueryBuilder extends QueryBuilder
        + "FROM v$transaction tx\n"
        + "JOIN v$session s ON tx.ses_addr = s.saddr";
 
-    try (Statement st = con.createStatement())
+    try(Statement st = con.createStatement())
     {
-      try (ResultSet rs = st.executeQuery(sSQL))
+      try(ResultSet rs = st.executeQuery(sSQL))
       {
         if(rs.next())
           return rs.getString(1);
@@ -415,6 +415,7 @@ public class OracleQueryBuilder extends QueryBuilder
     return super.getTransactionID(con);
   }
 
+  @Override
   public synchronized String makeFiltroWhere(FiltroData fd)
   {
     StringBuilder whre = new StringBuilder();
