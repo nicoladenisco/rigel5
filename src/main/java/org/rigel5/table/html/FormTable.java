@@ -122,7 +122,7 @@ public class FormTable extends hEditTable
    * Restituisce html+javascript in una unica stringa.
    * Questa funzione è fornita solo per compatibiltà con la verione precedente.
    * Utilizzare i componenti di pagina.
-   * @deprecated
+   * @deprecated usare la versione con RigelHtmlPage
    * @return html comprensivo della pagina
    * @throws Exception
    */
@@ -236,6 +236,7 @@ public class FormTable extends hEditTable
     }
     sOut.append("-->\r\n");
 
+    // notifica tutti i formatter estesi con il record corrente
     for(int i = 0; i < tableModel.getColumnCount(); i++)
     {
       RigelColumnDescriptor rcd = getCD(i);
@@ -273,7 +274,7 @@ public class FormTable extends hEditTable
       }
       else
       {
-        inner = elaboraFixedText(row, i, cellText);
+        inner = elaboraFixedText(row, i, cellHtml);
       }
 
       if(showHeader)

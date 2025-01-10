@@ -31,7 +31,7 @@ abstract public class RigelExtendedFormat extends Format
 {
   /**
    * Prepara eventuali messaggi usando l'iternazionalizzatore.
-   * @param i18n
+   * @param i18n interfaccia per internazionalizzazione
    * @throws Exception
    */
   public void prepareToRender(RigelI18nInterface i18n)
@@ -40,10 +40,13 @@ abstract public class RigelExtendedFormat extends Format
   }
 
   /**
-   * Prima di iniziare la renderizzazione del record.
-   * @param tm
-   * @param row
-   * @param col
+   * Notifica record da formattare.
+   * Viene chiamata prima di iniziare la renderizzazione del record.
+   * Il formatter può estrarre dati dal record utili
+   * alla renderizzazione del campo specifico da formattare.
+   * @param tm table model per estrazione record
+   * @param row riga di riferimento
+   * @param col colonna di riferimento
    * @throws Exception
    */
   public void prepareFormatRecord(RigelTableModel tm, int row, int col)
