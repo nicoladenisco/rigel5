@@ -18,6 +18,7 @@
 package org.rigel5.table.html.wrapper;
 
 import java.util.*;
+import java.util.regex.Pattern;
 import org.rigel5.HtmlUtils;
 import org.rigel5.exceptions.MissingColumnException;
 import org.rigel5.table.RigelColumnDescriptor;
@@ -170,11 +171,13 @@ public class CustomButtonInfo implements Cloneable
       return javascript;
 
     // se javascript non contiene macro, lo ritorna secco
-    if(!javascript.matches("[\\#\\@]"))
+    if(!findMacro.matcher(javascript).find())
       return javascript;
 
     return ptm.getValueMacroInside(row, 0, javascript, false, true);
   }
+
+  public static final Pattern findMacro = Pattern.compile("[\\#\\@]");
 
   /**
    * Ritorna messaggio di conferma.
@@ -210,7 +213,6 @@ public class CustomButtonInfo implements Cloneable
     return ptm.getValueMacroInside(row, col, html, false, true);
   }
 
-  ///////////////////////////////////////////////////////////////////////////
   public String getUrl()
   {
     return url;
