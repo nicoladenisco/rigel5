@@ -134,15 +134,23 @@ public class HtmlMascheraRicercaGenericaNoscript implements MascheraRicercaGener
       int idx = StringOper.parse(params.get("OP" + fieldName), 0);
       String val = StringOper.okStrNull(params.get("VL" + fieldName));
       String vaf = StringOper.okStrNull(params.get("VF" + fieldName));
+      int sortOrder = StringOper.parse(params.get("RS" + fieldName), 0);
 
       if(HtmlUtils.checkForJavascriptInjection(val) || SqlUtils.checkForSqlInjection(val))
         throw new InjectionDetectedException();
       if(HtmlUtils.checkForJavascriptInjection(vaf) || SqlUtils.checkForSqlInjection(vaf))
         throw new InjectionDetectedException();
 
-      cd.setFiltroTipo(0); // non significativo
+      // imposta default a non significativo
+      cd.setFiltroTipo(0);
 
-      if(idx == 9 || idx == 10)
+      // se attivo autolike e tipo filtro non significativo
+      // ma l'utente ha specificato un valore, promuove automaticamente il tipo ricerca a LIKE
+      if(!cd.isComboRicerca())
+        if(SetupHolder.isAutolike() && idx == 0 && val != null)
+          idx = BuilderRicercaGenerica.IDX_CRITERIA_LIKE;
+
+      if(idx == BuilderRicercaGenerica.IDX_CRITERIA_ISNULL || idx == BuilderRicercaGenerica.IDX_CRITERIA_ISNOTNULL)
       {
         // caso speciale: NULL / NOT NULL
         cd.setFiltroTipo(idx);
@@ -173,7 +181,7 @@ public class HtmlMascheraRicercaGenericaNoscript implements MascheraRicercaGener
         cd.setFiltroValore(val);
       }
 
-      cd.setFiltroSort(StringOper.parse(params.get("RS" + fieldName), 0));
+      cd.setFiltroSort(sortOrder);
     }
 
     // ordinamento da click sulla colonna

@@ -119,8 +119,9 @@ public class SetupHolder
   /** costruttore maschera di ricerca */
   private static Class genricercalisteclass = HtmlMascheraRicercaGenerica.class;
 
-  //////////////////////////////////////////////////////////////////
-  //
+  /** attiva promozione automatica a LIKE nella ricerca se valore non vuoto */
+  private static boolean autolike = true;
+
   public static void setImgEditForeign(String _imgEditForeign)
   {
     imgEditForeign = _imgEditForeign;
@@ -414,5 +415,15 @@ public class SetupHolder
   public static void setGenricercalisteclass(Class cls)
   {
     genricercalisteclass = cls;
+  }
+
+  public static boolean isAutolike()
+  {
+    return autolike;
+  }
+
+  public static void setAutolike(boolean __autolike)
+  {
+    autolike = __autolike;
   }
 }
