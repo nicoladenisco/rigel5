@@ -1524,6 +1524,31 @@ abstract public class AbstractAlignDatabase
     }
   }
 
+  public void loadTablesFromSchemaStream(InputStream is, String baseClass)
+     throws Exception
+  {
+    log.info("Leggo struttura db XML dal stream");
+    SAXBuilder builder = new SAXBuilder();
+    Document d = builder.build(is);
+    Element root = d.getRootElement();
+    Namespace ns = d.getRootElement().getNamespace();
+
+    List<Element> tables = root.getChildren("table", ns);
+
+    for(Element table : tables)
+    {
+      // primo tentativo nome completo
+      String tableName = table.getAttributeValue("name");
+      if(!caricaClassePeer(tableName, baseClass))
+      {
+        // secondo tentativo senza nome dello schema
+        int pos = tableName.indexOf('.');
+        if(pos != -1)
+          caricaClassePeer(tableName.substring(pos + 1), baseClass);
+      }
+    }
+  }
+
   private boolean caricaClassePeer(String tableName, String baseClass)
   {
     String pname = javaName(tableName) + "Peer";
