@@ -1514,20 +1514,23 @@ abstract public class AbstractAlignDatabase
     {
       // primo tentativo nome completo
       String tableName = table.getAttributeValue("name");
-      if(!caricaClassePeer(tableName, baseClass))
-      {
-        // secondo tentativo senza nome dello schema
-        int pos = tableName.indexOf('.');
-        if(pos != -1)
-          caricaClassePeer(tableName.substring(pos + 1), baseClass);
-      }
+      caricaTableMap(tableName, baseClass);
+    }
+  }
+
+  public void loadTablesFromResources(String nomeRisorsa, String baseClass)
+     throws Exception
+  {
+    log.info("Leggo struttura db XML da risorsa " + nomeRisorsa);
+    try(InputStream is = AbstractAlignDatabase.class.getResourceAsStream(nomeRisorsa))
+    {
+      loadTablesFromSchemaStream(is, baseClass);
     }
   }
 
   public void loadTablesFromSchemaStream(InputStream is, String baseClass)
      throws Exception
   {
-    log.info("Leggo struttura db XML dal stream");
     SAXBuilder builder = new SAXBuilder();
     Document d = builder.build(is);
     Element root = d.getRootElement();
@@ -1537,16 +1540,31 @@ abstract public class AbstractAlignDatabase
 
     for(Element table : tables)
     {
-      // primo tentativo nome completo
       String tableName = table.getAttributeValue("name");
-      if(!caricaClassePeer(tableName, baseClass))
-      {
-        // secondo tentativo senza nome dello schema
-        int pos = tableName.indexOf('.');
-        if(pos != -1)
-          caricaClassePeer(tableName.substring(pos + 1), baseClass);
-      }
+      caricaTableMap(tableName, baseClass);
     }
+  }
+
+  private void caricaTableMap(String tableName, String baseClass)
+  {
+    // primo tentativo nome completo
+    if(!caricaClassePeer(tableName, baseClass))
+    {
+      // secondo tentativo senza nome dello schema
+      int pos = tableName.indexOf('.');
+      if(pos != -1)
+      {
+        if(caricaClassePeer(tableName.substring(pos + 1), baseClass))
+        {
+          log.debug("OK TableMap per tabella " + tableName);
+          return;
+        }
+      }
+
+      log.error("Caricamento TableMap per tabella " + tableName + " fallito.");
+    }
+
+    log.debug("OK TableMap per tabella " + tableName);
   }
 
   private boolean caricaClassePeer(String tableName, String baseClass)
