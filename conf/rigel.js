@@ -4,8 +4,7 @@
 
 var rigel = {
 
-  pulisciRicercaSemplice(formname)
-  {
+  pulisciRicercaSemplice(formname) {
     // pulisce i campi di ricerca semplice
     var inputs = $("#" + formname + " :input");
     inputs.each(function () {
@@ -18,15 +17,13 @@ var rigel = {
     $("#" + formname).submit();
   }
   ,
-  simpleSort(formname, idx)
-  {
+  simpleSort(formname, idx) {
     var field = $("#" + formname + " :input[name=SSORT]");
     var val = field.val();
-    if (idx == Math.abs(val))
-    {
+    if (idx == Math.abs(val)) {
       val = -val;
-    } else
-    {
+    }
+    else {
       val = idx;
     }
     field.val(val);
@@ -36,8 +33,7 @@ var rigel = {
     $("#" + formname).submit();
   }
   ,
-  testInvio(formname, e)
-  {
+  testInvio(formname, e) {
     if (e == null)
       e = event;
     if (e.keyCode == 13) {
@@ -47,8 +43,7 @@ var rigel = {
     return true;
   }
   ,
-  testInvio(baseUri, numPerPage, numPagine, formname, e)
-  {
+  testInvio(baseUri, numPerPage, numPagine, formname, e) {
     if (e == null)
       e = event;
     if (e.keyCode == 13) {
@@ -58,25 +53,23 @@ var rigel = {
     return true;
   }
   ,
-  goto(baseUri, numPerPage, numPagine, formname)
-  {
+  goto(baseUri, numPerPage, numPagine, formname) {
     var nPage = $("#id_in_" + formname).val();
     if (nPage <= 0 || nPage > numPagine) {
       alert("Valore di pagina non consentito.");
-    } else {
+    }
+    else {
       rStart = (nPage - 1) * numPerPage;
       window.location.href = baseUri + "?rstart=" + rStart;
     }
     return false;
   }
   ,
-  apriEditTool(url, tipo)
-  {
+  apriEditTool(url, tipo) {
     apriFinestraEdit(url, tipo);
   }
   ,
-  submitTool(unique, url)
-  {
+  submitTool(unique, url) {
     var formName = "fo_" + unique;
     var bodyName = "body_" + unique;
 
@@ -86,8 +79,7 @@ var rigel = {
       type: "POST",
       url: url,
       data: $("#" + formName).serialize(), // serializes the form's elements.
-      success: function (data)
-      {
+      success: function (data) {
         $("#" + bodyName).html(data);
       }
     });
@@ -95,8 +87,7 @@ var rigel = {
     return false; // avoid to execute the actual submit of the form.
   }
   ,
-  ricercaTool(unique, url)
-  {
+  ricercaTool(unique, url) {
     var formName = "fo_" + unique;
     var bodyName = "body_" + unique;
 
@@ -106,8 +97,7 @@ var rigel = {
       type: "POST",
       url: url,
       data: $("#" + formName).serialize(), // serializes the form's elements.
-      success: function (data)
-      {
+      success: function (data) {
         $("#" + bodyName).html(data);
       }
     });
@@ -115,8 +105,7 @@ var rigel = {
     return false; // avoid to execute the actual submit of the form.
   }
   ,
-  testInvioTool(baseUri, numPerPage, numPagine, unique, e)
-  {
+  testInvioTool(baseUri, numPerPage, numPagine, unique, e) {
     if (e == null)
       e = event;
     if (e.keyCode == 13) {
@@ -126,58 +115,51 @@ var rigel = {
     return true;
   }
   ,
-  gotoForTool(baseUri, numPerPage, numPagine, unique)
-  {
+  gotoForTool(baseUri, numPerPage, numPagine, unique) {
     var nPage = $("#id_in_" + unique).val();
     if (nPage <= 0 || nPage > numPagine) {
       alert("Valore di pagina non consentito.");
-    } else {
+    }
+    else {
       rStart = (nPage - 1) * numPerPage;
       this.jumpTool(unique, baseUri + "?rstart=" + rStart);
     }
     return false;
   }
   ,
-  jumpTool(unique, url)
-  {
+  jumpTool(unique, url) {
     var bodyName = "body_" + unique;
 
     jQuery.ajax({
       type: "GET",
       url: url,
-      success: function (data)
-      {
+      success: function (data) {
         $("#" + bodyName).html(data);
       }
     });
   }
   ,
-  showRicTool(unique)
-  {
+  showRicTool(unique) {
     $("#data_" + unique).hide();
     $("#search_" + unique).show();
   }
   ,
-  hideRicTool(unique)
-  {
+  hideRicTool(unique) {
     $("#search_" + unique).hide();
     $("#data_" + unique).show();
   }
   ,
-  pulisciRicercaTool(unique, url)
-  {
+  pulisciRicercaTool(unique, url) {
     this.jumpTool(unique, url + "?filtro=3");
     return false;
   }
   ,
-  submitDirectLista(type, url)
-  {
+  submitDirectLista(type, url) {
     jQuery.ajax({
       type: "POST",
       url: url,
       data: $("#fo" + type).serialize(), // serializes the form's elements.
-      success: function (data)
-      {
+      success: function (data) {
         $("#rigel_dialog_body").html(data);
 
         const re = /<!-- header: (.+) -->/;
@@ -190,26 +172,22 @@ var rigel = {
     return false; // avoid to execute the actual submit of the form.
   }
   ,
-  jumpDirectLista(url)
-  {
+  jumpDirectLista(url) {
     jQuery.ajax({
       type: "GET",
       url: url,
-      success: function (data)
-      {
+      success: function (data) {
         $("#rigel_dialog_body").html(data);
       }
     });
   }
   ,
-  submitDirectForm(type, url)
-  {
+  submitDirectForm(type, url) {
     jQuery.ajax({
       type: "POST",
       url: url,
       data: $("#fo" + type).serialize(), // serializes the form's elements.
-      success: function (data)
-      {
+      success: function (data) {
         $("#rigel_dialog_body").html(data);
 
         const re = /<!-- header: (.+) -->/;
@@ -224,32 +202,27 @@ var rigel = {
   ,
   calarray: []
   ,
-  apriCal(nomeform, nomecampo)
-  {
+  apriCal(nomeform, nomecampo) {
     this.calarray.push({nomeform: nomeform, campo: nomecampo, campo1: null, campo2: null});
     apriCalendarioNoscript(nomeform, "rigel.impostaData");
   }
   ,
-  apriIntervallo1(nomeform, nomecampo1, nomecampo2)
-  {
+  apriIntervallo1(nomeform, nomecampo1, nomecampo2) {
     this.calarray.push({nomeform: nomeform, campo: nomecampo1, campo1: nomecampo1, campo2: nomecampo2});
     apriCalendarioIntervalloNoscript(nomeform, "rigel.impostaData", "rigel.impostaIntervallo");
   }
   ,
-  apriIntervallo2(nomeform, nomecampo1, nomecampo2)
-  {
+  apriIntervallo2(nomeform, nomecampo1, nomecampo2) {
     this.calarray.push({nomeform: nomeform, campo: nomecampo2, campo1: nomecampo1, campo2: nomecampo2});
     apriCalendarioIntervalloNoscript(nomeform, "rigel.impostaData", "rigel.impostaIntervallo");
   }
   ,
-  apriCalRic(nomeform, nomecampo)
-  {
+  apriCalRic(nomeform, nomecampo) {
     this.calarray.push({nomeform: nomeform, campo: "VL" + nomecampo, campo1: null, campo2: null, ricercaSemplice: true});
     apriCalendarioNoscript(nomeform, "rigel.impostaData");
   }
   ,
-  apriCalIntR1(nomeform, nomecampo)
-  {
+  apriCalIntR1(nomeform, nomecampo) {
     this.calarray.push({
       nomeform: nomeform,
       campo: "VL" + nomecampo,
@@ -262,8 +235,7 @@ var rigel = {
     apriCalendarioIntervalloNoscript(nomeform, "rigel.impostaData", "rigel.impostaIntervallo");
   }
   ,
-  apriCalIntR2(nomeform, nomecampo)
-  {
+  apriCalIntR2(nomeform, nomecampo) {
     this.calarray.push({
       nomeform: nomeform,
       campo: "VF" + nomecampo,
@@ -276,8 +248,7 @@ var rigel = {
     apriCalendarioIntervalloNoscript(nomeform, "rigel.impostaData", "rigel.impostaIntervallo");
   }
   ,
-  impostaData(valore)
-  {
+  impostaData(valore) {
     var dati = this.calarray.pop();
     var field = $("#" + dati.nomeform + " :input[name=" + dati.campo + "]");
     field.val(valore);
@@ -292,8 +263,7 @@ var rigel = {
     }
   }
   ,
-  impostaIntervallo(valore)
-  {
+  impostaIntervallo(valore) {
     var dati = this.calarray.pop();
     var vvvv = valore.split("|");
     var valore1 = vvvv[0];
@@ -312,5 +282,62 @@ var rigel = {
       var field3 = $("#" + dati.nomeform + " :input[name=OP" + dati.nomecampo + "]");
       field3.val(8);
     }
+  }
+  ,
+  /**
+   * Esegue una chiamata ad action Turbine attraverso action.jsp (vedi sirio).
+   * @param {type} uri per raggiungere action.jsp
+   * @param {type} dati dati da inviare alla action
+   * @param {type} fnExecute funzione da eseguire con i la risposta
+   * @param {type} fnReload se attivo flag reload ricarica la pagina
+   * @returns {undefined}
+   */
+  runActionJson(uri, dati, fnExecute, fnReload) {
+    jQuery.getJSON(uri, dati, function (data) {
+      if (typeof data["ERROR"] !== "undefined" && data["ERROR"] !== "") {
+        bdError(data["ERROR"]);
+        return;
+      }
+
+      if (typeof data["message"] !== "undefined" && data["message"] !== "") {
+        bdAlert(data["message"]);
+      }
+
+      if (data["reload"] === "1") {
+        if (fnReload !== "undefined")
+          fnReload();
+        return;
+      }
+
+      if (fnExecute !== "undefined")
+        fnExecute(data);
+
+    }).fail(function (jqxhr, textStatus, error) {
+      var err = textStatus + ", " + error;
+      console.log("Request Failed in runActionJson: " + err);
+    });
+  }
+  ,
+  /**
+   * Esegue una richiesta json in modalità sincrona.
+   * A differenza di jQuery.getJSON() questa è sincrona
+   * ovvero aspetta la risposta ed esegue la callback prima di ritornare.
+   * @param {type} uri
+   * @param {type} callbackDaChiamare
+   * @returns {undefined}
+   */
+  syncJSON(uri, callbackDaChiamare) {
+    jQuery.ajax({
+      dataType: "json",
+      url: uri,
+      async: false,
+      success: function (data) {
+        callbackDaChiamare(data);
+      },
+      error: function (jqxhr, textStatus, error) {
+        var err = textStatus + ", " + error;
+        console.log("Request Failed in syncJSON: " + err);
+      }
+    });
   }
 };
