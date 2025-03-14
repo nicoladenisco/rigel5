@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -17,6 +17,7 @@
  */
 package org.rigel5;
 
+import java.util.Locale;
 import org.rigel5.table.RigelColumnDescriptor;
 import org.rigel5.table.RigelTableModel;
 import org.rigel5.table.html.hTable;
@@ -79,5 +80,11 @@ public class DefaultRigelI18nImplementation implements RigelI18nInterface
   public String msg(String defaultMessage, Object... args)
   {
     return String.format(defaultMessage, args);
+  }
+
+  @Override
+  public Locale getUserLocale()
+  {
+    return Locale.getDefault();
   }
 }

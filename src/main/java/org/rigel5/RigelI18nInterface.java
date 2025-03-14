@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -17,6 +17,7 @@
  */
 package org.rigel5;
 
+import java.util.Locale;
 import org.rigel5.table.RigelColumnDescriptor;
 import org.rigel5.table.RigelTableModel;
 import org.rigel5.table.html.hTable;
@@ -84,4 +85,10 @@ public interface RigelI18nInterface
    * @return corrispondente localizzato o il messaggio chiave se non trovato
    */
   public String msg(String defaultMessage, Object... args);
+
+  /**
+   * Ritorna la Locale attiva.
+   * @return locale attiva
+   */
+  public Locale getUserLocale();
 }
