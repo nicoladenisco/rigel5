@@ -195,8 +195,8 @@ public class HtmlUtils
     {
       for(Map.Entry<String, String> entry : params.entrySet())
       {
-        String key = entry.getKey();
-        String val = entry.getValue();
+        String key = StringOper.okStrNull(entry.getKey());
+        String val = StringOper.okStrNull(entry.getValue());
         url = mergeUrl(url, key, val);
       }
     }
