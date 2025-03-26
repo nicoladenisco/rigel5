@@ -43,7 +43,7 @@ var rigel = {
     return true;
   }
   ,
-  testInvio(baseUri, numPerPage, numPagine, formname, e) {
+  testInvioNav(baseUri, numPerPage, numPagine, formname, e) {
     if (e == null)
       e = event;
     if (e.keyCode == 13) {
@@ -53,14 +53,30 @@ var rigel = {
     return true;
   }
   ,
-  goto(baseUri, numPerPage, numPagine, formname) {
+  jumpNav(url) {
+    goPage(url);
+  }
+  ,
+  gotoPage(baseUri, numPerPage, numPagine) {
+    var nPage = $("#id_in_page_number").val();
+    if (nPage <= 0 || nPage > numPagine) {
+      alert("Valore di pagina non consentito.");
+    }
+    else {
+      rStart = (nPage - 1) * numPerPage;
+      this.jumpNav(baseUri + "?rstart=" + rStart);
+    }
+    return false;
+  }
+  ,
+  gotoNav(baseUri, numPerPage, numPagine, formname) {
     var nPage = $("#id_in_" + formname).val();
     if (nPage <= 0 || nPage > numPagine) {
       alert("Valore di pagina non consentito.");
     }
     else {
       rStart = (nPage - 1) * numPerPage;
-      window.location.href = baseUri + "?rstart=" + rStart;
+      this.jumpNav(baseUri + "?rstart=" + rStart);
     }
     return false;
   }
