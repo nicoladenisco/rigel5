@@ -356,4 +356,45 @@ var rigel = {
       }
     });
   }
+  ,
+  /**
+   * Esegue una chiamata ad action Turbine attraverso action.jsp (vedi sirio).
+   * @param {boolean} async vero per chiamata asincrona false per chiamata sincrona (bloccante)
+   * @param {String} uri per raggiungere action.jsp
+   * @param {object} dati dati da inviare alla action
+   * @param {function} fnExecute funzione da eseguire con la risposta
+   * @param {function} fnReload se attivo flag reload ricarica la pagina (opzionale)
+   */
+  runActionJsonAsync(async, uri, dati, fnExecute, fnReload) {
+    jQuery.ajax({
+      dataType: "json",
+      url: uri,
+      async: async,
+      data: dati,
+      success: function (data) {
+        if (typeof data["ERROR"] !== "undefined" && data["ERROR"] !== "") {
+          bdError(data["ERROR"]);
+          return;
+        }
+
+        if (typeof data["message"] !== "undefined" && data["message"] !== "") {
+          bdAlert(data["message"]);
+        }
+
+        if (data["reload"] === "1") {
+          if (fnReload !== "undefined")
+            fnReload();
+          return;
+        }
+
+        if (fnExecute !== "undefined")
+          fnExecute(data);
+
+      },
+      error: function (jqxhr, textStatus, error) {
+        var err = textStatus + ", " + error;
+        console.log("Request Failed in runActionJson: " + err);
+      }
+    });
+  }
 };
