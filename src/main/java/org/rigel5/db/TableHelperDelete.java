@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Stack;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.commonlib5.utils.StringJoin;
 import org.commonlib5.utils.StringOper;
 
 /**
@@ -37,6 +38,7 @@ public class TableHelperDelete extends TableHelper
 {
   private static final Log log = LogFactory.getLog(TableHelperDelete.class);
 
+  protected boolean enableMultiKey = false;
   protected final List<String> comandi = new ArrayList<>();
   protected final List<String> recurse = new ArrayList<>();
 
@@ -83,25 +85,31 @@ public class TableHelperDelete extends TableHelper
       String nome = entry.getKey();
       List<RelazioniBean> lsRel = entry.getValue();
 
-      if(lsRel.size() > 1)
-        throw new Exception("Funzionamento limitato a 1 colonna esporata");
+      if(!enableMultiKey && lsRel.size() > 1)
+        throw new Exception("Funzionamento limitato a 1 colonna esporata: [" + nome + "]: "
+           + StringJoin.build(",", "(", ")")
+              .addObjects(lsRel, (r) -> r.fk_name + ":" + r.pkcolumn_name + " -> " + r.fktable_schem + "." + r.fktable_name + "." + r.fkcolumn_name)
+              .join());
 
-      RelazioniBean b = lsRel.get(0);
-      int[] alternateKeys = mapKeys.get(b.pkcolumn_name);
-      if(alternateKeys == null)
+      for(RelazioniBean b : lsRel)
       {
-        alternateKeys = getAlternateKeys(fieldPrimary, primaryKeys,
-           b.pkcolumn_name, b.pktable_schem + "." + b.pktable_name);
-        mapKeys.put(b.pkcolumn_name, alternateKeys);
-      }
+        int[] alternateKeys = mapKeys.get(b.pkcolumn_name);
+        if(alternateKeys == null)
+        {
+          alternateKeys = getAlternateKeys(fieldPrimary, primaryKeys,
+             b.pkcolumn_name, b.pktable_schem + "." + b.pktable_name);
+          mapKeys.put(b.pkcolumn_name, alternateKeys);
+        }
 
-      if(alternateKeys.length != 0)
-      {
-        TableHelperDelete thd = new TableHelperDelete(con, dryrun);
-        thd.loadData(b.fktable_schem, b.fktable_name);
-        thd.deleteCascade(sttable, b.fkcolumn_name, alternateKeys);
-        comandi.addAll(thd.comandi);
-        recurse.addAll(thd.recurse);
+        if(alternateKeys.length != 0)
+        {
+          TableHelperDelete thd = new TableHelperDelete(con, dryrun);
+          thd.enableMultiKey = enableMultiKey;
+          thd.loadData(b.fktable_schem, b.fktable_name);
+          thd.deleteCascade(sttable, b.fkcolumn_name, alternateKeys);
+          comandi.addAll(thd.comandi);
+          recurse.addAll(thd.recurse);
+        }
       }
     }
 
@@ -155,5 +163,15 @@ public class TableHelperDelete extends TableHelper
     }
 
     return numDeleted;
+  }
+
+  public boolean isEnableMultiKey()
+  {
+    return enableMultiKey;
+  }
+
+  public void setEnableMultiKey(boolean enableMultiKey)
+  {
+    this.enableMultiKey = enableMultiKey;
   }
 }
