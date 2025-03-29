@@ -124,6 +124,12 @@ public class RigelBaseWrapperXmlMaker
     wl.setNome(nomeLista);
     wl.setEleXml(lista);
 
+    if(lista.getChild("remove-allcolumn") != null)
+    {
+      // rimuove tutte le colonne; usata quando una extends vuole ridefinire tutto l'elenco colonne
+      wl.getPtm().delAllColumns();
+    }
+
     if((e = lista.getChild("header")) != null)
       wl.setHeader(e.getTextTrim());
     if((e = lista.getChild("titolo")) != null)
@@ -252,6 +258,7 @@ public class RigelBaseWrapperXmlMaker
 
   /**
    * Parsing di una colonna con tutti i sui attibuti.
+   * @param nomeLista
    * @param item
    * @param edit
    * @param cd
