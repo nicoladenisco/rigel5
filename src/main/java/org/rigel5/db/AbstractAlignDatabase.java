@@ -34,6 +34,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.torque.map.ColumnMap;
 import org.commonlib5.exec.ExecHelper;
+import org.commonlib5.lambda.FunctionTrowException;
 import org.commonlib5.utils.ArrayMap;
 import org.commonlib5.utils.ClassOper;
 import org.commonlib5.utils.FileScanner;
@@ -1484,6 +1485,20 @@ abstract public class AbstractAlignDatabase
     for(File fvista : lsFiles)
     {
       executeFileSQL(fvista, true);
+    }
+  }
+
+  public void rigeneraViste(File dirSql, FunctionTrowException<File, Boolean> checkNomeVista)
+     throws Exception
+  {
+    List<File> lsFiles = FileScanner.scan(dirSql, 99, "*-viste.sql");
+    if(lsFiles.isEmpty())
+      return;
+
+    for(File fvista : lsFiles)
+    {
+      if(checkNomeVista.apply(fvista))
+        executeFileSQL(fvista, true);
     }
   }
 

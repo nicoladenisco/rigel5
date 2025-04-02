@@ -147,6 +147,8 @@ public class SanityTorqueUtils extends SanityDatabaseUtils
           continue;
         }
       }
+
+      log.info("Corretta IDTABLE per " + tm.getFullyQualifiedTableName());
     }
   }
 
