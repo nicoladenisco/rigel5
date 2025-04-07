@@ -1934,7 +1934,7 @@ public class DbUtils
             {
               if(ignoreErrors)
               {
-                log.error("Execute script SQL error:", ex);
+                log.warn("Ignored SQL error:", ex);
               }
               else
                 throw ex;
