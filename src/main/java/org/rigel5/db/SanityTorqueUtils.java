@@ -19,6 +19,10 @@ package org.rigel5.db;
 
 import com.workingdogs.village.Record;
 import com.workingdogs.village.Schema;
+import java.io.BufferedReader;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -32,6 +36,8 @@ import org.apache.torque.criteria.Criteria;
 import org.apache.torque.map.*;
 import org.apache.torque.util.ColumnValues;
 import org.apache.torque.util.JdbcTypedValue;
+import org.apache.torque.util.TorqueConnection;
+import org.apache.torque.util.Transaction;
 import org.commonlib5.utils.StringOper;
 import org.rigel5.db.torque.TableMapHelper;
 
@@ -47,6 +53,8 @@ public class SanityTorqueUtils extends SanityDatabaseUtils
   protected final Stack<String> stkTableNames = new Stack<>();
   protected final HashSet<String> htTableNames = new HashSet<>();
   protected String databaseName;
+
+  public static final int SB_SIZE = 512;
 
   public SanityTorqueUtils()
   {
@@ -500,6 +508,28 @@ public class SanityTorqueUtils extends SanityDatabaseUtils
     {
       if(con != null)
         Torque.closeConnection(con);
+    }
+  }
+
+  public void eseguiScriptSQL(File fc)
+     throws Exception
+  {
+    try(BufferedReader reader = Files.newBufferedReader(fc.toPath(), StandardCharsets.UTF_8);
+       TorqueConnection con = Transaction.begin())
+    {
+      DbUtils.executeSqlScript(con, reader, true);
+      Transaction.commit(con);
+    }
+  }
+
+  public void eseguiScriptSQLByLine(File fc)
+     throws Exception
+  {
+    try(BufferedReader reader = Files.newBufferedReader(fc.toPath(), StandardCharsets.UTF_8);
+       TorqueConnection con = Transaction.begin())
+    {
+      DbUtils.executeSqlScriptByLine(con, reader, true);
+      Transaction.commit(con);
     }
   }
 }

@@ -23,6 +23,7 @@ import com.workingdogs.village.QueryDataSet;
 import com.workingdogs.village.Record;
 import com.workingdogs.village.Schema;
 import com.workingdogs.village.TableDataSet;
+import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.math.BigDecimal;
@@ -85,6 +86,7 @@ public class DbUtils
   };
 
   public static final String NESSUNO_INDEFINITO = "'Nessuno/indefinito'";
+  public static final int SB_SIZE = 512;
 
   private static QueryBuilder __qbStaticForDbUtils = null;
 
@@ -952,8 +954,8 @@ public class DbUtils
   public static String createInsertStatement(String tableName,
      ArrayMap<String, Integer> tipiCampi, Map<String, String> valori)
   {
-    StringBuilder sb1 = new StringBuilder(512);
-    StringBuilder sb2 = new StringBuilder(512);
+    StringBuilder sb1 = new StringBuilder(SB_SIZE);
+    StringBuilder sb2 = new StringBuilder(SB_SIZE);
 
     for(Map.Entry<String, String> entry : valori.entrySet())
     {
@@ -1002,8 +1004,8 @@ public class DbUtils
   public static String createUpdateStatement(String tableName,
      ArrayMap<String, Integer> tipiCampi, Map<String, String> valoriUpdate, Map<String, String> valoriSelect)
   {
-    StringBuilder sb1 = new StringBuilder(512);
-    StringBuilder sb2 = new StringBuilder(512);
+    StringBuilder sb1 = new StringBuilder(SB_SIZE);
+    StringBuilder sb2 = new StringBuilder(SB_SIZE);
 
     if(valoriUpdate != null && !valoriUpdate.isEmpty())
     {
@@ -1912,7 +1914,7 @@ public class DbUtils
      throws Exception
   {
     int c, count = 0;
-    StringBuilder sb = new StringBuilder(128);
+    StringBuilder sb = new StringBuilder(SB_SIZE);
 
     do
     {
@@ -1939,7 +1941,7 @@ public class DbUtils
               else
                 throw ex;
             }
-            sb = new StringBuilder(128);
+            sb = new StringBuilder(SB_SIZE);
           }
         }
       }
@@ -1953,14 +1955,80 @@ public class DbUtils
     return count;
   }
 
+  /**
+   * Esegue uno script SQL.
+   * Ogni query viene riconosciuta dal terminatore ';'.
+   * La lettura dello script avviene una linea per volta.
+   * I commenti (--) vengono ignorati.
+   * @param con connessione al db
+   * @param r reader da cui leggere lo script
+   * @param ignoreErrors se vero log degli errori senza interruzione
+   * @return numero di query eseguite
+   * @throws Exception
+   */
+  public static int executeSqlScriptByLine(Connection con, BufferedReader r, boolean ignoreErrors)
+     throws Exception
+  {
+    int count = 0;
+    StringBuilder sb = new StringBuilder(SB_SIZE);
+    String s;
+
+    while((s = r.readLine()) != null)
+    {
+      s = s.trim();
+
+      if(s.isEmpty())
+        continue;
+      if(s.startsWith("--"))
+        continue;
+
+      sb.append(s).append("\n");
+      if(s.endsWith(";"))
+      {
+        count += executeBuffer(con, sb, ignoreErrors);
+        sb = new StringBuilder(SB_SIZE);
+      }
+    }
+
+    // eventuale residuo non consumato
+    executeBuffer(con, sb, ignoreErrors);
+
+    return count;
+  }
+
+  private static int executeBuffer(Connection con, StringBuilder sb, boolean ignoreErrors)
+     throws Exception
+  {
+    String sSQL = sb.toString().trim();
+
+    if(!sSQL.isEmpty())
+    {
+      try(PreparedStatement ps = con.prepareStatement(sSQL))
+      {
+        return ps.executeUpdate();
+      }
+      catch(Exception ex)
+      {
+        if(ignoreErrors)
+        {
+          log.warn("Ignored SQL error: " + ex.getMessage());
+        }
+        else
+          throw ex;
+      }
+    }
+
+    return 0;
+  }
+
   public static String costruisciSQLzero(Connection con, String nomeTabella)
      throws Exception
   {
     return scanTabelleColonne(con, nomeTabella, null, (conp, nomeSchemap, nomeTabellap, __ignorami) ->
     {
       int nsize = NESSUNO_INDEFINITO.length() - 2;
-      StringBuilder sb1 = new StringBuilder(1024);
-      StringBuilder sb2 = new StringBuilder(1024);
+      StringBuilder sb1 = new StringBuilder(SB_SIZE);
+      StringBuilder sb2 = new StringBuilder(SB_SIZE);
 
       try(ResultSet rs = con.getMetaData().getColumns(conp.getCatalog(), nomeSchemap, nomeTabellap, null))
       {
