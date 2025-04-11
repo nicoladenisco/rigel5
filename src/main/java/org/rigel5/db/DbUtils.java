@@ -1936,7 +1936,7 @@ public class DbUtils
             {
               if(ignoreErrors)
               {
-                log.warn("Ignored SQL error:", ex);
+                log.warn("Ignored SQL error: " + ex.getMessage());
               }
               else
                 throw ex;
@@ -2000,6 +2000,9 @@ public class DbUtils
      throws Exception
   {
     String sSQL = sb.toString().trim();
+
+    if(sSQL.endsWith(";"))
+      sSQL = sSQL.substring(0, sSQL.length() - 1);
 
     if(!sSQL.isEmpty())
     {
