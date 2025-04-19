@@ -37,11 +37,10 @@ public class Validator
 {
   public static class ValidatorCacheBean
   {
-    public final Hashtable<String, PostParseValidator> cachePost = new Hashtable<String, PostParseValidator>();
-    public final Hashtable<String, PreParseValidator> cachePre = new Hashtable<String, PreParseValidator>();
-    public final Hashtable<String, SaveMasterDetailValidator> cacheSave
-       = new Hashtable<String, SaveMasterDetailValidator>();
-    public final Hashtable<String, PostSaveAction> cacheAction = new Hashtable<String, PostSaveAction>();
+    public final Hashtable<String, PostParseValidator> cachePost = new Hashtable<>();
+    public final Hashtable<String, PreParseValidator> cachePre = new Hashtable<>();
+    public final Hashtable<String, SaveMasterDetailValidator> cacheSave = new Hashtable<>();
+    public final Hashtable<String, PostSaveAction> cacheAction = new Hashtable<>();
   }
 
   public static class StopParse

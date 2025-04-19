@@ -20,6 +20,7 @@ package org.rigel5.db;
 import com.workingdogs.village.Column;
 import com.workingdogs.village.TableDataSet;
 import java.io.*;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
@@ -1001,6 +1002,21 @@ abstract public class AbstractAlignDatabase
         eliminaDuplicati(nomeTabella, primary, colonne, val);
       }
     }
+  }
+
+  public void macro_modifier(String params)
+     throws Exception
+  {
+    String[] arParams = params.split(";");
+    if(arParams.length == 0)
+      throw new Exception("Errore di sintassi: atteso almeno un parametro: nome classe.");
+
+    String nomeClasse = arParams[0];
+
+    Class<?> cls = Class.forName(nomeClasse);
+    Constructor<?> constructor = cls.getConstructor();
+    AlignDatabaseModifier modifier = (AlignDatabaseModifier) constructor.newInstance();
+    modifier.apply(this, arParams);
   }
 
   public void macro_populateuuid(String params)
