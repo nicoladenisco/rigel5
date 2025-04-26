@@ -436,6 +436,12 @@ abstract public class PeerTransactAgent implements TransactAgent
     return ta.tcontext;
   }
 
+  public static Map<String, Object> eR(executor exec)
+     throws Exception
+  {
+    return executeReadonly(exec);
+  }
+
   public static <T> T executeReturnReadonly(executorReturn<T> exec)
      throws Exception
   {
@@ -452,5 +458,11 @@ abstract public class PeerTransactAgent implements TransactAgent
 
     ta.runReadOnly();
     return (T) ta.tcontext.get("rv");
+  }
+
+  public static <T> T eRR(executorReturn<T> exec)
+     throws Exception
+  {
+    return executeReturnReadonly(exec);
   }
 }
