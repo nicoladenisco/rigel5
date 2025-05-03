@@ -24,6 +24,8 @@ import com.workingdogs.village.Record;
 import com.workingdogs.village.Schema;
 import com.workingdogs.village.TableDataSet;
 import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.math.BigDecimal;
@@ -58,6 +60,8 @@ import org.commonlib5.utils.ArrayMap;
 import org.commonlib5.utils.DateTime;
 import org.commonlib5.utils.Pair;
 import org.commonlib5.utils.StringOper;
+import org.postgresql.copy.CopyManager;
+import org.postgresql.core.BaseConnection;
 import org.rigel5.SetupHolder;
 import org.rigel5.db.sql.QueryBuilder;
 import org.rigel5.table.RigelColumnDescriptor;
@@ -2001,6 +2005,7 @@ public class DbUtils
   {
     String sSQL = sb.toString().trim();
 
+    // rimuove ';' finale: su alcuni db non è tollerato
     if(sSQL.endsWith(";"))
       sSQL = sSQL.substring(0, sSQL.length() - 1);
 
@@ -2245,5 +2250,45 @@ public class DbUtils
      throws Exception
   {
     return getQueryBuilder().getValueFromSequence(sequenceName, con);
+  }
+
+  /**
+   * Import massivo di tabella da file su disco.
+   * <b>SOLO POSTGRESQL.</b><br>
+   * Usa un oggetto speciale creato dalla connessione di un driver jdbc Postgres.
+   * Questo oggetto consente di copiare una tabella da un file e viceversa.
+   * Vedi anche la gemella copyOutTable().
+   * @param con connessione al db postgresql
+   * @param table nome della tabella
+   * @param columnList lista delle colonne separate da virgola
+   * @param is stream di input
+   * @throws Exception
+   */
+  public static void copyInTable(final Connection con, String table, String columnList, final InputStream is)
+     throws Exception
+  {
+    String cmd = "COPY " + table + "(" + columnList + ") FROM STDIN";
+    CopyManager copyManager = new CopyManager((BaseConnection) con);
+    copyManager.copyIn(cmd, is, 8192);
+  }
+
+  /**
+   * Export massivo di tabella in file su disco.
+   * <b>SOLO POSTGRESQL.</b><br>
+   * Usa un oggetto speciale creato dalla connessione di un driver jdbc Postgres.
+   * Questo oggetto consente di copiare una tabella da un file e viceversa.
+   * Vedi anche la gemella copyInTable().
+   * @param con connessione al db postgresql
+   * @param table nome della tabella
+   * @param columnList lista delle colonne separate da virgola
+   * @param os stream di output
+   * @throws Exception
+   */
+  public static void copyOutTable(final Connection con, String table, String columnList, final OutputStream os)
+     throws Exception
+  {
+    String cmd = "COPY " + table + "(" + columnList + ") TO STDOUT";
+    CopyManager copyManager = new CopyManager((BaseConnection) con);
+    copyManager.copyOut(cmd, os);
   }
 }
