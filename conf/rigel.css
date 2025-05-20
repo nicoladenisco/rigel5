@@ -43,11 +43,10 @@
 .rigel_form_field_cell:hover {
   background-color: revert !important;
 }
-/*
-.rigel_form_field_cell button, input, optgroup, select, textarea {
+
+.rigel_form_field_cell input, optgroup, select, textarea {
   background-color: revert !important;
 }
-*/
 
 .rigel_table_header_row {
   background-color: cornsilk;
