@@ -58,7 +58,7 @@ import org.rigel5.table.sql.html.SqlWrapperListaHtml;
 abstract public class WrapperCacheBase
 {
   /** Logging */
-  private static Log log = LogFactory.getLog(WrapperCacheBase.class);
+  private static final Log log = LogFactory.getLog(WrapperCacheBase.class);
   //
   public static final String CACHE_LISTE_PEER = "ListaBase/liste-peer/";
   public static final String CACHE_LISTE_SQL = "ListaBase/liste-sql/";
@@ -692,8 +692,8 @@ abstract public class WrapperCacheBase
     PeerWrapperListaHtml wl = (PeerWrapperListaHtml) (htListe.get(cacheKey));
     if(wl == null)
     {
-      wl = creaListaPeer(type);
-      htListe.put(cacheKey, wl);
+      if((wl = creaListaPeer(type)) != null)
+        htListe.put(cacheKey, wl);
     }
     return wl;
   }
@@ -710,8 +710,8 @@ abstract public class WrapperCacheBase
     SqlWrapperListaHtml wl = (SqlWrapperListaHtml) (htListe.get(cacheKey));
     if(wl == null)
     {
-      wl = creaListaSql(type);
-      htListe.put(cacheKey, wl);
+      if((wl = creaListaSql(type)) != null)
+        htListe.put(cacheKey, wl);
     }
     return wl;
   }
@@ -728,8 +728,8 @@ abstract public class WrapperCacheBase
     PeerWrapperListaHtml wl = (PeerWrapperListaHtml) (htListe.get(cacheKey));
     if(wl == null)
     {
-      wl = creaListaTmap(type);
-      htListe.put(cacheKey, wl);
+      if((wl = creaListaTmap(type)) != null)
+        htListe.put(cacheKey, wl);
     }
     return wl;
   }
