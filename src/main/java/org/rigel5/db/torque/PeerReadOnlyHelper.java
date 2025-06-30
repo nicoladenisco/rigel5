@@ -31,9 +31,9 @@ import org.apache.torque.Torque;
  */
 public class PeerReadOnlyHelper implements Closeable
 {
-  Connection dbCon = null;
-  DatabaseMetaData md = null;
-  int readOnlyState = -1, isolationLevelState = -1;
+  protected Connection dbCon = null;
+  protected DatabaseMetaData md = null;
+  protected int readOnlyState = -1, isolationLevelState = -1;
 
   public Connection getReadOnlyConnection()
      throws Exception
@@ -92,5 +92,10 @@ public class PeerReadOnlyHelper implements Closeable
     {
       throw new IOException(e);
     }
+  }
+
+  public DatabaseMetaData getDatabaseMetaData()
+  {
+    return md;
   }
 }
