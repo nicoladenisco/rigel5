@@ -538,6 +538,11 @@ public class CriteriaRigel extends Criteria
     return (CriteriaRigel) andVerbatimSql(sql, null);
   }
 
+  public CriteriaRigel addVerbatimSqlExt(final String sql, Object... params)
+  {
+    return (CriteriaRigel) andVerbatimSql(sql, params);
+  }
+
   public CriteriaRigel setIn(ColumnMap columnname, Collection<?> lFiltri)
   {
     if(lFiltri != null && !lFiltri.isEmpty())
