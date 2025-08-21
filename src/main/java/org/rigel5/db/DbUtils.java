@@ -109,6 +109,7 @@ public class DbUtils
    * @param tableName nome della tabella
    * @return numero di record in tabella
    * @throws java.lang.Exception
+   * @deprecated usa la classe RecordCounter
    */
   public static long getRecordCount(String tableName)
      throws Exception
@@ -123,6 +124,7 @@ public class DbUtils
    * @param extraWhere eventuale clausola where aggiuntiva (puo' essere null)
    * @return numero di record in tabella
    * @throws java.lang.Exception
+   * @deprecated usa la classe RecordCounter
    */
   public static long getRecordCount(String tableName, String extraWhere)
      throws Exception
@@ -153,6 +155,7 @@ public class DbUtils
    * @param con connessione al db
    * @return numero di record in tabella
    * @throws java.lang.Exception
+   * @deprecated usa la classe RecordCounter
    */
   public static long getRecordCount(String tableName, String extraWhere, Connection con)
      throws Exception
@@ -181,6 +184,7 @@ public class DbUtils
    * @param c criteria da conteggiare
    * @return numero di record
    * @throws java.lang.Exception
+   * @deprecated usa la classe RecordCounter
    */
   public static long getRecordCount(Criteria c)
      throws Exception
@@ -200,6 +204,7 @@ public class DbUtils
    * @param con
    * @return numero di record
    * @throws java.lang.Exception
+   * @deprecated usa la classe RecordCounter
    */
   public static long getRecordCount(Criteria c, Connection con)
      throws Exception
@@ -1362,7 +1367,7 @@ public class DbUtils
    *
    * @param queryString A String with the sql statement to execute.
    * @param start The first row to return.
-   * @param numberOfResults The number of rows to return.
+   * @param numberOfResults The number of rows to return (-1 for all records).
    * @param con A Connection.
    * @return List of Record objects.
    * @throws Exception

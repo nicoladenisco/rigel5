@@ -205,5 +205,12 @@ public class TableHelper
       pk_name = rs.getString("pk_name");
       deferrability = rs.getInt("deferrability");
     }
+
+    @Override
+    public String toString()
+    {
+      return fktable_schem + "." + fktable_name + ":" + fkcolumn_name + " -> "
+         + pktable_schem + "." + pktable_name + ":" + pkcolumn_name;
+    }
   }
 }

@@ -17,56 +17,62 @@
  */
 package org.rigel5.db;
 
+import com.workingdogs.village.Column;
+import com.workingdogs.village.Record;
+import com.workingdogs.village.Value;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.commonlib5.utils.Classificatore;
+import org.apache.torque.om.NumberKey;
+import org.apache.torque.om.ObjectKey;
+import org.apache.torque.om.SimpleKey;
+import org.apache.torque.om.StringKey;
 import org.commonlib5.utils.StringJoin;
-import org.commonlib5.utils.StringOper;
 
 /**
  * Utility per la cancellazione ricorsiva di record in tabella.
  *
  * @author Nicola De Nisco
  */
-public class TableHelperDelete extends TableHelper
+public class TableHelperDelete2 extends TableHelper
 {
-  private static final Log log = LogFactory.getLog(TableHelperDelete.class);
+  private static final Log log = LogFactory.getLog(TableHelperDelete2.class);
 
   protected boolean enableMultiKey = false;
   protected final List<String> comandi = new ArrayList<>();
   protected final List<String> recurse = new ArrayList<>();
 
-  public TableHelperDelete(Connection con, boolean dryrun)
+  public TableHelperDelete2(Connection con, boolean dryrun)
      throws SQLException
   {
     super(con, dryrun);
   }
 
-  public void prepareDeleteCascade(String fieldPrimary, int primaryKey)
+  public void prepareDeleteCascade(String fieldPrimary, ObjectKey<?> primaryKey)
      throws Exception
   {
-    int[] primaryKeys = new int[1];
-    primaryKeys[0] = primaryKey;
+    Collection<ObjectKey<?>> primaryKeys = new ArrayList<>();
+    primaryKeys.add(primaryKey);
     prepareDeleteCascade(fieldPrimary, primaryKeys);
   }
 
-  public void prepareDeleteCascade(String fieldPrimary, int[] primaryKeys)
+  public void prepareDeleteCascade(String fieldPrimary, Collection<ObjectKey<?>> primaryKeys)
      throws Exception
   {
     Stack<String> sttable = new Stack<>();
     deleteCascade(sttable, fieldPrimary, primaryKeys);
   }
 
-  protected void deleteCascade(Stack<String> sttable, String fieldPrimary, int[] primaryKeys)
+  protected void deleteCascade(Stack<String> sttable, String fieldPrimary, Collection<ObjectKey<?>> primaryKeys)
      throws Exception
   {
     String key = schemaName + "." + tableName;
@@ -80,7 +86,7 @@ public class TableHelperDelete extends TableHelper
     sttable.push(key);
     deleteTable(fieldPrimary, primaryKeys);
 
-    HashMap<String, int[]> mapKeys = new HashMap<>();
+    HashMap<String, Collection<ObjectKey<?>>> mapKeys = new HashMap<>();
     mapKeys.put(fieldPrimary, primaryKeys);
 
     for(Map.Entry<String, List<RelazioniBean>> entry : esportate.entrySet())
@@ -88,24 +94,23 @@ public class TableHelperDelete extends TableHelper
       String nome = entry.getKey();
       List<RelazioniBean> lsRel = entry.getValue();
 
-      if(!enableMultiKey && lsRel.size() > 1)
-      {
-        // su alcune tabelle ci sono foreign key multiple sulle stesse colonne; in questo caso si possono considerare come una sola
-        Classificatore<String, RelazioniBean> clRel = new Classificatore<>(lsRel, (b) -> b.toString());
-        Collection<List<RelazioniBean>> blkBeans = clRel.values();
-
-        if(blkBeans.size() > 1)
-          throw new Exception("Funzionamento limitato a 1 colonna esporata: [" + nome + "]: "
-             + StringJoin.build(",", "(", ")")
-                .addObjects(lsRel, (r) -> r.fk_name + ":" + r.pkcolumn_name + " -> " + r.fktable_schem + "." + r.fktable_name + "." + r.fkcolumn_name)
-                .join());
-
-        lsRel = Arrays.asList(blkBeans.iterator().next().get(0));
-      }
-
+//      if(!enableMultiKey && lsRel.size() > 1)
+//      {
+//        // su alcune tabelle ci sono foreign key multiple sulle stesse colonne; in questo caso si possono considerare come una sola
+//        Classificatore<String, RelazioniBean> clRel = new Classificatore<>(lsRel, (b) -> b.toString());
+//        Collection<List<RelazioniBean>> blkBeans = clRel.values();
+//
+//        if(blkBeans.size() > 1)
+//          throw new Exception("Funzionamento limitato a 1 colonna esporata: [" + nome + "]: "
+//             + StringJoin.build(",", "(", ")")
+//                .addObjects(lsRel, (r) -> r.fk_name + ":" + r.pkcolumn_name + " -> " + r.fktable_schem + "." + r.fktable_name + "." + r.fkcolumn_name)
+//                .join());
+//
+//        lsRel = Arrays.asList(blkBeans.iterator().next().get(0));
+//      }
       for(RelazioniBean b : lsRel)
       {
-        int[] alternateKeys = mapKeys.get(b.pkcolumn_name);
+        Collection<ObjectKey<?>> alternateKeys = mapKeys.get(b.pkcolumn_name);
         if(alternateKeys == null)
         {
           alternateKeys = getAlternateKeys(fieldPrimary, primaryKeys,
@@ -113,9 +118,9 @@ public class TableHelperDelete extends TableHelper
           mapKeys.put(b.pkcolumn_name, alternateKeys);
         }
 
-        if(alternateKeys.length != 0)
+        if(!alternateKeys.isEmpty())
         {
-          TableHelperDelete thd = new TableHelperDelete(con, dryrun);
+          TableHelperDelete2 thd = new TableHelperDelete2(con, dryrun);
           thd.enableMultiKey = enableMultiKey;
           thd.loadData(b.fktable_schem, b.fktable_name);
           thd.deleteCascade(sttable, b.fkcolumn_name, alternateKeys);
@@ -128,25 +133,71 @@ public class TableHelperDelete extends TableHelper
     sttable.pop();
   }
 
-  private void deleteTable(String fieldPrimary, int[] primaryKeys)
+  private void deleteTable(String fieldPrimary, Collection<ObjectKey<?>> primaryKeys)
      throws Exception
   {
     String sDEL
        = "DELETE FROM " + schemaName + "." + tableName
-       + " WHERE " + fieldPrimary + " IN(" + StringOper.join(primaryKeys, ',') + ")";
+       + " WHERE " + fieldPrimary + " IN(" + joinKeys(primaryKeys) + ")";
 
     comandi.add(sDEL);
   }
 
-  private int[] getAlternateKeys(String fieldPrimary, int[] primaryKeys, String targetField, String tableName)
+  private Collection<ObjectKey<?>> getAlternateKeys(String fieldPrimary, Collection<ObjectKey<?>> primaryKeys, String targetField, String tableName)
      throws Exception
   {
     String sSQL
        = "SELECT DISTINCT " + targetField
        + "  FROM " + tableName
-       + " WHERE " + fieldPrimary + " IN(" + StringOper.join(primaryKeys, ',') + ")";
+       + " WHERE " + fieldPrimary + " IN(" + joinKeys(primaryKeys) + ")";
 
-    return DbUtils.queryForID(con, sSQL);
+    List<Record> lsRecs = DbUtils.executeQuery(sSQL, con);
+    if(lsRecs.isEmpty())
+      return Collections.EMPTY_LIST;
+
+    Collection<ObjectKey<?>> rv = new ArrayList<>();
+    Column col = lsRecs.get(0).schema().column(1);
+
+    if(col.isNumericValue())
+    {
+      for(Record r : lsRecs)
+      {
+        Value value = r.getValue(1);
+        if(!value.isNull())
+          rv.add(SimpleKey.keyFor(value.asInt()));
+      }
+    }
+    else if(col.isStringValue())
+    {
+      for(Record r : lsRecs)
+      {
+        Value value = r.getValue(1);
+        if(!value.isNull())
+          rv.add(SimpleKey.keyFor(value.asString()));
+      }
+    }
+    else
+    {
+      throw new Exception("Chiave di tipo non ammesso.");
+    }
+
+    return rv;
+  }
+
+  public String joinKeys(Collection<ObjectKey<?>> keys)
+  {
+    if(keys.isEmpty())
+      return "";
+
+    int test = keys.iterator().next().getJdbcType();
+
+    if(test == Types.VARCHAR)
+      return StringJoin.build(",", "'").addObjects(keys, (k) -> ((StringKey) k).getValue()).join();
+
+    if(test == Types.NUMERIC)
+      return StringJoin.build(",").addObjects(keys, (k) -> ((NumberKey) k).getValue().toString()).join();
+
+    throw new RuntimeException("Chiave di tipo non ammesso.");
   }
 
   public List<String> getComandi()
