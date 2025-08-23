@@ -30,6 +30,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.function.Function;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.torque.TorqueException;
@@ -497,7 +498,7 @@ abstract public class QueryBuilder implements Closeable
 
     long rv = -1;
     String sSQL = getTotalRecordsQueryAddFilter((FiltroData) (fl.getOggFiltro()));
-    try (Statement st = con.createStatement();
+    try(Statement st = con.createStatement();
        ResultSet rs = st.executeQuery(sSQL))
     {
       if(rs.next())
@@ -520,7 +521,7 @@ abstract public class QueryBuilder implements Closeable
   {
     long rv = -1;
     String sSQL = getTotalRecordsQueryAddFilter(null);
-    try (Statement st = con.createStatement();
+    try(Statement st = con.createStatement();
        ResultSet rs = st.executeQuery(sSQL))
     {
       if(rs.next())
@@ -549,7 +550,7 @@ abstract public class QueryBuilder implements Closeable
       return rv;
 
     long count;
-    try (Statement st = con.createStatement();
+    try(Statement st = con.createStatement();
        ResultSet rs = st.executeQuery(sSQL))
     {
       count = rs.next() ? rs.getLong(1) : 0;
@@ -634,7 +635,7 @@ abstract public class QueryBuilder implements Closeable
       return rv;
 
     rv = new ArrayList<>();
-    try (Statement st = con.createStatement();
+    try(Statement st = con.createStatement();
        ResultSet rs = st.executeQuery(sSQL))
     {
       int numCol = rs.getMetaData().getColumnCount();
@@ -840,7 +841,7 @@ abstract public class QueryBuilder implements Closeable
       return rv;
 
     rv = new ArrayList<>();
-    try (Statement st = con.createStatement();
+    try(Statement st = con.createStatement();
        ResultSet rs = st.executeQuery(sSQL))
     {
       int numCol = rs.getMetaData().getColumnCount();
@@ -986,7 +987,7 @@ abstract public class QueryBuilder implements Closeable
       return rv;
 
     rv = new ArrayList<>();
-    try (Statement st = con.createStatement();
+    try(Statement st = con.createStatement();
        ResultSet rs = st.executeQuery(sSQL))
     {
       while(rs.next())
@@ -1130,7 +1131,7 @@ abstract public class QueryBuilder implements Closeable
       nomeTabella = nomeTabella.substring(pos + 1);
     }
 
-    try (ResultSet rSet = con.getMetaData().getTables(con.getCatalog(), null, null, TABLES_FILTER))
+    try(ResultSet rSet = con.getMetaData().getTables(con.getCatalog(), null, null, TABLES_FILTER))
     {
       while(rSet.next())
       {
@@ -1157,6 +1158,42 @@ abstract public class QueryBuilder implements Closeable
   }
 
   /**
+   * Funzione generica di scansione colonne.
+   * @param con connessione al db
+   * @param filter filtro per colonne schema.tabella ritorna vero per chiamata a sfun
+   * @param sfun funzione lambda per la scansione dei campi della tabella individuata (se torna false interrompe la scansione)
+   * @throws Exception
+   */
+  public void scanTabelleColonne(Connection con, Function<String, Boolean> filter, ScanColumn<Boolean> sfun)
+     throws Exception
+  {
+    try(ResultSet rSet = con.getMetaData().getTables(con.getCatalog(), null, null, TABLES_FILTER))
+    {
+      while(rSet.next())
+      {
+        if(rSet.getString("TABLE_TYPE").equals("TABLE"))
+        {
+          String schema = rSet.getString("TABLE_SCHEM");
+          String tableName = rSet.getString("TABLE_NAME");
+
+          if(filter.apply(schema + "." + tableName))
+          {
+            try(ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), schema, tableName, null))
+            {
+              while(rs.next())
+              {
+                String nomeColonna = rs.getString("COLUMN_NAME");
+                if(!sfun.scan(con, schema, tableName, nomeColonna))
+                  return;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
    * Ritorna vero se lo schema è lo schema di default.
    * In Postgres o Mysql si chiama public, in MSSql si chiama dbo, ecc.
    * @param nomeSchema nome da testare
@@ -1178,7 +1215,7 @@ abstract public class QueryBuilder implements Closeable
   {
     DatabaseMetaData databaseMetaData = con.getMetaData();
     ArrayList<String> viewNames = new ArrayList<String>();
-    try (ResultSet rSet = databaseMetaData.getTables(con.getCatalog(), null, null, VIEWS_FILTER))
+    try(ResultSet rSet = databaseMetaData.getTables(con.getCatalog(), null, null, VIEWS_FILTER))
     {
       while(rSet.next())
       {
@@ -1208,7 +1245,7 @@ abstract public class QueryBuilder implements Closeable
   {
     DatabaseMetaData databaseMetaData = con.getMetaData();
     ArrayList<String> tableNames = new ArrayList<String>();
-    try (ResultSet rSet = databaseMetaData.getTables(con.getCatalog(), null, null, TABLES_FILTER))
+    try(ResultSet rSet = databaseMetaData.getTables(con.getCatalog(), null, null, TABLES_FILTER))
     {
       while(rSet.next())
       {

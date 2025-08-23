@@ -94,20 +94,6 @@ public class TableHelperDelete2 extends TableHelper
       String nome = entry.getKey();
       List<RelazioniBean> lsRel = entry.getValue();
 
-//      if(!enableMultiKey && lsRel.size() > 1)
-//      {
-//        // su alcune tabelle ci sono foreign key multiple sulle stesse colonne; in questo caso si possono considerare come una sola
-//        Classificatore<String, RelazioniBean> clRel = new Classificatore<>(lsRel, (b) -> b.toString());
-//        Collection<List<RelazioniBean>> blkBeans = clRel.values();
-//
-//        if(blkBeans.size() > 1)
-//          throw new Exception("Funzionamento limitato a 1 colonna esporata: [" + nome + "]: "
-//             + StringJoin.build(",", "(", ")")
-//                .addObjects(lsRel, (r) -> r.fk_name + ":" + r.pkcolumn_name + " -> " + r.fktable_schem + "." + r.fktable_name + "." + r.fkcolumn_name)
-//                .join());
-//
-//        lsRel = Arrays.asList(blkBeans.iterator().next().get(0));
-//      }
       for(RelazioniBean b : lsRel)
       {
         Collection<ObjectKey<?>> alternateKeys = mapKeys.get(b.pkcolumn_name);
@@ -136,9 +122,16 @@ public class TableHelperDelete2 extends TableHelper
   private void deleteTable(String fieldPrimary, Collection<ObjectKey<?>> primaryKeys)
      throws Exception
   {
+    if(primaryKeys.isEmpty())
+      return;
+
+    String jk = joinKeys(primaryKeys);
+    if(jk.isEmpty())
+      return;
+
     String sDEL
        = "DELETE FROM " + schemaName + "." + tableName
-       + " WHERE " + fieldPrimary + " IN(" + joinKeys(primaryKeys) + ")";
+       + " WHERE " + fieldPrimary + " IN(" + jk + ")";
 
     comandi.add(sDEL);
   }

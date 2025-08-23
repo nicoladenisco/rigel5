@@ -31,6 +31,7 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -410,9 +411,9 @@ public class DbUtils
    * @param pks collezione di interi
    * @return lista di chiavi primarie
    */
-  public static List<ObjectKey<? extends Object>> convertIntegerKeys(int[] pks)
+  public static List<ObjectKey<?>> convertIntegerKeys(int[] pks)
   {
-    ArrayList<ObjectKey<? extends Object>> lsPks = new ArrayList<>();
+    ArrayList<ObjectKey<?>> lsPks = new ArrayList<>();
     for(int pk : pks)
       lsPks.add(SimpleKey.keyFor(pk));
     return lsPks;
@@ -424,9 +425,9 @@ public class DbUtils
    * @param pks collezione di interi
    * @return lista di chiavi primarie
    */
-  public static List<ObjectKey<? extends Object>> convertIntegerKeys(Collection<Integer> pks)
+  public static List<ObjectKey<?>> convertIntegerKeys(Collection<Integer> pks)
   {
-    ArrayList<ObjectKey<? extends Object>> lsPks = new ArrayList<>();
+    ArrayList<ObjectKey<?>> lsPks = new ArrayList<>();
     pks.forEach((idDoc) -> lsPks.add(SimpleKey.keyFor(idDoc)));
     return lsPks;
   }
@@ -437,9 +438,9 @@ public class DbUtils
    * @param pks collezione di stringhe
    * @return lista di chiavi primarie
    */
-  public static List<ObjectKey<? extends Object>> convertStringKeys(Collection<String> pks)
+  public static List<ObjectKey<?>> convertStringKeys(Collection<String> pks)
   {
-    ArrayList<ObjectKey<? extends Object>> lsPks = new ArrayList<>();
+    ArrayList<ObjectKey<?>> lsPks = new ArrayList<>();
     pks.forEach((idDoc) -> lsPks.add(SimpleKey.keyFor(idDoc)));
     return lsPks;
   }
@@ -450,9 +451,9 @@ public class DbUtils
    * @param pks collezione di stringhe
    * @return lista di chiavi primarie
    */
-  public static List<ObjectKey<? extends Object>> convertStringKeysApici(Collection<String> pks)
+  public static List<ObjectKey<?>> convertStringKeysApici(Collection<String> pks)
   {
-    ArrayList<ObjectKey<? extends Object>> lsPks = new ArrayList<>();
+    ArrayList<ObjectKey<?>> lsPks = new ArrayList<>();
     pks.forEach((idDoc) -> lsPks.add(SimpleKey.keyFor("'" + idDoc + "'")));
     return lsPks;
   }
@@ -526,7 +527,7 @@ public class DbUtils
    * @return lista di chiavi primarie
    * @throws java.lang.Exception
    */
-  public static <T> List<ObjectKey<? extends Object>> extractIntegerKeys(Collection<T> objs,
+  public static <T> List<ObjectKey<?>> extractIntegerKeys(Collection<T> objs,
      LEU.ToIntFunction_WithExceptions<T, Exception> fun)
      throws Exception
   {
@@ -547,7 +548,7 @@ public class DbUtils
    * @return lista di chiavi primarie
    * @throws java.lang.Exception
    */
-  public static <T> List<ObjectKey<? extends Object>> extractStringKeys(Collection<T> objs,
+  public static <T> List<ObjectKey<?>> extractStringKeys(Collection<T> objs,
      LEU.Function_WithExceptions<T, String, Exception> fun)
      throws Exception
   {
@@ -569,7 +570,7 @@ public class DbUtils
    * @return lista di chiavi primarie
    * @throws java.lang.Exception
    */
-  public static <T> List<ObjectKey<? extends Object>> extractStringKeysApici(Collection<T> objs,
+  public static <T> List<ObjectKey<?>> extractStringKeysApici(Collection<T> objs,
      LEU.Function_WithExceptions<T, String, Exception> fun)
      throws Exception
   {
@@ -588,9 +589,9 @@ public class DbUtils
    * @param objs collezione di oggetti Torque
    * @return lista di tutte le chiavi primarie
    */
-  public static List<ObjectKey<? extends Object>> convertBaseObjectKeys(Collection<Persistent> objs)
+  public static List<ObjectKey<?>> convertBaseObjectKeys(Collection<Persistent> objs)
   {
-    ArrayList<ObjectKey<? extends Object>> lsPks = new ArrayList<>();
+    ArrayList<ObjectKey<?>> lsPks = new ArrayList<>();
     objs.forEach((o) -> lsPks.add(o.getPrimaryKey()));
     return lsPks;
   }
@@ -784,6 +785,20 @@ public class DbUtils
   {
     QueryBuilder qb = getQueryBuilder();
     return qb.scanTabelleColonne(con, nomeTabella, nomeColonna, sfun);
+  }
+
+  /**
+   * Funzione generica di scansione colonne.
+   * @param con connessione al db
+   * @param filter filtro per colonne schema.tabella ritorna vero per chiamata a sfun
+   * @param sfun funzione lambda per la scansione dei campi della tabella individuata (se torna false interrompe la scansione)
+   * @throws Exception
+   */
+  public static void scanTabelleColonne(Connection con, Function<String, Boolean> filter, QueryBuilder.ScanColumn<Boolean> sfun)
+     throws Exception
+  {
+    QueryBuilder qb = getQueryBuilder();
+    qb.scanTabelleColonne(con, filter, sfun);
   }
 
   public static Integer getTipoColonna(Connection con,

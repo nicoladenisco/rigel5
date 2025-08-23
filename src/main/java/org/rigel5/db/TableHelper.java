@@ -38,6 +38,7 @@ public class TableHelper
   protected final DatabaseMetaData meta;
   protected final Classificatore<String, RelazioniBean> esportate = new Classificatore<>();
   protected final Classificatore<String, RelazioniBean> importate = new Classificatore<>();
+  protected final Classificatore<String, PrimaryKeyBean> primarie = new Classificatore<>();
   protected String schemaName, tableName;
   protected boolean dryrun;
 
@@ -88,6 +89,16 @@ public class TableHelper
         b.read(rs);
 
         importate.aggiungi(makeKey(b), b);
+      }
+    }
+
+    try(ResultSet rs = meta.getPrimaryKeys(null, schemaName, tableName))
+    {
+      while(rs.next())
+      {
+        PrimaryKeyBean b = new PrimaryKeyBean();
+        b.read(rs);
+        primarie.aggiungi(b.table_schem + "." + b.table_name, b);
       }
     }
   }
@@ -169,6 +180,11 @@ public class TableHelper
     return importate;
   }
 
+  public Classificatore<String, PrimaryKeyBean> getPrimarie()
+  {
+    return primarie;
+  }
+
   public static class RelazioniBean
   {
     public String pktable_cat,
@@ -211,6 +227,29 @@ public class TableHelper
     {
       return fktable_schem + "." + fktable_name + ":" + fkcolumn_name + " -> "
          + pktable_schem + "." + pktable_name + ":" + pkcolumn_name;
+    }
+  }
+
+  public static class PrimaryKeyBean
+  {
+    public String table_cat, table_schem, table_name, column_name, pk_name;
+    public int key_seq;
+
+    public void read(ResultSet rs)
+       throws SQLException
+    {
+      table_cat = rs.getString("table_cat");
+      table_schem = rs.getString("table_schem");
+      table_name = rs.getString("table_name");
+      column_name = rs.getString("column_name");
+      pk_name = rs.getString("pk_name");
+      key_seq = rs.getInt("key_seq");
+    }
+
+    @Override
+    public String toString()
+    {
+      return table_schem + "." + table_name + "/" + column_name + ":" + key_seq + "(" + pk_name + ")}";
     }
   }
 }
