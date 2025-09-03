@@ -422,6 +422,14 @@ public class hTable
       }
     }
 
+    // prepara i custom edit presenti con i dati di riga
+    for(int i = 0; i < numCol; i++)
+    {
+      RigelColumnDescriptor cd = getCD(i);
+      if(cd.getColedit() != null)
+        cd.getColedit().setRowData(cd, tableModel, i18n, extraParamsUrls, row, i);
+    }
+
     // produce l'html per le colonne
     for(int i = 0; i < numCol; i++)
     {

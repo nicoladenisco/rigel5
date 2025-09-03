@@ -43,7 +43,7 @@ import org.rigel5.exceptions.MissingColumnException;
 abstract public class RigelTableModel extends AbstractTableModel
 {
   /** Logging */
-  private static Log log = LogFactory.getLog(RigelTableModel.class);
+  private static final Log log = LogFactory.getLog(RigelTableModel.class);
   protected Vector vColumn = new Vector(10, 10);
   protected TableColumnModel dtcmdl = null;
   protected java.awt.Color rowColor[] = null;

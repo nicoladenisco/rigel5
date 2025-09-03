@@ -236,13 +236,18 @@ public class FormTable extends hEditTable
     }
     sOut.append("-->\r\n");
 
-    // notifica tutti i formatter estesi con il record corrente
     for(int i = 0; i < tableModel.getColumnCount(); i++)
     {
       RigelColumnDescriptor rcd = getCD(i);
+
+      // notifica tutti i formatter estesi con il record corrente
       Format rf = rcd.getFormatter();
       if(rf != null && rf instanceof RigelExtendedFormat)
         ((RigelExtendedFormat) rf).prepareFormatRecord(getTM(), row, i);
+
+      // prepara i custom edit presenti con i dati di riga
+      if(rcd.getColedit() != null)
+        rcd.getColedit().setRowData(rcd, tableModel, i18n, extraParamsUrls, row, i);
     }
 
     mr = mc = 0;

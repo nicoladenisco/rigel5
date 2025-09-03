@@ -41,6 +41,24 @@ public interface CustomColumnEdit
      throws Exception;
 
   /**
+   * Imposta i dati di riga.
+   * Viene chiamata per ogni riga della tabella per impostare la
+   * riga corrente e consentire un reperimento dei dati.
+   * @param cd colonna di riferimento
+   * @param model gestore dei dati della tabella
+   * @param i18n interfaccia multilingua
+   * @param extraParams parametri supplementari nella richiesta di pagina
+   * @param row riga corrente
+   * @param col indice di colonna
+   * @throws Exception
+   */
+  public default void setRowData(RigelColumnDescriptor cd, TableModel model,
+     RigelI18nInterface i18n, Map<String, String> extraParams, int row, int col)
+     throws Exception
+  {
+  }
+
+  /**
    * Ritorna vero se questo plugin genera codice HTML custom per l'editing.
    * @return
    */
