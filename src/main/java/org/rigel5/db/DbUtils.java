@@ -1948,25 +1948,8 @@ public class DbUtils
       {
         if(sb.length() != 0)
         {
-          String sSQL = sb.toString().trim();
-
-          if(!sSQL.isEmpty())
-          {
-            try(PreparedStatement ps = con.prepareStatement(sSQL))
-            {
-              count += ps.executeUpdate();
-            }
-            catch(Exception ex)
-            {
-              if(ignoreErrors)
-              {
-                log.warn("Ignored SQL error: " + ex.getMessage());
-              }
-              else
-                throw ex;
-            }
-            sb = new StringBuilder(SB_SIZE);
-          }
+          count += executeBuffer(con, sb, ignoreErrors);
+          sb = new StringBuilder(SB_SIZE);
         }
       }
       else
@@ -2020,7 +2003,7 @@ public class DbUtils
     return count;
   }
 
-  private static int executeBuffer(Connection con, StringBuilder sb, boolean ignoreErrors)
+  public static int executeBuffer(Connection con, StringBuilder sb, boolean ignoreErrors)
      throws Exception
   {
     String sSQL = sb.toString().trim();
