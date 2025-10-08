@@ -1532,8 +1532,7 @@ public class DbUtils
    *
    * @param criteria A Criteria specifying the records to select, not null.
    * @param consumer lambda to consume resultset data; if return true break the read loop
-   * @param connection the database connection for selecting records,
-   * not null.
+   * @param connection the database connection for selecting records, not null.
    *
    * @return The results of the query as a Stream, not null.
    *
