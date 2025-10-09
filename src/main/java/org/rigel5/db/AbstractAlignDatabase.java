@@ -1518,6 +1518,19 @@ abstract public class AbstractAlignDatabase
     }
   }
 
+  public void rigeneraVisteResources(String... resources)
+     throws Exception
+  {
+    for(String resource : resources)
+    {
+      try(InputStream is = AbstractAlignDatabase.class.getResourceAsStream(resource);
+         InputStreamReader ir = new InputStreamReader(is, "UTF8"))
+      {
+        executeStreamSqlIgnoraErrori(ir);
+      }
+    }
+  }
+
   public void loadTablesFromSchemaDir(File dirSchema, String baseClass)
      throws Exception
   {
