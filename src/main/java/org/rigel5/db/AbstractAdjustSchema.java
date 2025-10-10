@@ -65,7 +65,8 @@ public class AbstractAdjustSchema extends ParseSchemaBase
   // se è true, sostituisce il punto all'underscore nei nomi delle tabelle
   public boolean pointVsUndScore = false, forcePrimary = false, forceForeign = false,
      forceIDUndScore = false, forceTableJavaName = false, riferimentiCircolari = true,
-     usePostgresql = false, useSchema = false, forcePrimaryIDtoNative = false;
+     usePostgresql = false, useSchema = false, forcePrimaryIDtoNative = false,
+     onlyTableSequenceName = false;
   public String inputFile = null;
   public String infoFile = null;
   public String descFile = null;
@@ -397,7 +398,7 @@ public class AbstractAdjustSchema extends ParseSchemaBase
             table.addContent(eidm);
           }
 
-          String seqName = tableName + "_" + ti.uniquePrimaryKeyColumnName + "_SEQ";
+          String seqName = generaNomeSequenza(tableName, ti);
           if(seqName.length() > 26)
             log.debug("Possibile incompatibilita vecchie versioni: nome sequenza " + seqName + " maggiore di 26 caratteri.");
 
@@ -406,6 +407,14 @@ public class AbstractAdjustSchema extends ParseSchemaBase
         }
       }
     }
+  }
+
+  protected String generaNomeSequenza(String tableName, TableInfo ti)
+  {
+    if(onlyTableSequenceName)
+      return tableName + "_SEQ";
+
+    return tableName + "_" + ti.uniquePrimaryKeyColumnName + "_SEQ";
   }
 
   /**
@@ -749,7 +758,7 @@ public class AbstractAdjustSchema extends ParseSchemaBase
 
     if(ouputFile != null)
     {
-      try (OutputStreamWriter out = new FileWriter(ouputFile))
+      try(OutputStreamWriter out = new FileWriter(ouputFile))
       {
         xout.output(docOutput, out);
         out.flush();
@@ -762,7 +771,7 @@ public class AbstractAdjustSchema extends ParseSchemaBase
 
     if(infoFile != null)
     {
-      try (OutputStreamWriter out = new FileWriter(infoFile))
+      try(OutputStreamWriter out = new FileWriter(infoFile))
       {
 
         out.write("<!--\nTabelle senza STATO_REC:\n");

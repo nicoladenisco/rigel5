@@ -139,13 +139,14 @@ public class SanityTorqueUtils2 extends SanityDatabaseUtils
              + " WHERE table_name='" + tm.getName() + "'";
 
           DbUtils.executeStatement(sSQL);
-          log.info("Modificata " + tm.getName() + " nella tabella " + idtName + " : pk=" + newPri);
         }
         catch(Exception e)
         {
           log.debug("Failure " + prepareString(e) + "\nSQL=" + sSQL);
           continue;
         }
+
+        log.info("Modificata " + tm.getName() + " nella tabella " + idtName + " : pk=" + newPri);
       }
     }
   }
@@ -171,6 +172,7 @@ public class SanityTorqueUtils2 extends SanityDatabaseUtils
     Adapter dbAdapter = Torque.getAdapter(databaseName);
     DatabaseMap dbMap = Torque.getDatabaseMap();
     TableMap[] arMaps = dbMap.getTables();
+
     for(int i = 0; i < arMaps.length; i++)
     {
       TableMap tm = arMaps[i];
@@ -204,13 +206,14 @@ public class SanityTorqueUtils2 extends SanityDatabaseUtils
           newPri++;
           sSQL = "SELECT pg_catalog.setval('" + seqName + "', " + newPri + ", false);";
           DbUtils.executeQuery(sSQL);
-          log.info("Modificata " + seqName + " per la tabella " + tm.getName() + " : pk=" + newPri);
         }
         catch(Exception e)
         {
-          log.debug("Failure " + prepareString(e) + "\nSQL=" + sSQL);
+          log.info("Failure " + prepareString(e) + "\nSQL=" + sSQL);
           continue;
         }
+
+        log.info("Modificata " + seqName + " per la tabella " + tm.getName() + " : pk=" + newPri);
       }
     }
   }

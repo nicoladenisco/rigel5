@@ -68,7 +68,7 @@ public class QueryDataSetFiltroData extends QueryDataSet
     try(Statement stm = conn.createStatement();
        ResultSet rs = stm.executeQuery(sql1))
     {
-      s.populate(rs.getMetaData(), null, conn);
+      s.populate(rs.getMetaData(), null, null, conn);
     }
 
     String sql2 = buildQuery(select, from, filtro, s);
@@ -125,7 +125,7 @@ public class QueryDataSetFiltroData extends QueryDataSet
     this.selectString = new StringBuilder(sql2);
     this.schema = new Schema();
 
-    schema.populate(resultSet.getMetaData(), null, conn);
+    schema.populate(resultSet.getMetaData(), null, null, conn);
   }
 
   private String buildQueryNoWhere(String select, String from, FiltroData filtro)
