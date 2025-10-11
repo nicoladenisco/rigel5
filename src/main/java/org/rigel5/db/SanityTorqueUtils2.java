@@ -43,7 +43,7 @@ import org.rigel5.db.torque.TableMapHelper;
  */
 public class SanityTorqueUtils2 extends SanityDatabaseUtils
 {
-  private static final Log log = LogFactory.getLog(SanityTorqueUtils3.class);
+  private static final Log log = LogFactory.getLog(SanityTorqueUtils2.class);
   protected final Stack<String> stkTableNames = new Stack<>();
   protected final HashSet<String> htTableNames = new HashSet<>();
   protected String databaseName;
