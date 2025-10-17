@@ -295,7 +295,7 @@ public class hEditTable extends hTable
         // genera campo di input per dato (eventualmente invisibile)
         String inner = StringOper.okStr(doInnerCell(row, col, cellText, cellHtml), "&nbsp;");
         html.append(cellBegin(row, col));
-        html.append(inner);
+        html.append(HtmlUtils.addSpanClass("rigel_form_field_cell", inner));
         html.append(cellEnd(row, col));
         return;
       }
