@@ -138,14 +138,22 @@ public class MSSQLQueryBuilder extends QueryBuilder
   }
 
   @Override
+  public String queryForSequence(String sequence)
+  {
+    return "SELECT NEXT VALUE FOR " + sequence;
+  }
+
+  @Override
   public boolean disableForeignKeys(String nomeTabella)
   {
+    log.debug("Disable foreign keys is not supported for Microsoft SQL.");
     return false;
   }
 
   @Override
   public boolean enableForeignKeys(String nomeTabella)
   {
+    log.debug("Enable foreign keys is not supported for Microsoft SQL.");
     return false;
   }
 
@@ -162,9 +170,9 @@ public class MSSQLQueryBuilder extends QueryBuilder
   {
     String sSQL = "SELECT CONVERT(VARCHAR, CURRENT_TRANSACTION_ID())";
 
-    try (Statement st = con.createStatement())
+    try(Statement st = con.createStatement())
     {
-      try (ResultSet rs = st.executeQuery(sSQL))
+      try(ResultSet rs = st.executeQuery(sSQL))
       {
         if(rs.next())
           return rs.getString(1);

@@ -163,9 +163,13 @@ abstract public class QueryBuilder implements Closeable
   public long getValueFromSequence(String sequenceName, Connection con)
      throws Exception
   {
-    String sSQL = "SELECT nextval('" + sequenceName + "'::regclass)";
-    List<Record> lsRecs = DbUtils.executeQuery(sSQL, con);
+    List<Record> lsRecs = DbUtils.executeQuery(queryForSequence(sequenceName), con);
     return lsRecs.isEmpty() ? 0 : lsRecs.get(0).getValue(1).asLong();
+  }
+
+  public String queryForSequence(String sequence)
+  {
+    return "SELECT nextval('" + sequence + "')";
   }
 
   public String queryForInsert(FiltroData fd)

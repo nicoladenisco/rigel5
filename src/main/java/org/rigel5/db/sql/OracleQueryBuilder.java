@@ -416,6 +416,12 @@ public class OracleQueryBuilder extends QueryBuilder
   }
 
   @Override
+  public String queryForSequence(String sequence)
+  {
+    return "SELECT " + sequence + ".nextval FROM dual";
+  }
+
+  @Override
   public synchronized String makeFiltroWhere(FiltroData fd)
   {
     StringBuilder whre = new StringBuilder();

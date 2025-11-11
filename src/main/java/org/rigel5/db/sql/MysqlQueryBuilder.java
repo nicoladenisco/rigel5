@@ -124,6 +124,12 @@ public class MysqlQueryBuilder extends QueryBuilder
   }
 
   @Override
+  public String queryForSequence(String sequence)
+  {
+    throw new RuntimeException("Explicit read from sequence is not supported in MySql.");
+  }
+
+  @Override
   public String getCountRecordsQuery(String genericQuery)
   {
     return "SELECT COUNT(*) FROM (" + genericQuery + ") FOO";
@@ -132,12 +138,14 @@ public class MysqlQueryBuilder extends QueryBuilder
   @Override
   public boolean disableForeignKeys(String nomeTabella)
   {
+    log.debug("Disable foreign keys is not supported for MySql.");
     return false;
   }
 
   @Override
   public boolean enableForeignKeys(String nomeTabella)
   {
+    log.debug("Enable foreign keys is not supported for MySql.");
     return false;
   }
 
@@ -157,9 +165,9 @@ public class MysqlQueryBuilder extends QueryBuilder
        + "FROM information_schema.innodb_trx tx\n"
        + "WHERE tx.trx_mysql_thread_id = connection_id()";
 
-    try (Statement st = con.createStatement())
+    try(Statement st = con.createStatement())
     {
-      try (ResultSet rs = st.executeQuery(sSQL))
+      try(ResultSet rs = st.executeQuery(sSQL))
       {
         if(rs.next())
           return rs.getString(1);

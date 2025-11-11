@@ -117,7 +117,7 @@ public class DerbyQueryBuilder extends QueryBuilder
        = "SELECT * FROM ( \n"
        + "    SELECT ROW_NUMBER() OVER() AS rownum, query.* \n"
        + "    FROM (" + sSQL + ") AS query \n"
-       + ") as TMP\n"
+       + ") as TMP \n"
        + "WHERE (rownum >= " + r1 + ") AND (rownum <= " + r2 + ")";
 
     return tmp;
@@ -136,14 +136,22 @@ public class DerbyQueryBuilder extends QueryBuilder
   }
 
   @Override
+  public String queryForSequence(String sequence)
+  {
+    return "NEXT VALUE FOR " + sequence;
+  }
+
+  @Override
   public boolean disableForeignKeys(String nomeTabella)
   {
+    log.debug("Disable foreign keys is not supported for Derby.");
     return false;
   }
 
   @Override
   public boolean enableForeignKeys(String nomeTabella)
   {
+    log.debug("Enable foreign keys is not supported for Derby.");
     return false;
   }
 
