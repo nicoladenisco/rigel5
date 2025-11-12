@@ -40,9 +40,12 @@ import org.rigel5.table.RigelTableModel;
  * in formato HTML. Essa lavora di conserva con oggetti che implementino
  * l'interfaccia BuilderRicercaGenerica per la creazione materiale dei filtri.
  * </p>
+ *
+ * @deprecated genera javascript nella pagina: usare una implementazione con rigel.js
  * @author Nicola De Nisco
  * @version 1.0
  */
+@Deprecated
 public class HtmlMascheraRicercaGenerica implements MascheraRicercaGenerica
 {
   /** Logging */
