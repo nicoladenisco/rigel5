@@ -1366,7 +1366,7 @@ public class DbUtils
   /**
    * Esegue una query con risultati.
    * @param queryString
-   * @param singleRecord ignorato (solo per compatibilita BasePeer)
+   * @param singleRecord
    * @param con
    * @return
    * @throws Exception
@@ -1374,7 +1374,10 @@ public class DbUtils
   public static List<Record> executeQuery(String queryString, boolean singleRecord, Connection con)
      throws Exception
   {
-    return executeQuery(queryString, 0, -1, con);
+    if(singleRecord)
+      return executeQuery(queryString, 0, 1, con);
+    else
+      return executeQuery(queryString, 0, -1, con);
   }
 
   /**
