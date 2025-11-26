@@ -933,10 +933,10 @@ abstract public class RigelColumnDescriptor extends TableColumn
     {
       List<ForeignDataHolder> lValues
          = ptm.getQuery().getDataComboColonnaSelf(row, col, ptm, this, nomeTabella, nomeCampo);
-      return getHtmlComboFromForeignData(lValues, defVal, false);
+      return getHtmlComboFromForeignData(lValues, defVal, true);
     }
 
-    return getHtmlComboFromForeignData(lForeignValues, defVal, false);
+    return getHtmlComboFromForeignData(lForeignValues, defVal, true);
   }
 
   public void setValueAscii(Object bean, String s)
@@ -1724,6 +1724,7 @@ abstract public class RigelColumnDescriptor extends TableColumn
   {
     return autoIncremento;
   }
+
   ////////////////////////////////////////////////////////////
 
   public void setForeignFormUrl(String foreignFormUrl)

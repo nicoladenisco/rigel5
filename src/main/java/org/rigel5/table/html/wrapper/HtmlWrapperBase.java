@@ -143,26 +143,54 @@ abstract public class HtmlWrapperBase extends WrapperBase
   public String makeForeignServerInfo(int row, int col)
      throws Exception
   {
-    String rv = "";
-    if(foInfo == null)
-      return rv;
+    if(foInfo == null || foInfo.isEmpty())
+      return null;
 
-    Enumeration enumParam = foInfo.getForeignColumnsKeys();
-    while(enumParam.hasMoreElements())
+    StringJoin sj = StringJoin.build(",", "\'");
+    for(Pair<String, String> p : foInfo.getForeignColumns())
     {
-      String nomec = (String) enumParam.nextElement();
-      String colonna = foInfo.getParam(nomec);
+      String nomec = p.first;
+      String colonna = p.second;
 
-      RigelColumnDescriptor cd = ptm.getColumn(colonna);
-      if(cd == null)
-        throw new MissingColumnException("Foreign-server: colonna " + colonna + " (" + nomec + ") non presente!");
+      String[] scol = colonna.split(",");
+      switch(scol.length)
+      {
+        case 0:
+          break;
 
-      Object valObj = ptm.getRowRecord(row);
-      String valStr = cd.getValueAsString(valObj);
+        case 1:
+        {
+          RigelColumnDescriptor cd = ptm.getColumn(colonna);
+          if(cd == null)
+            throw new MissingColumnException("Foreign-server: colonna " + colonna + " (" + nomec + ") non presente!");
 
-      rv += ",'" + StringOper.CvtJavascriptString(valStr) + "'";
+          Object valObj = ptm.getRowRecord(row);
+          String valStr = cd.getValueAsString(valObj);
+
+          sj.add(StringOper.CvtJavascriptString(valStr));
+          break;
+        }
+
+        default:
+        {
+          StringJoin valstr = StringJoin.build(" ");
+          for(String colnome : scol)
+          {
+            RigelColumnDescriptor cd = ptm.getColumn(colnome);
+            if(cd == null)
+              throw new MissingColumnException("Foreign-server: colonna " + colnome + " (" + nomec + ") non presente!");
+
+            Object valObj = ptm.getRowRecord(row);
+            valstr.add(cd.getValueAsString(valObj));
+          }
+          if(!valstr.isEmpty())
+            sj.add(valstr.join());
+          break;
+        }
+      }
     }
-    return rv.length() > 0 ? rv.substring(1) : null;
+
+    return sj.isEmpty() ? null : sj.join();
   }
 
   public boolean haveEditRiga()

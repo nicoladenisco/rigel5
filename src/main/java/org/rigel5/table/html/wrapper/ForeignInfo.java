@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -20,6 +20,7 @@ package org.rigel5.table.html.wrapper;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.List;
 import org.commonlib5.utils.Pair;
 import org.commonlib5.utils.StringOper;
 
@@ -94,6 +95,16 @@ public class ForeignInfo
   public synchronized void addForeignInfo(String nome, String colonna)
   {
     names = null;
-    foreignColumns.add(new Pair<String, String>(nome, colonna));
+    foreignColumns.add(new Pair<>(nome, colonna));
+  }
+
+  public List<Pair<String, String>> getForeignColumns()
+  {
+    return foreignColumns;
+  }
+
+  public boolean isEmpty()
+  {
+    return foreignColumns.isEmpty();
   }
 }

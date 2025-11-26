@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -44,7 +44,7 @@ public class EditInfo
    */
   protected Hashtable urlEditRigaParam = new Hashtable();
 
-  void clearEditInfo()
+  public void clearEditInfo()
   {
     urlEditRiga = null;
     urlEditRigaParam.clear();
