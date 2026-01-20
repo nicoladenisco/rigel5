@@ -154,7 +154,9 @@ public class HtmlUtils
    * @param paramName nome del parametro
    * @param paramValue valore del parametro
    * @return
+   * @deprecated usa UrlBuilder per generare url
    */
+  @Deprecated
   public static String mergeUrl(String url, String paramName, String paramValue)
   {
     if(url == null)
@@ -169,26 +171,95 @@ public class HtmlUtils
     return url + ((url.indexOf('?') == -1) ? '?' : '&') + encodeURI(paramName) + "=" + encodeURI(paramValue);
   }
 
+  /**
+   * Fonde una url e un parametro applicando i controlli
+   * sui caratteri di concatenamento.
+   * I parametri e i loro valori vengono fusi alla URL utilizzando
+   * la convenzione di encoding delle URL, ovvero qualsiasi carattere
+   * sia contenuto nel nome o nel valore viene correttamente codificato
+   * affinchè sia decodificato dal server.
+   * @param url dove fondere il parametro
+   * @param paramName nome del parametro
+   * @param paramValue valore del parametro
+   * @return
+   * @deprecated usa UrlBuilder per generare url
+   */
+  @Deprecated
   public static String mergeUrl(String url, String paramName, int paramValue)
   {
     return mergeUrl(url, paramName, String.valueOf(paramValue));
   }
 
+  /**
+   * Fonde una url e un parametro applicando i controlli
+   * sui caratteri di concatenamento.
+   * I parametri e i loro valori vengono fusi alla URL utilizzando
+   * la convenzione di encoding delle URL, ovvero qualsiasi carattere
+   * sia contenuto nel nome o nel valore viene correttamente codificato
+   * affinchè sia decodificato dal server.
+   * @param url dove fondere il parametro
+   * @param paramName nome del parametro
+   * @param paramValue valore del parametro
+   * @return
+   * @deprecated usa UrlBuilder per generare url
+   */
+  @Deprecated
   public static String mergeUrl(String url, String paramName, long paramValue)
   {
     return mergeUrl(url, paramName, String.valueOf(paramValue));
   }
 
+  /**
+   * Fonde una url e un parametro applicando i controlli
+   * sui caratteri di concatenamento.
+   * I parametri e i loro valori vengono fusi alla URL utilizzando
+   * la convenzione di encoding delle URL, ovvero qualsiasi carattere
+   * sia contenuto nel nome o nel valore viene correttamente codificato
+   * affinchè sia decodificato dal server.
+   * @param url dove fondere il parametro
+   * @param paramName nome del parametro
+   * @param paramValue valore del parametro
+   * @return
+   * @deprecated usa UrlBuilder per generare url
+   */
+  @Deprecated
   public static String mergeUrl(String url, String paramName, double paramValue)
   {
     return mergeUrl(url, paramName, String.valueOf(paramValue));
   }
 
+  /**
+   * Fonde una url e un parametro applicando i controlli
+   * sui caratteri di concatenamento.
+   * I parametri e i loro valori vengono fusi alla URL utilizzando
+   * la convenzione di encoding delle URL, ovvero qualsiasi carattere
+   * sia contenuto nel nome o nel valore viene correttamente codificato
+   * affinchè sia decodificato dal server.
+   * @param url dove fondere il parametro
+   * @param paramName nome del parametro
+   * @param paramValue valore del parametro
+   * @return
+   * @deprecated usa UrlBuilder per generare url
+   */
+  @Deprecated
   public static String mergeUrl(String url, String paramName, boolean paramValue)
   {
     return mergeUrl(url, paramName, String.valueOf(paramValue));
   }
 
+  /**
+   * Fonde una url e un parametro applicando i controlli
+   * sui caratteri di concatenamento.
+   * I parametri e i loro valori vengono fusi alla URL utilizzando
+   * la convenzione di encoding delle URL, ovvero qualsiasi carattere
+   * sia contenuto nel nome o nel valore viene correttamente codificato
+   * affinchè sia decodificato dal server.
+   * @param url dove fondere il parametro
+   * @param params
+   * @return
+   * @deprecated usa UrlBuilder per generare url
+   */
+  @Deprecated
   public static String mergeUrl(String url, Map<String, String> params)
   {
     if(url != null && params != null && !params.isEmpty())
@@ -203,6 +274,19 @@ public class HtmlUtils
     return url;
   }
 
+  /**
+   * Fonde una url e un parametro applicando i controlli
+   * sui caratteri di concatenamento.
+   * I parametri e i loro valori vengono fusi alla URL utilizzando
+   * la convenzione di encoding delle URL, ovvero qualsiasi carattere
+   * sia contenuto nel nome o nel valore viene correttamente codificato
+   * affinchè sia decodificato dal server.
+   * @param url dove fondere il parametro
+   * @param params
+   * @return
+   * @deprecated usa UrlBuilder per generare url
+   */
+  @Deprecated
   public static String mergeUrl(String url, Properties params)
   {
     if(url != null && params != null && !params.isEmpty())
@@ -223,7 +307,9 @@ public class HtmlUtils
    * @param url url orgine
    * @param params parametri da aggiungere
    * @return
+   * @deprecated usa UrlBuilder per generare url
    */
+  @Deprecated
   public static String mergeUrlTestUnique(String url, Map<String, String> params)
   {
     if(params != null && !params.isEmpty())
@@ -240,6 +326,19 @@ public class HtmlUtils
     return url;
   }
 
+  /**
+   * Fonde una url e un parametro applicando i controlli
+   * sui caratteri di concatenamento.
+   * I parametri e i loro valori vengono fusi alla URL utilizzando
+   * la convenzione di encoding delle URL, ovvero qualsiasi carattere
+   * sia contenuto nel nome o nel valore viene correttamente codificato
+   * affinchè sia decodificato dal server.
+   * @param url dove fondere il parametro
+   * @param params
+   * @return
+   * @deprecated usa UrlBuilder per generare url
+   */
+  @Deprecated
   public static String mergeUrlPair(String url, Object... params)
   {
     if((params.length & 1) != 0)
@@ -256,6 +355,19 @@ public class HtmlUtils
     return url;
   }
 
+  /**
+   * Fonde una url e un parametro applicando i controlli
+   * sui caratteri di concatenamento.
+   * I parametri e i loro valori vengono fusi alla URL utilizzando
+   * la convenzione di encoding delle URL, ovvero qualsiasi carattere
+   * sia contenuto nel nome o nel valore viene correttamente codificato
+   * affinchè sia decodificato dal server.
+   * @param url dove fondere il parametro
+   * @param params
+   * @return
+   * @deprecated usa UrlBuilder per generare url
+   */
+  @Deprecated
   public static String mergeUrlPairTestUnique(String url, Object... params)
   {
     if((params.length & 1) != 0)
