@@ -100,7 +100,7 @@ public class CustomButtonInfo implements Cloneable
 
       if(valore.contains("@") || valore.contains("#"))
         if((valore = ptm.getValueMacroInside(0, 0, valore, false, false)) == null)
-          return null;
+          return "";
 
       param = HtmlUtils.mergeUrl(param, nome, valore);
     }
