@@ -144,9 +144,19 @@ public class SqlWrapperXmlMaker extends RigelBaseWrapperXmlMaker
   public SqlWrapperListaXml getListaXml(String nomeLista, boolean removeCaratt)
      throws Exception
   {
+    return getListaXml(nomeLista, removeCaratt, new SqlWrapperListaXml());
+  }
+
+  public SqlWrapperListaXml getListaXml(String nomeLista, boolean removeCaratt, SqlWrapperListaXml wl)
+     throws Exception
+  {
     Element lista = getElementLista(XML_XML_SQL, nomeLista);
-    SqlWrapperListaXml wl = (SqlWrapperListaXml) (parseWrapper(nomeLista,
-       lista, new SqlWrapperListaXml(), false, removeCaratt));
+    String extend = getExtends(lista);
+    if(extend != null)
+      wl = getListaXml(extend, removeCaratt, wl);
+
+    wl = (SqlWrapperListaXml) (parseWrapper(nomeLista,
+       lista, wl, false, removeCaratt));
 
     Element e = null;
     if((e = lista.getChild("print-info")) != null)
@@ -206,9 +216,19 @@ public class SqlWrapperXmlMaker extends RigelBaseWrapperXmlMaker
   public SqlWrapperListaXml getListaXmlFromListe(String nomeLista, boolean removeCaratt)
      throws Exception
   {
+    return getListaXmlFromListe(nomeLista, removeCaratt, new SqlWrapperListaXml());
+  }
+
+  public SqlWrapperListaXml getListaXmlFromListe(String nomeLista, boolean removeCaratt, SqlWrapperListaXml wl)
+     throws Exception
+  {
     Element lista = getElementLista(XML_LISTE_SQL, nomeLista);
-    SqlWrapperListaXml wl = (SqlWrapperListaXml) (parseWrapper(nomeLista,
-       lista, new SqlWrapperListaXml(), false, removeCaratt));
+    String extend = getExtends(lista);
+    if(extend != null)
+      wl = getListaXmlFromListe(extend, removeCaratt, wl);
+
+    wl = (SqlWrapperListaXml) (parseWrapper(nomeLista,
+       lista, wl, false, removeCaratt));
 
     Element e = null;
     if((e = lista.getChild("groupby")) != null)
