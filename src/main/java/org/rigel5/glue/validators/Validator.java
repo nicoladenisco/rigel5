@@ -25,6 +25,7 @@ import org.jdom2.*;
 import org.rigel5.RigelCacheManager;
 import org.rigel5.RigelI18nInterface;
 import org.rigel5.SetupHolder;
+import org.rigel5.db.torque.PeerTransactAgent;
 import org.rigel5.table.RigelTableModel;
 import org.rigel5.table.html.hEditTable;
 
@@ -203,44 +204,65 @@ public class Validator
   public static boolean postSaveMasterDetail(
      Element eleXml, Object obj, RigelTableModel tableModelMaster, hEditTable tableMaster, int rowMaster,
      List<Object> detail, RigelTableModel tableModelDetail, hEditTable tableDetail,
-     HttpSession session, Map param, RigelI18nInterface i18n, Connection dbCon, Map custom)
+     HttpSession session, Map param, RigelI18nInterface i18n, Map custom)
      throws Exception
   {
-    if(eleXml != null)
+    if(eleXml == null)
+      return true;
+
+    int count = 0;
+    for(Element elePPV : eleXml.getChildren("post-save-validator"))
     {
-      Iterator itrPPV = eleXml.getChildren("post-save-validator").iterator();
-      while(itrPPV.hasNext())
+      String classPPV = StringOper.okStrNull(elePPV.getChildText("class"));
+      if(classPPV != null)
+        count++;
+    }
+
+    if(count == 0)
+      return true;
+
+    return PeerTransactAgent.executeReturn((con) -> runValidators(con,
+       eleXml, obj, tableModelMaster, tableMaster, rowMaster,
+       detail, tableModelDetail, tableDetail,
+       session, param, i18n, custom));
+  }
+
+  protected static boolean runValidators(
+     Connection con,
+     Element eleXml, Object obj, RigelTableModel tableModelMaster, hEditTable tableMaster, int rowMaster,
+     List<Object> detail, RigelTableModel tableModelDetail, hEditTable tableDetail,
+     HttpSession session, Map param, RigelI18nInterface i18n, Map custom)
+     throws Exception
+  {
+    for(Element elePPV : eleXml.getChildren("post-save-validator"))
+    {
+      String classPPV = StringOper.okStrNull(elePPV.getChildText("class"));
+      if(classPPV != null)
       {
-        Element elePPV = (Element) (itrPPV.next());
+        SaveMasterDetailValidator ppv;
+        ValidatorCacheBean vb = getCacheBean();
 
-        String classPPV = StringOper.okStrNull(elePPV.getChildText("class"));
-        if(classPPV != null)
+        synchronized(vb.cacheSave)
         {
-          SaveMasterDetailValidator ppv;
-          ValidatorCacheBean vb = getCacheBean();
-          synchronized(vb.cacheSave)
+          if((ppv = vb.cacheSave.get(classPPV)) == null)
           {
-            if((ppv = vb.cacheSave.get(classPPV)) == null)
-            {
-              ppv = ValidatorsFactory.getInstance().getSaveMasterDetailValidator(classPPV);
-              vb.cacheSave.put(classPPV, ppv);
-            }
+            ppv = ValidatorsFactory.getInstance().getSaveMasterDetailValidator(classPPV);
+            vb.cacheSave.put(classPPV, ppv);
           }
+        }
 
-          synchronized(ppv)
-          {
-            ppv.init(elePPV);
-            if(!ppv.validate(obj,
-               tableModelMaster, tableMaster, rowMaster,
-               detail, tableModelDetail, tableDetail,
-               session, param, i18n, dbCon, custom))
-              return false;
-          }
+        synchronized(ppv)
+        {
+          ppv.init(elePPV);
+          if(!ppv.validate(obj,
+             tableModelMaster, tableMaster, rowMaster,
+             detail, tableModelDetail, tableDetail,
+             session, param, i18n, con, custom))
+            return false;
         }
       }
     }
 
-    // per default il record e' valido
     return true;
   }
 
@@ -249,33 +271,31 @@ public class Validator
      HttpSession session, Map param, RigelI18nInterface i18n, Map custom)
      throws Exception
   {
-    if(eleXml != null)
+    if(eleXml == null)
+      return true;
+
+    for(Element elePPV : eleXml.getChildren("post-save-action"))
     {
-      Iterator itrPPV = eleXml.getChildren("post-save-action").iterator();
-      while(itrPPV.hasNext())
+      String classPPV = StringOper.okStrNull(elePPV.getChildText("class"));
+      if(classPPV != null)
       {
-        Element elePPV = (Element) (itrPPV.next());
+        PostSaveAction ppv;
+        ValidatorCacheBean vb = getCacheBean();
 
-        String classPPV = StringOper.okStrNull(elePPV.getChildText("class"));
-        if(classPPV != null)
+        synchronized(vb.cacheAction)
         {
-          PostSaveAction ppv;
-          ValidatorCacheBean vb = getCacheBean();
-          synchronized(vb.cacheAction)
+          if((ppv = vb.cacheAction.get(classPPV)) == null)
           {
-            if((ppv = vb.cacheAction.get(classPPV)) == null)
-            {
-              ppv = ValidatorsFactory.getInstance().getPostSaveAction(classPPV);
-              vb.cacheAction.put(classPPV, ppv);
-            }
+            ppv = ValidatorsFactory.getInstance().getPostSaveAction(classPPV);
+            vb.cacheAction.put(classPPV, ppv);
           }
+        }
 
-          synchronized(ppv)
-          {
-            ppv.init(elePPV);
-            if(!ppv.action(obj, tableModel, table, row, session, param, i18n, custom))
-              return false;
-          }
+        synchronized(ppv)
+        {
+          ppv.init(elePPV);
+          if(!ppv.action(obj, tableModel, table, row, session, param, i18n, custom))
+            return false;
         }
       }
     }

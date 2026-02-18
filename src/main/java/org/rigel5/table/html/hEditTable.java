@@ -610,6 +610,10 @@ public class hEditTable extends hTable
     if(url == null)
       return null;
 
+    // se il builder ha costruito una url completa di tutti i parametri la ritorna immediatamente
+    if(url.startsWith("javascript:"))
+      return url;
+
     // verfica per url con macro
     int pos;
     if((pos = url.indexOf("@@@")) != -1)
@@ -626,13 +630,10 @@ public class hEditTable extends hTable
       String sds = "func=" + URLEncoder.encode("imposta_" + fldName, "UTF8");
       return url1 + sds + url2;
     }
-    else
-    {
-      url = cd.parseMacro(url);
-      url = ((RigelTableModel) tableModel).getValueMacroInside(row, col, url, false, true);
-      url = HtmlUtils.mergeUrl(url, "func", "imposta_" + fldName);
-    }
 
+    url = cd.parseMacro(url);
+    url = ((RigelTableModel) tableModel).getValueMacroInside(row, col, url, false, true);
+    url = HtmlUtils.mergeUrl(url, "func", "imposta_" + fldName);
     return "javascript:" + popupListaFunction + "('" + url + "', 'subList_" + StringOper.purge(cd.getName()) + "')";
   }
 
@@ -652,6 +653,10 @@ public class hEditTable extends hTable
        (RigelTableModel) tableModel, cd, fldName, row, col);
     if(url == null)
       return null;
+
+    // se il builder ha costruito una url completa di tutti i parametri la ritorna immediatamente
+    if(url.startsWith("javascript:"))
+      return url;
 
     String sds = cd.makeForeignFormParamsForUrl(row, (RigelTableModel) tableModel);
     if(sds == null)
@@ -675,7 +680,6 @@ public class hEditTable extends hTable
 
     url = cd.parseMacro(url);
     url = ((RigelTableModel) tableModel).getValueMacroInside(row, col, url, false, true);
-
     url = (url.indexOf('?') == -1) ? url + "?" + sds : url + "&" + sds;
     return "javascript:" + popupFormFunction + "('" + url + "', 'subForm_" + StringOper.purge(cd.getName()) + "')";
   }
