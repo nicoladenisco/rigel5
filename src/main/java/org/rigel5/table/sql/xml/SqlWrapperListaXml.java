@@ -394,4 +394,14 @@ public class SqlWrapperListaXml extends HtmlSqlWrapperBase
   {
     throw new UnsupportedOperationException("Not supported yet.");
   }
+
+  public void rebindQuery(Map params)
+     throws Exception
+  {
+    // carica i parametri dalla map
+    populateParametri(params);
+
+    SqlTableModel tm = (SqlTableModel) ptm;
+    tm.getQuery().setParametri(getFiltroParametri());
+  }
 }
