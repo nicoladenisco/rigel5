@@ -131,10 +131,10 @@ public class HtmlMascheraRicercaGenericaNoscript implements MascheraRicercaGener
         continue;
 
       String fieldName = getFieldName(cd);
-      int idx = StringOper.parse(params.get("OP" + fieldName), 0);
-      String val = StringOper.okStrNull(params.get("VL" + fieldName));
-      String vaf = StringOper.okStrNull(params.get("VF" + fieldName));
-      int sortOrder = StringOper.parse(params.get("RS" + fieldName), 0);
+      int idx = parseIntFiltro(params, "OP" + fieldName);
+      String val = parseStringFiltro(params, "VL" + fieldName);
+      String vaf = parseStringFiltro(params, "VF" + fieldName);
+      int sortOrder = parseIntFiltro(params, "RS" + fieldName);
 
       if(HtmlUtils.checkForJavascriptInjection(val) || SqlUtils.checkForSqlInjection(val))
         throw new InjectionDetectedException();
@@ -185,7 +185,7 @@ public class HtmlMascheraRicercaGenericaNoscript implements MascheraRicercaGener
     }
 
     // ordinamento da click sulla colonna
-    String sSimpleSort = (String) (params.get("SSORT"));
+    String sSimpleSort = parseStringFiltro(params, "SSORT");
     if(sSimpleSort != null && sSimpleSort.length() > 0)
     {
       int idxCol = Integer.parseInt(sSimpleSort);
@@ -204,6 +204,28 @@ public class HtmlMascheraRicercaGenericaNoscript implements MascheraRicercaGener
     }
 
     return brg.buildCriteria();
+  }
+
+  private int parseIntFiltro(Map params, String fieldName)
+  {
+    return StringOper.parse(params.get(fieldName), 0);
+  }
+
+  private String parseStringFiltro(Map params, String fieldName)
+  {
+    Object o = params.get(fieldName);
+    if(o == null)
+      return null;
+
+    if(o instanceof Object[])
+    {
+      Object[] oa = (Object[]) o;
+      if(oa.length == 0)
+        return "";
+      return StringOper.okStrNull(oa[0]);
+    }
+
+    return StringOper.okStrNull(o);
   }
 
   /**
