@@ -96,20 +96,16 @@ public class SqlBuilderRicercaGenerica implements BuilderRicercaGenerica
     }
 
     // ordina le colonne in base al filtro di ordinamento
-    Arrays.sort(sortOrder, new Comparator()
+    Arrays.sort(sortOrder, (Object o1, Object o2) ->
     {
-      @Override
-      public int compare(Object o1, Object o2)
-      {
-        int n1 = ((RigelColumnDescriptor) (o1)).getFiltroSort();
-        int n2 = ((RigelColumnDescriptor) (o2)).getFiltroSort();
+      int n1 = ((RigelColumnDescriptor) (o1)).getFiltroSort();
+      int n2 = ((RigelColumnDescriptor) (o2)).getFiltroSort();
 
-        if(n1 > 1000)
-          n1 -= 1000;
-        if(n2 > 1000)
-          n2 -= 1000;
-        return n1 - n2;
-      }
+      if(n1 > 1000)
+        n1 -= 1000;
+      if(n2 > 1000)
+        n2 -= 1000;
+      return n1 - n2;
     });
 
     // imposta filtro di ordinamento
@@ -144,6 +140,7 @@ public class SqlBuilderRicercaGenerica implements BuilderRicercaGenerica
       {
         case "0": // tutti
           valFiltroDa = valFiltroA = null;
+          cd.setFiltroTipo(0);
           break;
 
         case "1": // Oggi

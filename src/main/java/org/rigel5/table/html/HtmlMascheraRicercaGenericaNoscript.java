@@ -19,6 +19,7 @@ package org.rigel5.table.html;
 
 import java.util.Map;
 import org.apache.commons.logging.*;
+import org.commonlib5.utils.CircularArray;
 import org.commonlib5.utils.StringOper;
 import org.rigel5.HtmlUtils;
 import org.rigel5.RigelI18nInterface;
@@ -143,6 +144,7 @@ public class HtmlMascheraRicercaGenericaNoscript implements MascheraRicercaGener
 
       // imposta default a non significativo
       cd.setFiltroTipo(0);
+      cd.setFiltroValore(null);
 
       // se attivo autolike e tipo filtro non significativo
       // ma l'utente ha specificato un valore, promuove automaticamente il tipo ricerca a LIKE
@@ -173,12 +175,12 @@ public class HtmlMascheraRicercaGenericaNoscript implements MascheraRicercaGener
             else
               cd.setFiltroTipo(BuilderRicercaGenerica.IDX_CRITERIA_BETWEEN);
           }
+
+          if(brg.isBetween(cd.getFiltroTipo()) && vaf != null && vaf.trim().length() > 0)
+            val += "|" + vaf;
+
+          cd.setFiltroValore(val);
         }
-
-        if(brg.isBetween(cd.getFiltroTipo()) && vaf != null && vaf.trim().length() > 0)
-          val += "|" + vaf;
-
-        cd.setFiltroValore(val);
       }
 
       cd.setFiltroSort(sortOrder);
@@ -221,7 +223,7 @@ public class HtmlMascheraRicercaGenericaNoscript implements MascheraRicercaGener
     {
       Object[] oa = (Object[]) o;
       if(oa.length == 0)
-        return "";
+        return null;
       return StringOper.okStrNull(oa[0]);
     }
 
@@ -262,6 +264,28 @@ public class HtmlMascheraRicercaGenericaNoscript implements MascheraRicercaGener
        + "<td class=\"rigel_search_param_header\" align=\"center\">" + i18n.msg("Ordinamento") + "</td>\r\n"
        + "</tr>\r\n");
 
+    buildHtmlColumns(html);
+
+    // help
+    html.append("<TR><TD COLSPAN=5>&nbsp;</TD></TR>");
+    html.append("<tr>\r\n");
+    html.append("<td class=\"rigel_search_param_footer\" valign=\"top\" width=15%>")
+       .append(i18n.msg("Campo su cui applicare la regola di filtro."))
+       .append("</td>\r\n<td class=\"rigel_search_param_footer\" valign=\"top\" width=20%>")
+       .append(i18n.msg("Tipo di filtro da applicare al campo."))
+       .append("</td>\r\n<td class=\"rigel_search_param_footer\" valign=\"top\" width=25%>")
+       .append(i18n.msg("Valore del filtro; se il tipo di filtro e' <b>compreso</b> rappresenta il valore iniziale."))
+       .append("</td>\r\n<td class=\"rigel_search_param_footer\" valign=\"top\" width=25%>")
+       .append(i18n.msg("Valido solo se il tipo di filtro e' <b>compreso</b>: rappresenta il valore finale."))
+       .append("</td>\r\n<td class=\"rigel_search_param_footer\" valign=\"top\" width=15%>")
+       .append(i18n.msg("Stabilisce se il campo partecipa all'ordinamento dei risultati ed in quale ordine."))
+       .append("</td>\r\n</tr>\r\n");
+    html.append("</table>\r\n");
+  }
+
+  protected void buildHtmlColumnsZZZ(RigelHtmlPageComponent html)
+     throws Exception
+  {
     int u, d, n = rtm.getColumnCount();
     for(int i = 0; i < n; i++)
     {
@@ -307,6 +331,10 @@ public class HtmlMascheraRicercaGenericaNoscript implements MascheraRicercaGener
       String fieldNameDw = getFieldName(cdd);
       String caption = i18n.localizeTableCaption(null, rtm, cd, i, cd.getCaption());
 
+      String funcMove = "onkeydown=\"return moveKey("
+         + "document." + formName + ".VL" + fieldNameUp + ", "
+         + "document." + formName + ".VL" + fieldNameDw + ", event);\"";
+
       html.append("<tr>\r\n");
       html.append("<td>").append(caption).append("</td>\r\n");
       html.append("<td><select name=\"OP").append(fieldName).append("\">");
@@ -323,9 +351,7 @@ public class HtmlMascheraRicercaGenericaNoscript implements MascheraRicercaGener
       {
         html.append("<td><input type=\"text\" size=\"20\""
            + " name=\"VL" + fieldName + "\""
-           + " value=\"" + val + "\" "
-           + " onkeydown=\"return moveKey(document." + formName + ".VL" + fieldNameUp
-           + " , document." + formName + ".VL" + fieldNameDw + ", event);\"> "
+           + " value=\"" + val + "\" " + funcMove + " > "
            + "&nbsp;<a href='#'"
            + " onclick=\"rigel.apriCalIntR1('" + formName + "','" + fieldName + "')\">"
            + SetupHolder.getImgEditData() + "</a>"
@@ -333,9 +359,7 @@ public class HtmlMascheraRicercaGenericaNoscript implements MascheraRicercaGener
 
         html.append("<td><input type=\"text\" size=\"20\""
            + " name=\"VF" + fieldName + "\""
-           + " value=\"" + vaf + "\" "
-           + " onkeydown=\"return moveKey(document." + formName + ".VF" + fieldNameUp
-           + " , document." + formName + ".VF" + fieldNameDw + ", event);\"> "
+           + " value=\"" + vaf + "\" " + funcMove + " > "
            + "&nbsp;<a href='#'"
            + " onclick=\"rigel.apriCalIntR2('" + formName + "','" + fieldName + "')\">"
            + SetupHolder.getImgEditData() + "</a>"
@@ -345,16 +369,12 @@ public class HtmlMascheraRicercaGenericaNoscript implements MascheraRicercaGener
       {
         html.append("<td><input type=\"text\" size=\"20\""
            + " name=\"VL" + fieldName + "\""
-           + " value=\"" + val + "\" "
-           + " onkeydown=\"return moveKey(document." + formName + ".VL" + fieldNameUp
-           + " , document." + formName + ".VL" + fieldNameDw + ", event);\"> "
+           + " value=\"" + val + "\" " + funcMove + " > "
            + "</td>\r\n");
 
         html.append("<td><input type=\"text\" size=\"20\""
            + " name=\"VF" + fieldName + "\""
-           + " value=\"" + vaf + "\" "
-           + " onkeydown=\"return moveKey(document." + formName + ".VF" + fieldNameUp
-           + " , document." + formName + ".VF" + fieldNameDw + ", event);\"> "
+           + " value=\"" + vaf + "\" " + funcMove + " > "
            + "</td>\r\n");
       }
 
@@ -364,24 +384,193 @@ public class HtmlMascheraRicercaGenericaNoscript implements MascheraRicercaGener
 
       html.append("</tr>\r\n");
     }
-
-    // help
-    html.append("<TR><TD COLSPAN=5>&nbsp;</TD></TR>");
-    html.append("<tr>\r\n");
-    html.append("<td class=\"rigel_search_param_footer\" valign=\"top\" width=15%>")
-       .append(i18n.msg("Campo su cui applicare la regola di filtro."))
-       .append("</td>\r\n<td class=\"rigel_search_param_footer\" valign=\"top\" width=20%>")
-       .append(i18n.msg("Tipo di filtro da applicare al campo."))
-       .append("</td>\r\n<td class=\"rigel_search_param_footer\" valign=\"top\" width=25%>")
-       .append(i18n.msg("Valore del filtro; se il tipo di filtro e' <b>compreso</b> rappresenta il valore iniziale."))
-       .append("</td>\r\n<td class=\"rigel_search_param_footer\" valign=\"top\" width=25%>")
-       .append(i18n.msg("Valido solo se il tipo di filtro e' <b>compreso</b>: rappresenta il valore finale."))
-       .append("</td>\r\n<td class=\"rigel_search_param_footer\" valign=\"top\" width=15%>")
-       .append(i18n.msg("Stabilisce se il campo partecipa all'ordinamento dei risultati ed in quale ordine."))
-       .append("</td>\r\n</tr>\r\n");
-    html.append("</table>\r\n");
   }
 
+  public static class InfoColonne
+  {
+    public RigelColumnDescriptor cd;
+    public String fieldName, caption, campoVL, campoVF, htmlVL, htmlVF;
+  }
+
+  protected void buildHtmlColumns(RigelHtmlPageComponent html)
+     throws Exception
+  {
+    int n = rtm.getColumnCount();
+    CircularArray<InfoColonne> lsColonne = new CircularArray<>(n);
+
+    // prima passata: costruisce array info colonne
+    for(int i = 0; i < n; i++)
+    {
+      RigelColumnDescriptor cd = rtm.getColumn(i);
+      if(cd.isEscludiRicerca())
+        continue;
+
+      String val = cd.getFiltroValore();
+      if(val == null)
+        val = "";
+
+      int pos;
+      String vaf = "";
+      if((pos = val.indexOf("|")) != -1)
+      {
+        vaf = val.substring(pos + 1);
+        val = val.substring(0, pos);
+      }
+
+      InfoColonne ifc = new InfoColonne();
+      lsColonne.add(ifc);
+
+      ifc.cd = cd;
+      ifc.fieldName = getFieldName(cd);
+      ifc.campoVL = "VL" + ifc.fieldName;
+      ifc.campoVF = "VF" + ifc.fieldName;
+      ifc.caption = i18n.localizeTableCaption(null, rtm, cd, i, cd.getCaption());
+
+      String funcMoveVL = "${moveVL_" + ifc.fieldName + "}";
+      String funcMoveVF = "${moveVF_" + ifc.fieldName + "}";
+
+      if(cd.isComboRicerca())
+      {
+        ifc.htmlVL = "<td colspan='2'>" + brg.getHtmlComboColonnaMaschera(formName, ifc.fieldName, cd, val, i18n) + "</td>\r\n";
+      }
+      else if(cd.isDate() && SetupHolder.getImgEditData() != null)
+      {
+        ifc.htmlVL = "<td><input type=\"text\" size=\"20\""
+           + " name=\"" + ifc.campoVL + "\""
+           + " value=\"" + val + "\" " + funcMoveVL + " > "
+           + "&nbsp;<a href='#'"
+           + " onclick=\"rigel.apriCalIntR1('" + formName + "','" + ifc.fieldName + "')\">"
+           + SetupHolder.getImgEditData() + "</a>"
+           + "</td>\r\n";
+
+        ifc.htmlVF = "<td><input type=\"text\" size=\"20\""
+           + " name=\"" + ifc.campoVF + "\""
+           + " value=\"" + vaf + "\" " + funcMoveVF + " > "
+           + "&nbsp;<a href='#'"
+           + " onclick=\"rigel.apriCalIntR2('" + formName + "','" + ifc.fieldName + "')\">"
+           + SetupHolder.getImgEditData() + "</a>"
+           + "</td>\r\n";
+      }
+      else
+      {
+        ifc.htmlVL = "<td><input type=\"text\" size=\"20\""
+           + " name=\"" + ifc.campoVL + "\""
+           + " value=\"" + val + "\" " + funcMoveVL + " > "
+           + "</td>\r\n";
+
+        ifc.htmlVF = "<td><input type=\"text\" size=\"20\""
+           + " name=\"" + ifc.campoVF + "\""
+           + " value=\"" + vaf + "\" " + funcMoveVF + " > "
+           + "</td>\r\n";
+      }
+    }
+
+    // seconda passata: produce html tabella ricerca
+    for(int i = 0; i < lsColonne.size(); i++)
+    {
+      InfoColonne ifc = lsColonne.get(i);
+      int idx = ifc.cd.getFiltroTipo();
+
+      if(ifc.htmlVL != null)
+      {
+        String funcMoveVL = "${moveVL_" + ifc.fieldName + "}";
+        InfoColonne prevVL = lsColonne.getPrevValid(i, (ic) -> ic.campoVL != null);
+        InfoColonne succVL = lsColonne.getSuccValid(i, (ic) -> ic.campoVL != null);
+
+        if(prevVL != null && succVL != null)
+        {
+          String funcMove = "onkeydown=\"return moveKey("
+             + "document." + formName + "." + prevVL.campoVL + ", "
+             + "document." + formName + "." + succVL.campoVL + ", event);\"";
+
+          ifc.htmlVL = ifc.htmlVL.replace(funcMoveVL, funcMove);
+        }
+        else
+        {
+          ifc.htmlVL = ifc.htmlVL.replace(funcMoveVL, "");
+        }
+      }
+
+      if(ifc.htmlVF != null)
+      {
+        String funcMoveVF = "${moveVF_" + ifc.fieldName + "}";
+        InfoColonne prevVF = lsColonne.getPrevValid(i, (ic) -> ic.campoVF != null);
+        InfoColonne succVF = lsColonne.getSuccValid(i, (ic) -> ic.campoVF != null);
+
+        if(prevVF != null && succVF != null)
+        {
+          String funcMove = "onkeydown=\"return moveKey("
+             + "document." + formName + "." + prevVF.campoVF + ", "
+             + "document." + formName + "." + succVF.campoVF + ", event);\"";
+
+          ifc.htmlVF = ifc.htmlVF.replace(funcMoveVF, funcMove);
+        }
+        else
+        {
+          ifc.htmlVF = ifc.htmlVF.replace(funcMoveVF, "");
+        }
+      }
+
+      html.append("<tr>\r\n");
+      html.append("<td>").append(ifc.caption).append("</td>\r\n");
+      html.append("<td><select name=\"OP").append(ifc.fieldName).append("\">");
+      getComboItems(html.getContent(), idx);
+      html.append("</select></td>\r\n");
+
+      if(ifc.campoVL != null && ifc.campoVF == null)
+      {
+        html.append(ifc.htmlVL);
+      }
+      else if(ifc.campoVL != null && ifc.campoVF != null)
+      {
+        html.append(ifc.htmlVL);
+        html.append(ifc.htmlVF);
+      }
+      else
+      {
+        // caso anomalo; in realta non dovrebbe capitare mai
+        log.debug("RIGEL: caso anomalo in ricerca");
+      }
+
+      html.append("<td><select name=\"RS").append(ifc.fieldName).append("\">");
+      getComboOrdinamento(html.getContent(), ifc.cd.getFiltroSort());
+      html.append("</select></td>\r\n");
+
+      html.append("</tr>\r\n");
+    }
+  }
+
+//  private InfoColonne getPrevValid(List<InfoColonne> lsColonne, int i, Function<InfoColonne, Boolean> test)
+//  {
+//    InfoColonne rv;
+//    int prev = i;
+//    do
+//    {
+//      prev = --prev % lsColonne.size();
+//      if(prev == i)
+//        return null;
+//
+//      rv = lsColonne.get(prev);
+//    }
+//    while(test.apply(rv));
+//    return rv;
+//  }
+//
+//  private InfoColonne getSuccValid(List<InfoColonne> lsColonne, int i, Function<InfoColonne, Boolean> test)
+//  {
+//    InfoColonne rv;
+//    int prev = i;
+//    do
+//    {
+//      prev = ++prev % lsColonne.size();
+//      if(prev == i)
+//        return null;
+//
+//      rv = lsColonne.get(prev);
+//    }
+//    while(test.apply(rv));
+//    return rv;
+//  }
   /**
    * Ritorna l'HTML completo della ricerca semplice.
    * @param nomeForm the value of nomeForm
