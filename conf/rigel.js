@@ -81,6 +81,22 @@ var rigel = {
     return false;
   }
   ,
+  moveKeyRicerca(prev, succ, e) {
+
+    switch (getKeyCodeFromEvent(e))
+    {
+      case 38: // freccia su
+      case 40: // freccia giu
+        var cprev = $("#" + prev);
+        var csucc = $("#" + succ);
+
+        if (cprev.length > 0 && csucc.length > 0)
+          return moveKey(cprev[0], csucc[0], e);
+    }
+
+    return true;
+  }
+  ,
   apriEditTool(url, tipo) {
     apriFinestraEdit(url, tipo);
   }
@@ -119,6 +135,16 @@ var rigel = {
     });
 
     return false; // avoid to execute the actual submit of the form.
+  }
+  ,
+  testInvioToolSimpleSearch(unique, url, e) {
+    if (e == null)
+      e = event;
+    if (e.keyCode == 13) {
+      this.submitTool(unique, url);
+      return false;
+    }
+    return true;
   }
   ,
   testInvioTool(baseUri, numPerPage, numPagine, unique, e) {
