@@ -57,6 +57,18 @@ var rigel = {
     goPage(url);
   }
   ,
+  jumpNavAjax(url) {
+    this.runActionJson(url, null, function (data) {
+      if (data.htmlBody !== undefined && data.idBody !== undefined) {
+        $("#" + data.idBody).html(data.htmlBody);
+      }
+
+      if (data.htmlNav !== undefined && data.idNav !== undefined) {
+        $("#" + data.idNav).html(data.htmlNav);
+      }
+    });
+  }
+  ,
   gotoPage(baseUri, numPerPage, numPagine) {
     var nPage = $("#id_in_page_number").val();
     if (nPage <= 0 || nPage > numPagine) {
