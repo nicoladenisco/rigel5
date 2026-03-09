@@ -135,7 +135,7 @@ public class SqlWrapperListaHtml extends HtmlSqlWrapperBase
       ((AbstractHtmlTablePager) pager).getHtml(params, sessione, page);
   }
 
-  private void rebindQuery(Map params)
+  public void rebindQuery(Map params)
      throws Exception
   {
     // carica i parametri dalla map
