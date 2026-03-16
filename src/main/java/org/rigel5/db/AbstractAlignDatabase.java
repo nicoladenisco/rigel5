@@ -34,6 +34,7 @@ import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.torque.map.ColumnMap;
+import org.apache.torque.map.TableMap;
 import org.commonlib5.exec.ExecHelper;
 import org.commonlib5.lambda.FunctionTrowException;
 import org.commonlib5.utils.ArrayMap;
@@ -1613,11 +1614,27 @@ abstract public class AbstractAlignDatabase
 
   private boolean caricaClassePeer(String tableName, String baseClass)
   {
-    String pname = javaName(tableName) + "Peer";
+    String javaTName = javaName(tableName);
+    String pname = javaTName + "Peer";
     Class cz = ClassOper.loadClass(pname, baseClass, null);
     if(cz != null)
     {
       log.debug("Caricata classe " + cz.getName());
+
+      try
+      {
+        Method m = cz.getMethod("getTableMap");
+        TableMap tm = (TableMap) m.invoke(null);
+        if(tm == null)
+          log.error("errore creazione tableMap per " + pname);
+        else if(tm.getDatabaseMap().getTable(javaTName) == null)
+          log.error("errore registrazione tableMap per " + pname);
+      }
+      catch(Throwable t)
+      {
+        log.error("errore recuperando la tableMap per " + pname + ": " + t.getMessage());
+      }
+
       return true;
     }
 

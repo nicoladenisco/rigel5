@@ -186,7 +186,7 @@ public class RecordCounter
     }
   }
 
-  public long getRecordCountInternal(Criteria c)
+  protected long getRecordCountInternal(Criteria c)
      throws Exception
   {
     Query query = SqlBuilder.buildQuery(c);
