@@ -87,6 +87,7 @@ abstract public class AbstractAlignDatabase
   protected List<File> buildScripts = new ArrayList<>();
   protected String clobType = "CLOB";
   protected boolean alterFkCorrectPostgres = false;
+  protected boolean usaTestEstesoCaricamentoPeer = false;
 
   public static final int osType = OsIdent.checkOStype();
   public static final int SB_STATEMENT_SIZE = 1024;
@@ -1621,18 +1622,21 @@ abstract public class AbstractAlignDatabase
     {
       log.debug("Caricata classe " + cz.getName());
 
-      try
+      if(usaTestEstesoCaricamentoPeer)
       {
-        Method m = cz.getMethod("getTableMap");
-        TableMap tm = (TableMap) m.invoke(null);
-        if(tm == null)
-          log.error("errore creazione tableMap per " + pname);
-        else if(tm.getDatabaseMap().getTable(javaTName) == null)
-          log.error("errore registrazione tableMap per " + pname);
-      }
-      catch(Throwable t)
-      {
-        log.error("errore recuperando la tableMap per " + pname + ": " + t.getMessage());
+        try
+        {
+          Method m = cz.getMethod("getTableMap");
+          TableMap tm = (TableMap) m.invoke(null);
+          if(tm == null)
+            log.error("errore creazione tableMap per " + pname);
+          else if(tm.getDatabaseMap().getTable(javaTName) == null)
+            log.error("errore registrazione tableMap per " + pname);
+        }
+        catch(Throwable t)
+        {
+          log.error("errore recuperando la tableMap per " + pname + ": " + t.getMessage());
+        }
       }
 
       return true;

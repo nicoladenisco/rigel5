@@ -777,13 +777,43 @@ public class RigelBaseWrapperXmlMaker
   {
     String replace = itemCol.getAttributeValue("replace",
        itemCol.getAttributeValue("sostituisci"));
-
+    String afther = itemCol.getAttributeValue("afther",
+       itemCol.getAttributeValue("dopo"));
+    String before = itemCol.getAttributeValue("before",
+       itemCol.getAttributeValue("prima"));
     int pos = StringOper.parse(itemCol.getAttributeValue("pos"), -1);
 
     // verifica per colonna con la stessa caption: sostituisce colonna
     int ncPrev = rtm.findColumn(cd.getCaption());
     if(ncPrev != -1)
+    {
       replace = cd.getCaption();
+      pos = -1;
+      afther = null;
+      before = null;
+    }
+
+    // posizione relativa a colonna già esistente (dopo)
+    if(afther != null)
+    {
+      int ncAfther = rtm.findColumn(afther);
+      if(ncAfther != -1)
+        pos = ncAfther + 1;
+
+      replace = null;
+      before = null;
+    }
+
+    // posizione relativa a colonna già esistente (prima)
+    if(before != null)
+    {
+      int ncBefore = rtm.findColumn(before);
+      if(ncBefore > 0)
+        pos = ncBefore;
+
+      afther = null;
+      replace = null;
+    }
 
     if(replace != null)
       return rtm.addOrReplaceColumn(cd, replace);
