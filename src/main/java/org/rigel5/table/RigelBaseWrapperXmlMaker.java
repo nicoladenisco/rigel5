@@ -568,6 +568,11 @@ public class RigelBaseWrapperXmlMaker
         if(e.getChild("combo") != null)
           cd.AttivaCombo(tbl, lnk, dis);
 
+        // attivazione o disattivazione esplicita del combo
+        String attrForeign = StringOper.okStrNull(e.getAttributeValue("foreignAutoCombo"));
+        if(attrForeign != null)
+          cd.setForeignAutoCombo(StringOper.checkTrueFalse(attrForeign, cd.isForeignAutoCombo()));
+
         buildExtraWhere(e, cd);
         buildExtraScript(e, cd);
       }
