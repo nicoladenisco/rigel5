@@ -69,6 +69,10 @@ public class PeerReadOnlyHelper implements Closeable
         // il database puo rifiutare questa modifica
         isolationLevelState = -1;
       }
+
+      // essendo una operazione read-only attiviamo una transazione per il successivo rollback
+      if(md.supportsTransactions() && dbCon.getAutoCommit())
+        dbCon.setAutoCommit(false);
     }
 
     return dbCon;
