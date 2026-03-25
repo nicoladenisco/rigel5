@@ -20,23 +20,31 @@ package org.rigel5.db.torque;
 import java.io.Closeable;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import org.apache.torque.Torque;
 
 /**
  * Utilità per eseguire operazioni read/write senza usare lambda (PeerTransactAgent).
- * Pensata per essere usata in posti particolari (JSP per esempio).
  *
  * @author Nicola De Nisco
  */
 public class PeerReadWriteHelper implements Closeable
 {
   protected Connection dbCon = null;
+  protected DatabaseMetaData md = null;
 
   public Connection getConnection()
      throws Exception
   {
     if(dbCon == null)
+    {
       dbCon = Torque.getConnection();
+      md = dbCon.getMetaData();
+
+      // imposta ad autocommit se disattivato
+      if(md.supportsTransactions() && !dbCon.getAutoCommit())
+        dbCon.setAutoCommit(true);
+    }
 
     return dbCon;
   }
@@ -67,5 +75,10 @@ public class PeerReadWriteHelper implements Closeable
     {
       throw new IOException(e);
     }
+  }
+
+  public DatabaseMetaData getDatabaseMetaData()
+  {
+    return md;
   }
 }

@@ -21,11 +21,11 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
 import org.apache.torque.Torque;
 
 /**
  * Utilità per eseguire operazioni readonly senza usare lambda (PeerTransactAgent).
- * Pensata per essere usata in posti particolari (JSP per esempio).
  *
  * @author Nicola De Nisco
  */
@@ -45,13 +45,29 @@ public class PeerReadOnlyHelper implements Closeable
 
       // memorizza stato e imposta connesione a read only
       readOnlyState = dbCon.isReadOnly() ? 1 : 0;
-      dbCon.setReadOnly(true);
+      try
+      {
+        dbCon.setReadOnly(true);
+      }
+      catch(SQLException sQLException)
+      {
+        // il database puo rifiutare questa modifica
+        readOnlyState = -1;
+      }
 
       // se supportato imposta letture senza transazione
-      if(md.supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_UNCOMMITTED))
+      try
       {
-        isolationLevelState = dbCon.getTransactionIsolation();
-        dbCon.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
+        if(md.supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_UNCOMMITTED))
+        {
+          isolationLevelState = dbCon.getTransactionIsolation();
+          dbCon.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
+        }
+      }
+      catch(SQLException sQLException)
+      {
+        // il database puo rifiutare questa modifica
+        isolationLevelState = -1;
       }
     }
 
@@ -63,6 +79,10 @@ public class PeerReadOnlyHelper implements Closeable
   {
     if(dbCon != null)
     {
+      // essendo una operazione read-only eseguiamo sempre la rollback se serve
+      if(md.supportsTransactions() && !dbCon.getAutoCommit())
+        dbCon.rollback();
+
       // riporta stato read only a valore precedente
       if(readOnlyState != -1)
         dbCon.setReadOnly(readOnlyState == 1);

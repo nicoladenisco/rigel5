@@ -18,12 +18,13 @@
 package org.rigel5.db.torque;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.torque.Torque;
+import org.apache.torque.util.Transaction;
 import org.rigel5.SetupHolder;
 import org.rigel5.db.ConcurrentThreadTransaction;
 import org.rigel5.db.ConnectionProducer;
@@ -85,15 +86,12 @@ import org.rigel5.db.TransactAgent;
  * @author Nicola De Nisco
  * @version 1.0
  */
-abstract public class PeerTransactAgent implements TransactAgent
+abstract public class PeerTransactAgentOldTorque implements TransactAgent
 {
-  private static final Log log = LogFactory.getLog(PeerTransactAgent.class);
-
   public boolean executed = false, readonly = false;
   public HashMap<String, Object> tcontext = new HashMap<>();
   public Object[] tparams = null;
   public static ConcurrentHashMap<Long, Timestamp> thids = new ConcurrentHashMap<>();
-  private static Boolean usaTransazione;
 
   @FunctionalInterface
   public interface executor
@@ -116,7 +114,7 @@ abstract public class PeerTransactAgent implements TransactAgent
        throws Exception;
   }
 
-  public PeerTransactAgent()
+  public PeerTransactAgentOldTorque()
   {
   }
 
@@ -125,7 +123,7 @@ abstract public class PeerTransactAgent implements TransactAgent
    * @param execute se vero esegue immediatamente la transazione (chiama runNow())
    * @throws Exception
    */
-  public PeerTransactAgent(boolean execute)
+  public PeerTransactAgentOldTorque(boolean execute)
      throws Exception
   {
     if(execute)
@@ -138,7 +136,7 @@ abstract public class PeerTransactAgent implements TransactAgent
    * @param context mappa di chiave/volere per usi nella funzione ridefinita
    * @throws Exception
    */
-  public PeerTransactAgent(boolean execute, Map<String, Object> context)
+  public PeerTransactAgentOldTorque(boolean execute, Map<String, Object> context)
      throws Exception
   {
     this.tcontext.putAll(context);
@@ -152,7 +150,7 @@ abstract public class PeerTransactAgent implements TransactAgent
    * @param params parametri; saranno disponibile all'interno della funzione ridefinita nell'array tparams
    * @throws Exception
    */
-  public PeerTransactAgent(boolean execute, Object... params)
+  public PeerTransactAgentOldTorque(boolean execute, Object... params)
      throws Exception
   {
     this.tparams = params;
@@ -163,19 +161,8 @@ abstract public class PeerTransactAgent implements TransactAgent
   @Override
   public boolean isTransactionSupported()
   {
-    if(usaTransazione == null)
-    {
-      synchronized(thids)
-      {
-        if(usaTransazione == null)
-        {
-          ConnectionProducer conProd = SetupHolder.getConProd();
-          usaTransazione = conProd == null ? false : conProd.isTransactionSupported();
-        }
-      }
-    }
-
-    return usaTransazione;
+    ConnectionProducer conProd = SetupHolder.getConProd();
+    return conProd == null ? false : conProd.isTransactionSupported();
   }
 
   @Override
@@ -191,54 +178,112 @@ abstract public class PeerTransactAgent implements TransactAgent
   public void runTransaction()
      throws Exception
   {
+    Connection dbCon = null;
     long thid = Thread.currentThread().getId();
     if(thids.contains(thid))
       throw new ConcurrentThreadTransaction(Thread.currentThread(), thids.get(thid));
 
-    try(PeerReadWriteTransactionHelper p = new PeerReadWriteTransactionHelper())
+    try
     {
-      Connection con = p.getConnection();
+      dbCon = Transaction.begin(Torque.getDefaultDB());
 
       // esegue comandi all'interno della transazione
       thids.put(thid, new Timestamp(System.currentTimeMillis()));
       executed = readonly = false;
-      executed = run(con, true);
+      executed = run(dbCon, true);
+      thids.remove(thid);
 
+      // NOTA: commit e rollback gia' chiudono la connessione SQL
       if(executed)
-        p.commit();
+      {
+        Transaction.commit(dbCon);
+      }
       else
-        p.rollback();
+      {
+        Transaction.rollback(dbCon);
+      }
     }
-    finally
+    catch(Throwable ex)
     {
       thids.remove(thid);
+      executed = false;
+
+      if(dbCon != null)
+        Transaction.safeRollback(dbCon);
+
+      throw ex;
     }
   }
 
   public void runSimple()
      throws Exception
   {
-    try(PeerReadWriteHelper p = new PeerReadWriteHelper())
+    Connection dbCon = null;
+
+    try
     {
+      dbCon = Torque.getConnection();
+
+      // esegue comandi senza transazione
       executed = readonly = false;
-      executed = run(p.getConnection(), false);
+      executed = run(dbCon, false);
+    }
+    finally
+    {
+      if(dbCon != null)
+        Torque.closeConnection(dbCon);
     }
   }
 
   public void runReadOnly()
      throws Exception
   {
-    try(PeerReadOnlyHelper p = new PeerReadOnlyHelper())
+    Connection dbCon = null;
+    DatabaseMetaData md = null;
+    int readOnlyState = -1, isolationLevelState = -1;
+
+    try
     {
-      executed = readonly = false;
-      executed = run(p.getReadOnlyConnection(), false);
+      dbCon = Torque.getConnection();
+      md = dbCon.getMetaData();
+
+      // memorizza stato e imposta connesione a read only
+      readOnlyState = dbCon.isReadOnly() ? 1 : 0;
+      dbCon.setReadOnly(true);
+
+      // se supportato imposta letture senza transazione
+      if(md.supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_UNCOMMITTED))
+      {
+        isolationLevelState = dbCon.getTransactionIsolation();
+        dbCon.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
+      }
+
+      // esegue comandi senza transazione
+      executed = false;
+      readonly = true;
+      executed = run(dbCon, false);
+    }
+    finally
+    {
+      if(dbCon != null)
+      {
+        // riporta stato read only a valore precedente
+        if(readOnlyState != -1)
+          dbCon.setReadOnly(readOnlyState == 1);
+
+        // se supportato riporta isolamento come precedente
+        if(isolationLevelState != -1)
+          dbCon.setTransactionIsolation(isolationLevelState);
+
+        Torque.closeConnection(dbCon);
+      }
     }
   }
 
   public static Map<String, Object> execute(executor exec)
      throws Exception
   {
-    PeerTransactAgent ta = new PeerTransactAgent(true, exec)
+    PeerTransactAgentOldTorque ta = new PeerTransactAgentOldTorque(true, exec)
     {
       @Override
       public boolean run(Connection dbCon, boolean transactionSupported)
@@ -255,7 +300,7 @@ abstract public class PeerTransactAgent implements TransactAgent
   public static Map<String, Object> execute(boolean useTransaction, executor exec)
      throws Exception
   {
-    PeerTransactAgent ta = new PeerTransactAgent(true, exec)
+    PeerTransactAgentOldTorque ta = new PeerTransactAgentOldTorque(true, exec)
     {
       @Override
       public boolean isTransactionSupported()
@@ -278,7 +323,7 @@ abstract public class PeerTransactAgent implements TransactAgent
   public static Map<String, Object> execute(executorContext exec)
      throws Exception
   {
-    PeerTransactAgent ta = new PeerTransactAgent(true, exec)
+    PeerTransactAgentOldTorque ta = new PeerTransactAgentOldTorque(true, exec)
     {
       @Override
       public boolean run(Connection dbCon, boolean transactionSupported)
@@ -295,7 +340,7 @@ abstract public class PeerTransactAgent implements TransactAgent
   public static Map<String, Object> execute(boolean useTransaction, executorContext exec)
      throws Exception
   {
-    PeerTransactAgent ta = new PeerTransactAgent(true, exec)
+    PeerTransactAgentOldTorque ta = new PeerTransactAgentOldTorque(true, exec)
     {
       @Override
       public boolean isTransactionSupported()
@@ -318,7 +363,7 @@ abstract public class PeerTransactAgent implements TransactAgent
   public static Map<String, Object> execute(Map<String, Object> data, executorContext exec)
      throws Exception
   {
-    PeerTransactAgent ta = new PeerTransactAgent(true, exec, data)
+    PeerTransactAgentOldTorque ta = new PeerTransactAgentOldTorque(true, exec, data)
     {
       @Override
       public boolean run(Connection dbCon, boolean transactionSupported)
@@ -336,7 +381,7 @@ abstract public class PeerTransactAgent implements TransactAgent
   public static <T> T executeReturn(executorReturn<T> exec)
      throws Exception
   {
-    PeerTransactAgent ta = new PeerTransactAgent(true, exec)
+    PeerTransactAgentOldTorque ta = new PeerTransactAgentOldTorque(true, exec)
     {
       @Override
       public boolean run(Connection dbCon, boolean transactionSupported)
@@ -353,7 +398,7 @@ abstract public class PeerTransactAgent implements TransactAgent
   public static <T> T executeReturn(boolean useTransaction, executorReturn<T> exec)
      throws Exception
   {
-    PeerTransactAgent ta = new PeerTransactAgent(true, exec)
+    PeerTransactAgentOldTorque ta = new PeerTransactAgentOldTorque(true, exec)
     {
       @Override
       public boolean isTransactionSupported()
@@ -376,7 +421,7 @@ abstract public class PeerTransactAgent implements TransactAgent
   public static Map<String, Object> executeReadonly(executor exec)
      throws Exception
   {
-    PeerTransactAgent ta = new PeerTransactAgent(false, exec)
+    PeerTransactAgentOldTorque ta = new PeerTransactAgentOldTorque(false, exec)
     {
       @Override
       public boolean run(Connection dbCon, boolean transactionSupported)
@@ -400,7 +445,7 @@ abstract public class PeerTransactAgent implements TransactAgent
   public static <T> T executeReturnReadonly(executorReturn<T> exec)
      throws Exception
   {
-    PeerTransactAgent ta = new PeerTransactAgent(false, exec)
+    PeerTransactAgentOldTorque ta = new PeerTransactAgentOldTorque(false, exec)
     {
       @Override
       public boolean run(Connection dbCon, boolean transactionSupported)
