@@ -169,6 +169,7 @@ abstract public class PeerTransactAgent implements TransactAgent
         {
           try(PeerReadWriteHelper p = new PeerReadWriteHelper())
           {
+            p.getConnection();
             usaTransazione = p.getDatabaseMetaData().supportsTransactions();
           }
           catch(Exception e)
