@@ -24,9 +24,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.rigel5.SetupHolder;
 import org.rigel5.db.ConcurrentThreadTransaction;
-import org.rigel5.db.ConnectionProducer;
 import org.rigel5.db.TransactAgent;
 
 /**
@@ -169,8 +167,14 @@ abstract public class PeerTransactAgent implements TransactAgent
       {
         if(usaTransazione == null)
         {
-          ConnectionProducer conProd = SetupHolder.getConProd();
-          usaTransazione = conProd == null ? false : conProd.isTransactionSupported();
+          try(PeerReadWriteHelper p = new PeerReadWriteHelper())
+          {
+            usaTransazione = p.getDatabaseMetaData().supportsTransactions();
+          }
+          catch(Exception e)
+          {
+            throw new RuntimeException(e);
+          }
         }
       }
     }
