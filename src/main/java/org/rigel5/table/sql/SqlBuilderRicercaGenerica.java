@@ -234,8 +234,11 @@ public class SqlBuilderRicercaGenerica implements BuilderRicercaGenerica
     String nomeCombo = "VL" + fieldName;
 
     // imposta automaticamente il combo del criteria a uguale
-    String setComboFunjs = "document." + formName
-       + ".OP" + fieldName + "[" + IDX_CRITERIA_EQUAL + "].selected = '1';";
+    // cambiaTipoRicercaCombo(formName, fieldName, valore)
+    String setComboFunjs = "rigel.cambiaTipoRicercaCombo("
+       + "'" + formName + "', '" + fieldName + "', " + IDX_CRITERIA_EQUAL
+       + ")";
+
     sOut = "<select name=\"" + nomeCombo + "\" onChange=\"" + setComboFunjs + "\">";
 
     if(cd.isComboSelf())

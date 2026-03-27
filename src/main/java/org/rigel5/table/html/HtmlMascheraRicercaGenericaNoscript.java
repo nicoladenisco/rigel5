@@ -420,7 +420,7 @@ public class HtmlMascheraRicercaGenericaNoscript implements MascheraRicercaGener
     }
   }
 
-  private String campoRicerca(String nome, String val, String funcMove, String scriptData)
+  protected String campoRicerca(String nome, String val, String funcMove, String scriptData)
   {
     StringBuilder htmlCampo = new StringBuilder();
     htmlCampo.append("<td>");
@@ -428,7 +428,33 @@ public class HtmlMascheraRicercaGenericaNoscript implements MascheraRicercaGener
        .append(" id=\"id_").append(nome).append("\"")
        .append(" name=\"").append(nome).append("\"")
        .append(" value=\"").append(val).append("\"")
-       .append(" ").append(funcMove).append(" >");
+       .append(" ").append(funcMove);
+
+    if(scriptData == null)
+    {
+      if(nome.startsWith("VL"))
+      {
+        // aggiunge impostazione automatica a compreso nel filtro
+        // cambiaTipoRicercaInput(formName, fieldName, tipo, valore)
+        String fieldName = nome.substring(2);
+        String impostaCompreso = "rigel.cambiaTipoRicercaInput("
+           + "'" + formName + "', "
+           + "'" + fieldName + "', 'VL', '" + BuilderRicercaGenerica.IDX_CRITERIA_LIKE + "')";
+        htmlCampo.append("onchange=\"").append(impostaCompreso).append("\"");
+      }
+      else if(nome.startsWith("VF"))
+      {
+        // aggiunge impostazione automatica a compreso nel filtro
+        // cambiaTipoRicercaInput(formName, fieldName, tipo, valore)
+        String fieldName = nome.substring(2);
+        String impostaCompreso = "rigel.cambiaTipoRicercaInput("
+           + "'" + formName + "', "
+           + "'" + fieldName + "', 'VF', '" + BuilderRicercaGenerica.IDX_CRITERIA_BETWEEN + "')";
+        htmlCampo.append("onchange=\"").append(impostaCompreso).append("\"");
+      }
+    }
+
+    htmlCampo.append(" >");
 
     if(scriptData != null)
       htmlCampo.append("&nbsp;<a href='#' onclick=\"").append(scriptData).append("\">")

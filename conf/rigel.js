@@ -116,15 +116,43 @@ var rigel = {
   submitTool(unique, url) {
     var formName = "fo_" + unique;
     var bodyName = "body_" + unique;
+    var dati = $("#" + formName).serialize(); // serializes the form's elements.
 
     $("#search_" + unique).html("");
 
     jQuery.ajax({
       type: "POST",
       url: url,
-      data: $("#" + formName).serialize(), // serializes the form's elements.
+      data: dati,
       success: function (data) {
         $("#" + bodyName).html(data);
+      },
+      error: function (jqxhr, textStatus, error) {
+        var err = textStatus + ", " + error;
+        console.log("Request Failed in submitTool: " + err);
+      }
+    });
+
+    return false; // avoid to execute the actual submit of the form.
+  }
+  ,
+  submitTool2(uniqueBody, uniqueForm, url) {
+    var formName = "fo_" + uniqueForm;
+    var bodyName = "body_" + uniqueBody;
+    var dati = $("#" + formName).serialize(); // serializes the form's elements.
+
+    $("#search_" + uniqueBody).html("");
+
+    jQuery.ajax({
+      type: "POST",
+      url: url,
+      data: dati,
+      success: function (data) {
+        $("#" + bodyName).html(data);
+      },
+      error: function (jqxhr, textStatus, error) {
+        var err = textStatus + ", " + error;
+        console.log("Request Failed in submitTool2: " + err);
       }
     });
 
@@ -134,15 +162,43 @@ var rigel = {
   ricercaTool(unique, url) {
     var formName = "fo_" + unique;
     var bodyName = "body_" + unique;
+    var dati = $("#" + formName).serialize(); // serializes the form's elements.
 
     $("#data_" + unique).html("");
 
     jQuery.ajax({
       type: "POST",
       url: url,
-      data: $("#" + formName).serialize(), // serializes the form's elements.
+      data: dati,
       success: function (data) {
         $("#" + bodyName).html(data);
+      },
+      error: function (jqxhr, textStatus, error) {
+        var err = textStatus + ", " + error;
+        console.log("Request Failed in ricercaTool: " + err);
+      }
+    });
+
+    return false; // avoid to execute the actual submit of the form.
+  }
+  ,
+  ricercaTool2(uniqueBody, uniqueForm, url) {
+    var formName = "fo_" + uniqueForm;
+    var bodyName = "body_" + uniqueBody;
+    var dati = $("#" + formName).serialize(); // serializes the form's elements.
+
+    $("#data_" + uniqueBody).html("");
+
+    jQuery.ajax({
+      type: "POST",
+      url: url,
+      data: dati,
+      success: function (data) {
+        $("#" + bodyName).html(data);
+      },
+      error: function (jqxhr, textStatus, error) {
+        var err = textStatus + ", " + error;
+        console.log("Request Failed in ricercaTool2: " + err);
       }
     });
 
@@ -150,10 +206,10 @@ var rigel = {
   }
   ,
   testInvioToolSimpleSearch(unique, url, e) {
-    if (e == null)
+    if (e === null)
       e = event;
-    if (e.keyCode == 13) {
-      this.submitTool(unique, url);
+    if (e.keyCode === 13) {
+      this.submitTool2(unique, unique + "_simple", url);
       return false;
     }
     return true;
@@ -189,6 +245,10 @@ var rigel = {
       url: url,
       success: function (data) {
         $("#" + bodyName).html(data);
+      },
+      error: function (jqxhr, textStatus, error) {
+        var err = textStatus + ", " + error;
+        console.log("Request Failed in jumpTool: " + err);
       }
     });
   }
@@ -208,11 +268,53 @@ var rigel = {
     return false;
   }
   ,
+  cambiaTipoRicercaCombo(formName, fieldName, valore) {
+    var nomeComboValori = "VL" + fieldName;
+    var nomeComboFiltro = "OP" + fieldName;
+    $("#" + formName + " select[name='" + nomeComboFiltro + "'] option[value='" + valore + "']").attr('selected', true);
+  }
+  ,
+  cambiaTipoRicercaInput(formName, fieldName, tipo, valore) {
+    // onchange
+    var nomeCampoValori = tipo + fieldName;
+    var nomeComboFiltro = "OP" + fieldName;
+    var contenuto = $("#" + formName + " input[name='" + nomeCampoValori + "']").val();
+    var filtroatt = $("#" + formName + " select[name='" + nomeComboFiltro + "']").val();
+    var val = trim(contenuto);
+
+    if ((filtroatt === "0" || filtroatt === "1") && val !== "") {
+      $("#" + formName + " select[name='" + nomeComboFiltro + "'] option[value='" + valore + "']").attr('selected', true);
+    }
+  }
+  ,
+  cambiaTipoRicercaToolCombo(unique, uniqueForm, fieldName, valore) {
+    var formName = "fo_" + uniqueForm;
+    var nomeComboValori = "VL" + fieldName;
+    var nomeComboFiltro = "OP" + fieldName;
+    $("#" + formName + " select[name='" + nomeComboFiltro + "'] option[value='" + valore + "']").attr('selected', true);
+  }
+  ,
+  cambiaTipoRicercaToolInput(unique, uniqueForm, fieldName, tipo, valore) {
+    // onchange
+    var formName = "fo_" + uniqueForm;
+    var nomeCampoValori = tipo + fieldName;
+    var nomeComboFiltro = "OP" + fieldName;
+    var contenuto = $("#" + formName + " input[name='" + nomeCampoValori + "']").val();
+    var filtroatt = $("#" + formName + " select[name='" + nomeComboFiltro + "']").val();
+    var val = trim(contenuto);
+
+    if ((filtroatt === "0" || filtroatt === "1") && val !== "") {
+      $("#" + formName + " select[name='" + nomeComboFiltro + "'] option[value='" + valore + "']").attr('selected', true);
+    }
+  }
+  ,
   submitDirectLista(type, url) {
+    var dati = $("#fo" + type).serialize(); // serializes the form's elements.
+
     jQuery.ajax({
       type: "POST",
       url: url,
-      data: $("#fo" + type).serialize(), // serializes the form's elements.
+      data: dati,
       success: function (data) {
         $("#rigel_dialog_body").html(data);
 
@@ -220,6 +322,10 @@ var rigel = {
         const ok = re.exec(data);
         if (ok)
           setTopDialogTitle(ok[1]);
+      },
+      error: function (jqxhr, textStatus, error) {
+        var err = textStatus + ", " + error;
+        console.log("Request Failed in submitDirectLista: " + err);
       }
     });
 
@@ -232,15 +338,21 @@ var rigel = {
       url: url,
       success: function (data) {
         $("#rigel_dialog_body").html(data);
+      },
+      error: function (jqxhr, textStatus, error) {
+        var err = textStatus + ", " + error;
+        console.log("Request Failed in jumpDirectLista: " + err);
       }
     });
   }
   ,
   submitDirectForm(type, url) {
+    var dati = $("#fo" + type).serialize(); // serializes the form's elements.
+
     jQuery.ajax({
       type: "POST",
       url: url,
-      data: $("#fo" + type).serialize(), // serializes the form's elements.
+      data: dati,
       success: function (data) {
         $("#rigel_dialog_body").html(data);
 
@@ -248,6 +360,10 @@ var rigel = {
         const ok = re.exec(data);
         if (ok)
           setTopDialogTitle(ok[1]);
+      },
+      error: function (jqxhr, textStatus, error) {
+        var err = textStatus + ", " + error;
+        console.log("Request Failed in submitDirectForm: " + err);
       }
     });
 
@@ -339,6 +455,15 @@ var rigel = {
   }
   ,
   /**
+   * Verifica che la variabile esista e sia diversa da stringa vuota.
+   * @param {type} variabile
+   * @returns {Boolean} vero se esiste ed è valorizzata
+   */
+  isOKVar(variabile) {
+    return (variabile !== undefined && variabile !== "");
+  }
+  ,
+  /**
    * Esegue una chiamata ad action Turbine attraverso action.jsp (vedi sirio).
    * @param {type} uri per raggiungere action.jsp
    * @param {type} dati dati da inviare alla action
@@ -347,29 +472,7 @@ var rigel = {
    * @returns {undefined}
    */
   runActionJson(uri, dati, fnExecute, fnReload) {
-    jQuery.getJSON(uri, dati, function (data) {
-      if (typeof data["ERROR"] !== "undefined" && data["ERROR"] !== "") {
-        bdError(data["ERROR"]);
-        return;
-      }
-
-      if (typeof data["message"] !== "undefined" && data["message"] !== "") {
-        bdAlert(data["message"]);
-      }
-
-      if (data["reload"] === "1") {
-        if (fnReload !== "undefined")
-          fnReload();
-        return;
-      }
-
-      if (fnExecute !== "undefined")
-        fnExecute(data);
-
-    }).fail(function (jqxhr, textStatus, error) {
-      var err = textStatus + ", " + error;
-      console.log("Request Failed in runActionJson: " + err);
-    });
+    this.runActionJsonAsync(true, uri, dati, fnExecute, fnReload);
   }
   ,
   /**
@@ -410,16 +513,16 @@ var rigel = {
       async: async,
       data: dati,
       success: function (data) {
-        if (typeof data["ERROR"] !== "undefined" && data["ERROR"] !== "") {
-          bdError(data["ERROR"]);
+        if (this.isOKVar(data.ERROR)) {
+          bdError(data.ERROR);
           return;
         }
 
-        if (typeof data["message"] !== "undefined" && data["message"] !== "") {
-          bdAlert(data["message"]);
+        if (this.isOKVar(data.message)) {
+          bdAlert(data.message);
         }
 
-        if (data["reload"] === "1") {
+        if (data.reload === "1") {
           if (fnReload !== "undefined")
             fnReload();
           return;
