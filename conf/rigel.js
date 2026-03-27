@@ -455,15 +455,6 @@ var rigel = {
   }
   ,
   /**
-   * Verifica che la variabile esista e sia diversa da stringa vuota.
-   * @param {type} variabile
-   * @returns {Boolean} vero se esiste ed è valorizzata
-   */
-  isOKVar(variabile) {
-    return (variabile !== undefined && variabile !== "");
-  }
-  ,
-  /**
    * Esegue una chiamata ad action Turbine attraverso action.jsp (vedi sirio).
    * @param {type} uri per raggiungere action.jsp
    * @param {type} dati dati da inviare alla action
@@ -513,12 +504,12 @@ var rigel = {
       async: async,
       data: dati,
       success: function (data) {
-        if (this.isOKVar(data.ERROR)) {
+        if (isOKVar(data.ERROR)) {
           bdError(data.ERROR);
           return;
         }
 
-        if (this.isOKVar(data.message)) {
+        if (isOKVar(data.message)) {
           bdAlert(data.message);
         }
 
@@ -538,4 +529,14 @@ var rigel = {
       }
     });
   }
+
 };
+
+/**
+ * Verifica che la variabile esista e sia diversa da stringa vuota.
+ * @param {type} variabile
+ * @returns {Boolean} vero se esiste ed è valorizzata
+ */
+function isOKVar(variabile) {
+  return (variabile !== undefined && variabile !== "");
+}
