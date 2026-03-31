@@ -919,4 +919,14 @@ abstract public class WrapperCacheBase
   {
     this.basePath = basePath;
   }
+
+  public RigelI18nInterface getI18n()
+  {
+    return i18n;
+  }
+
+  public void setI18n(RigelI18nInterface i18n)
+  {
+    this.i18n = i18n;
+  }
 }
