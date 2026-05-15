@@ -196,7 +196,7 @@ abstract public class PeerAbstractTableModel extends RigelObjectTableModel
 
         if(cmap == null)
         {
-          log.error("Foreign auto non possibile per colonna " + cd.getName() + "; colonna non trovata nella tablemap.");
+          log.warn("Foreign auto non possibile per colonna " + cd.getName() + "; colonna non trovata nella tablemap.");
         }
         else
         {
@@ -210,7 +210,7 @@ abstract public class PeerAbstractTableModel extends RigelObjectTableModel
         {
           // disattiva modalità foreign per la colonna
           cd.setForeignMode(RigelColumnDescriptor.DISP_FLD_ONLY);
-          log.error("Foreign auto non possible per colonna " + cd.getName()
+          log.warn("Foreign auto non possible per colonna " + cd.getName()
              + "; foreign mode disattivato.");
         }
       }
@@ -251,7 +251,7 @@ abstract public class PeerAbstractTableModel extends RigelObjectTableModel
     {
       // disattiva modalità foreign per la colonna
       cd.setForeignMode(RigelColumnDescriptor.DISP_FLD_ONLY);
-      log.error("Foreign auto non possibile per colonna " + cd.getName()
+      log.warn("Foreign auto non possibile per colonna " + cd.getName()
          + "; il campo " + localColName + " non trovato nel databasemap oppure chiave composta (non gestibile).");
       return false;
     }
@@ -266,7 +266,7 @@ abstract public class PeerAbstractTableModel extends RigelObjectTableModel
       {
         // disattiva modalità foreign per la colonna
         cd.setForeignMode(RigelColumnDescriptor.DISP_FLD_ONLY);
-        log.error("Foreign auto non possibile per colonna " + cd.getName()
+        log.warn("Foreign auto non possibile per colonna " + cd.getName()
            + "; tabella collegata " + foreignTableName + " non trovata nel databasemap.");
         return false;
       }
@@ -285,7 +285,7 @@ abstract public class PeerAbstractTableModel extends RigelObjectTableModel
           {
             // disattiva modalità foreign per la colonna
             cd.setForeignMode(RigelColumnDescriptor.DISP_FLD_ONLY);
-            log.error("Colonna descrittiva non trovata su tabella foreign " + tmRelated.getName()
+            log.warn("Colonna descrittiva non trovata su tabella foreign " + tmRelated.getName()
                + ". Verificare tabella o settaggio in autoForeignColumns in SetupHolder.");
             return false;
           }
