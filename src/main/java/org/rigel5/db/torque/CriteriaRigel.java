@@ -481,6 +481,18 @@ public class CriteriaRigel extends Criteria
     return this;
   }
 
+  @Override
+  public Criteria and(
+     final Object lValue,
+     final Object rValue,
+     final SqlEnum comparison)
+  {
+    if(comparison == SqlEnum.IN)
+      throw new RuntimeException("La clausola  SqlEnum.IN non è più supportata in Torque5; usare addIn().");
+
+    return super.and(lValue, rValue, comparison);
+  }
+
   public CriteriaRigel addIn(ColumnMap cm, int[] idRes)
   {
     andIn(cm, ArrayOper.asList(idRes));
