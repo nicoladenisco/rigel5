@@ -126,6 +126,7 @@ public class FormTable extends hEditTable
    * @return html comprensivo della pagina
    * @throws Exception
    */
+  @Deprecated
   public String doHtmlUnico()
      throws Exception
   {

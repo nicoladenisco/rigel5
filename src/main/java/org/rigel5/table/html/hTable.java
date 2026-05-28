@@ -231,6 +231,7 @@ public class hTable
    * @return html comprensivo della pagina
    * @throws Exception
    */
+  @Deprecated
   public String doHtml()
      throws Exception
   {

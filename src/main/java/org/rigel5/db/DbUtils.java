@@ -112,6 +112,7 @@ public class DbUtils
    * @throws java.lang.Exception
    * @deprecated usa la classe RecordCounter
    */
+  @Deprecated
   public static long getRecordCount(String tableName)
      throws Exception
   {
@@ -127,6 +128,7 @@ public class DbUtils
    * @throws java.lang.Exception
    * @deprecated usa la classe RecordCounter
    */
+  @Deprecated
   public static long getRecordCount(String tableName, String extraWhere)
      throws Exception
   {
@@ -158,6 +160,7 @@ public class DbUtils
    * @throws java.lang.Exception
    * @deprecated usa la classe RecordCounter
    */
+  @Deprecated
   public static long getRecordCount(String tableName, String extraWhere, Connection con)
      throws Exception
   {
@@ -187,6 +190,7 @@ public class DbUtils
    * @throws java.lang.Exception
    * @deprecated usa la classe RecordCounter
    */
+  @Deprecated
   public static long getRecordCount(Criteria c)
      throws Exception
   {
@@ -207,6 +211,7 @@ public class DbUtils
    * @throws java.lang.Exception
    * @deprecated usa la classe RecordCounter
    */
+  @Deprecated
   public static long getRecordCount(Criteria c, Connection con)
      throws Exception
   {
@@ -1315,6 +1320,7 @@ public class DbUtils
    * @throws Exception
    * @deprecated usa la versione con connessione esplicita
    */
+  @Deprecated
   public static List<Record> executeQuery(String queryString)
      throws Exception
   {
@@ -1900,6 +1906,7 @@ public class DbUtils
    * @throws TorqueException
    * @deprecated
    */
+  @Deprecated
   public static int executeStatement(String sSQL)
      throws TorqueException
   {

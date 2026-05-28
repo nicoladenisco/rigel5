@@ -31,6 +31,7 @@ import org.rigel5.table.RigelColumnDescriptor;
  * per usi diversi di quelli previsti da Rigel.
  * @deprecated usi spinti di rigel vengono gestiti meglio dal relativo tool
  */
+@Deprecated
 public class HtmlMascheraRicercaSemplice extends HtmlMascheraRicercaGenerica
 {
   protected String fldPrefix = "";

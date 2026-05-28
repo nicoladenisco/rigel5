@@ -43,6 +43,7 @@ public interface RecordObjectSaver
    * @throws Exception
    * @deprecated usare le funzioni salva con utente specificato: sono rientranti
    */
+  @Deprecated
   public void setUserInfo(int idUser, boolean isAdmin)
      throws Exception;
 
@@ -57,6 +58,7 @@ public interface RecordObjectSaver
    * @throws Exception
    * @deprecated usare la funzione salva(..,userID,...) perchè rientrante
    */
+  @Deprecated
   public void salva(Record obj)
      throws Exception;
 
@@ -72,6 +74,7 @@ public interface RecordObjectSaver
    * @throws Exception
    * @deprecated usare la funzione salva(..,userID,...) perchè rientrante
    */
+  @Deprecated
   public void salva(Record obj, int statoRecNew)
      throws Exception;
 
@@ -86,6 +89,7 @@ public interface RecordObjectSaver
    * @throws Exception
    * @deprecated usare la funzione salva(..,userID,...) perchè rientrante
    */
+  @Deprecated
   public void salva(Record obj, Connection dbCon, int statoRecNew)
      throws Exception;
 
