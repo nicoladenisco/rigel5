@@ -487,8 +487,9 @@ public class CriteriaRigel extends Criteria
      final Object rValue,
      final SqlEnum comparison)
   {
-    if(comparison == SqlEnum.IN)
-      throw new RuntimeException("La clausola  SqlEnum.IN non è più supportata in Torque5; usare addIn().");
+// byNIK: rimosso perchè in alcune situazioni viene interpretato male
+//    if(comparison == SqlEnum.IN)
+//      throw new RuntimeException("La clausola  SqlEnum.IN non è più supportata in Torque5; usare addIn().");
 
     return super.and(lValue, rValue, comparison);
   }
