@@ -128,6 +128,18 @@ public interface PeerObjectSaver
      throws Exception;
 
   /**
+   * Salva un oggetto sul db senza applicare nessun controllo.
+   * I campi automatici sono comunque aggiornati correttamente.
+   * @param obj
+   * @param dbCon
+   * @param userID
+   * @param statoRecNew
+   * @throws Exception
+   */
+  public void salvaDiretto(Persistent obj, Connection dbCon, int userID, int statoRecNew)
+     throws Exception;
+
+  /**
    * Pulizia per nuovo oggetto.
    * Se l'oggetto possiede id_azienda, id_user, ult_modif, ecc.
    * questi campi vengono azzerati o posti a null.
