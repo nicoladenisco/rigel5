@@ -1062,10 +1062,11 @@ public class hEditTable extends hTable
      throws Exception
   {
     RigelColumnDescriptor tc = getCD(col);
+    boolean columnEditable = isColumnEditable(row, col);
 
     if((tableModel instanceof RigelTableModel) && tc.isComboDisplay())
     {
-      if(tc.isEditable())
+      if(columnEditable)
       {
         String navUpDown = moveKey(row, col);
         String nomeCombo = getNomeCampo(row, col);
@@ -1082,7 +1083,7 @@ public class hEditTable extends hTable
         return tc.getValueComboAttached(row, col, (RigelTableModel) tableModel, cellText, i18n);
     }
 
-    if((tableModel instanceof RigelTableModel) && tc.isEditable() && tc.useForeignAutoCombo(row, col, getTM()))
+    if((tableModel instanceof RigelTableModel) && columnEditable && tc.useForeignAutoCombo(row, col, getTM()))
     {
       // funzione autocombo: trasforma una foreign edit in un combo se possibile
       String navUpDown = moveKey(row, col);
@@ -1096,7 +1097,7 @@ public class hEditTable extends hTable
       addToFormTests(tc, row, col);
       return sOut;
     }
-    else if((tableModel instanceof RigelTableModel) && isColumnEditable(row, col))
+    else if((tableModel instanceof RigelTableModel) && columnEditable)
     {
       addToFormTests(tc, row, col);
 
