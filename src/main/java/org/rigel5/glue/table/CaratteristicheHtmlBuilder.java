@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020 Nicola De Nisco
  *
  * This program is free software; you can redistribute it and/or
@@ -72,9 +72,7 @@ public class CaratteristicheHtmlBuilder
     url = urlBuilder.buildUrlSelezionaRecord(popup, url, tableModel,
        cd, cd.getName(), row, extraParams);
 
-    return "<a href=\"" + url + "\">"
-       + SetupHolder.getImgSelItem()
-       + "</a>&nbsp;";
+    return buildLinkTag(url, SetupHolder.getImgSelItem()) + "&nbsp;";
   }
 
   public String getHtmlCarEdit(RigelColumnDescriptor cd, int row, int col)
@@ -87,7 +85,7 @@ public class CaratteristicheHtmlBuilder
       // la funzionalita' di edit viene assicurata
       // da una funzione javascritp; non ci curiamo
       // di altro, basta chiamare la funzione
-      return "<a href=\"" + url + "\">" + SetupHolder.getImgEditItem() + "</a>&nbsp;";
+      return buildLinkTag(url, SetupHolder.getImgEditItem()) + "&nbsp;";
     }
     else
     {
@@ -98,20 +96,19 @@ public class CaratteristicheHtmlBuilder
       if(HtmlUtils.isJavascriptBegin(url))
       {
         // chiama funzione javascript
-        return "<a href=\"" + url + "\">" + SetupHolder.getImgEditItem() + "</a>&nbsp;";
+        return buildLinkTag(url, SetupHolder.getImgEditItem()) + "&nbsp;";
       }
       else
       {
         if(editPopup || wl.getEdInfo().getPopupMode() != 0)
         {
-          String nomeWin = "edit_" + wl.getNome() + "_" + cd.getName();
-          return "<a href=\"javascript:" + popupEditFunction + "('" + url + "', '" + nomeWin.replace(' ', '_') + "')\">"
-             + SetupHolder.getImgEditItem()
-             + "</a>&nbsp;";
+          String nomeWin = StringOper.purge("edit_" + wl.getNome() + "_" + cd.getName());
+          String function = popupEditFunction + "('" + url + "', '" + nomeWin + "')";
+          return buildLinkTag(function, SetupHolder.getImgEditItem());
         }
         else
         {
-          return "<a href=\"" + url + "\">" + SetupHolder.getImgEditItem() + "</a>&nbsp;";
+          return buildLinkTag(url, SetupHolder.getImgEditItem()) + "&nbsp;";
         }
       }
     }
@@ -120,7 +117,7 @@ public class CaratteristicheHtmlBuilder
   public String getHtmlCarCBut(RigelColumnDescriptor cd, int row, int col)
      throws Exception
   {
-    String sOut = "";
+    StringBuilder sOut = new StringBuilder(128);
     lineEditScript = lineEditUrl = null;
 
     for(int i = 0; i < cd.getNumCustomButtons(); i++)
@@ -192,9 +189,9 @@ public class CaratteristicheHtmlBuilder
              (RigelTableModel) (tableModel), cd, cd.getName(), row, cb);
 
           if(url == null)
-            sOut += icon + "&nbsp;";
+            sOut.append(icon).append("&nbsp;");
           else
-            sOut += "<a href=\"" + url + "\">" + icon + "</a>&nbsp;";
+            sOut.append(buildLinkTag(url, icon)).append("&nbsp;");
         }
         else
         {
@@ -202,9 +199,9 @@ public class CaratteristicheHtmlBuilder
           html = cb.makeHtmlCustom(tableModel, row, col);
 
           if(url == null)
-            sOut += html + "&nbsp;";
+            sOut.append(html).append("&nbsp;");
           else
-            sOut += "<a href=\"" + url + "\">" + html + "</a>&nbsp;";
+            sOut.append(buildLinkTag(url, html)).append("&nbsp;");
         }
       }
       else
@@ -216,19 +213,19 @@ public class CaratteristicheHtmlBuilder
           String icon = urlBuilder.buildImageCustomButton(popup,
              (RigelTableModel) (tableModel), cd, cd.getName(), row, cb);
 
-          sOut += icon;
+          sOut.append(icon);
         }
         else
         {
           // risolve eventuali macro nell'html
           html = cb.makeHtmlCustom(tableModel, row, col);
 
-          sOut += html;
+          sOut.append(html);
         }
       }
     }
 
-    return sOut;
+    return sOut.toString();
   }
 
   public String getHtmlCarCancella(RigelColumnDescriptor cd, int row, int col)
@@ -241,9 +238,7 @@ public class CaratteristicheHtmlBuilder
       String url = urlBuilder.buildUrlCancellaRecord(popup, sKey, tableModel,
          cd, cd.getName(), row, extraParams);
 
-      return "<a href=\"" + url + "\">"
-         + SetupHolder.getImgDeleteItem()
-         + "</a>&nbsp;";
+      return buildLinkTag(url, SetupHolder.getImgDeleteItem()) + "&nbsp;";
     }
 
     return "&nbsp;";
@@ -267,5 +262,14 @@ public class CaratteristicheHtmlBuilder
   public void setExtraParams(Map<String, String> extraParams)
   {
     this.extraParams = extraParams;
+  }
+
+  protected String buildLinkTag(String url, String image)
+     throws Exception
+  {
+    if(url.startsWith("javascript:"))
+      return "<a href=\"#\" onclick=\"" + url.substring(11) + "\">" + image + "</a>";
+
+    return "<a href=\"#\" onclick=\"goLink('" + url + "')\">" + image + "</a>";
   }
 }

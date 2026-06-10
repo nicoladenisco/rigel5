@@ -73,7 +73,7 @@ public class AlternateColorTableAppGeneric extends AlternateColorTable
 
   public void setLineLink(String uri)
   {
-    linkColStat = "window.location.href='" + uri + "'";
+    linkColStat = "goLink('" + uri + "');";
   }
 
   public void setLineJavascipt(String javascript)
