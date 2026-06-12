@@ -890,7 +890,7 @@ abstract public class WrapperCacheBase
     // tenta costruzione come PEER
     try
     {
-      if((objCache = getFormPeer(type)) != null)
+      if((objCache = getDispPeer(type)) != null)
         return objCache;
     }
     catch(MissingListException | MissingSectionException e)
@@ -900,7 +900,7 @@ abstract public class WrapperCacheBase
     // tenta costruzione come TMAP
     try
     {
-      if((objCache = getFormTmap(type)) != null)
+      if((objCache = getDispTmap(type)) != null)
         return objCache;
     }
     catch(MissingListException | MissingSectionException e)

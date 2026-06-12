@@ -17,6 +17,9 @@
  */
 package org.rigel5;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import org.commonlib5.utils.StringBuilderPair;
@@ -95,6 +98,21 @@ public class UrlBuilder extends StringBuilderPair
   public UrlBuilder mergeUrl(String paramName, boolean paramValue)
   {
     return mergeUrl(paramName, String.valueOf(paramValue));
+  }
+
+  public UrlBuilder mergeUrlMap(Map params)
+  {
+    if(params != null && !params.isEmpty())
+    {
+      Iterator itr = params.keySet().iterator();
+      while(itr.hasNext())
+      {
+        String key = StringOper.okStrNull(itr.next());
+        String val = StringOper.okStrNull(params.get(key));
+        mergeUrl(key, val);
+      }
+    }
+    return this;
   }
 
   public UrlBuilder mergeUrl(Map<String, String> params)
@@ -177,5 +195,34 @@ public class UrlBuilder extends StringBuilderPair
     }
 
     return this;
+  }
+
+  public URL toURL()
+     throws MalformedURLException
+  {
+    return new URL(toString());
+  }
+
+  /**
+   * Costruisce un UrlBuilder vuoto.
+   * @return UrlBuilder pronto a ricevere componenti
+   */
+  public static UrlBuilder build()
+  {
+    return new UrlBuilder();
+  }
+
+  /**
+   * Costruisce un UrlBuilder a partire da una url già esistente.
+   * Attenzione url non è convertita. Se necessario usare HtmlUtils.encodeURI
+   * se dovesse contenere caratteri non ammessi.
+   * @param url url di partenza
+   * @return UrlBuilder pronto a ricevere altri componenti
+   */
+  public static UrlBuilder build(String url)
+  {
+    UrlBuilder ub = build();
+    ub.sb.append(url);
+    return ub;
   }
 }
