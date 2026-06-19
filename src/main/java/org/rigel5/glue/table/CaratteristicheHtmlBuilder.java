@@ -103,7 +103,7 @@ public class CaratteristicheHtmlBuilder
         if(editPopup || wl.getEdInfo().getPopupMode() != 0)
         {
           String nomeWin = StringOper.purge("edit_" + wl.getNome() + "_" + cd.getName());
-          String function = popupEditFunction + "('" + url + "', '" + nomeWin + "')";
+          String function = "javascript:" + popupEditFunction + "('" + url + "', '" + nomeWin + "')";
           return buildLinkTag(function, SetupHolder.getImgEditItem());
         }
         else
