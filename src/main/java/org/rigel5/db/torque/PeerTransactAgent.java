@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.rigel5.db.ConcurrentThreadTransaction;
 import org.rigel5.db.TransactAgent;
 
 /**
@@ -197,8 +196,11 @@ abstract public class PeerTransactAgent implements TransactAgent
      throws Exception
   {
     long thid = Thread.currentThread().getId();
-    if(thids.contains(thid))
-      throw new ConcurrentThreadTransaction(Thread.currentThread(), thids.get(thid));
+// TODO: ripristinare questo controllo
+// è stato disattivato causa bug su contains(...) non supportato in ConcurrentHashMap
+// nel mezzo dalla crisi LIR meglio non riattivarlo per ora; in futuro andrà ripristinato
+//    if(thids.get(thid) != null)
+//      throw new ConcurrentThreadTransaction(Thread.currentThread(), thids.get(thid));
 
     try(PeerReadWriteTransactionHelper p = new PeerReadWriteTransactionHelper())
     {
