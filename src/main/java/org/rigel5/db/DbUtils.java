@@ -741,10 +741,22 @@ public class DbUtils
   public static boolean existTable(Connection con, String nomeTabella)
      throws Exception
   {
+    String schema = null;
+    int pos = nomeTabella.indexOf('.');
+    if(pos != -1)
+    {
+      schema = nomeTabella.substring(0, pos);
+      nomeTabella = nomeTabella.substring(pos + 1);
+    }
+
     try(ResultSet rs = con.getMetaData().getTables(null, null, null, TABLES_FILTER))
     {
       while(rs.next())
       {
+        if(schema != null)
+          if(!schema.equalsIgnoreCase(rs.getString("TABLE_SCHEM")))
+            continue;
+
         if(nomeTabella.equalsIgnoreCase(rs.getString("TABLE_NAME")))
           return true;
       }
@@ -763,10 +775,22 @@ public class DbUtils
   public static boolean existTableExact(Connection con, String nomeTabella)
      throws Exception
   {
+    String schema = null;
+    int pos = nomeTabella.indexOf('.');
+    if(pos != -1)
+    {
+      schema = nomeTabella.substring(0, pos);
+      nomeTabella = nomeTabella.substring(pos + 1);
+    }
+
     try(ResultSet rs = con.getMetaData().getTables(null, null, null, TABLES_FILTER))
     {
       while(rs.next())
       {
+        if(schema != null)
+          if(!schema.equals(rs.getString("TABLE_SCHEM")))
+            continue;
+
         if(nomeTabella.equals(rs.getString("TABLE_NAME")))
           return true;
       }
