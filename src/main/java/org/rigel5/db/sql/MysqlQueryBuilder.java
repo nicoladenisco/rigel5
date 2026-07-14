@@ -130,6 +130,20 @@ public class MysqlQueryBuilder extends QueryBuilder
   }
 
   @Override
+  public void createSequence(String sequenceName, Connection con)
+    throws Exception
+  {
+    throw new RuntimeException("Sequence is not supported in MySql. Use AUTO_INCREMENT columns.");
+  }
+
+  @Override
+  public void deleteSequence(String sequenceName, Connection con)
+    throws Exception
+  {
+    throw new RuntimeException("Sequence is not supported in MySql. Use AUTO_INCREMENT columns.");
+  }
+
+  @Override
   public String getCountRecordsQuery(String genericQuery)
   {
     return "SELECT COUNT(*) FROM (" + genericQuery + ") FOO";

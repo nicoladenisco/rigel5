@@ -22,6 +22,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import org.apache.commons.logging.*;
 import org.commonlib5.utils.*;
+import org.rigel5.db.DbUtils;
 import org.rigel5.table.RigelColumnDescriptor;
 
 /**
@@ -141,6 +142,41 @@ public class MSSQLQueryBuilder extends QueryBuilder
   public String queryForSequence(String sequence)
   {
     return "SELECT NEXT VALUE FOR " + sequence;
+  }
+
+  @Override
+  public void createSequence(String sequenceName, Connection con)
+     throws Exception
+  {
+    String sSQL
+       = "BEGIN TRY\n"
+       + "  EXEC('CREATE SEQUENCE " + sequenceName + "\n"
+       + "    INCREMENT BY 1\n"
+       + "    START WITH 1\n"
+       + "    MINVALUE 1\n"
+       + "    MAXVALUE 9223372036854775807\n"
+       + "    CACHE 1');\n"
+       + "END TRY\n"
+       + "BEGIN CATCH\n"
+       + "  IF ERROR_NUMBER() <> 2714 THROW;\n"
+       + "END CATCH;";
+
+    DbUtils.executeStatement(sSQL, con);
+  }
+
+  @Override
+  public void deleteSequence(String sequenceName, Connection con)
+     throws Exception
+  {
+    String sSQL
+       = "BEGIN TRY\n"
+       + "  EXEC('DROP SEQUENCE " + sequenceName + "');\n"
+       + "END TRY\n"
+       + "BEGIN CATCH\n"
+       + "  IF ERROR_NUMBER() <> 3701 THROW;\n"
+       + "END CATCH;";
+
+    DbUtils.executeStatement(sSQL, con);
   }
 
   @Override

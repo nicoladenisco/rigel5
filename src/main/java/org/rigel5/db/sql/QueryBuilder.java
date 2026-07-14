@@ -160,6 +160,29 @@ abstract public class QueryBuilder implements Closeable
        + " LIKE '%" + adjValue(RigelColumnDescriptor.PDT_STRING, val) + "%'";
   }
 
+  public void deleteSequence(String sequenceName, Connection con)
+     throws Exception
+  {
+    String sSQL = "DROP SEQUENCE IF EXISTS " + sequenceName;
+    DbUtils.executeStatement(sSQL, con);
+  }
+
+  public void createSequence(String sequenceName, Connection con)
+     throws Exception
+  {
+     // @formatter:off
+    String sSQL
+       = "CREATE SEQUENCE IF NOT EXISTS " + sequenceName + "\n"
+       + "    INCREMENT 1\n"
+       + "    START 1\n"
+       + "    MINVALUE 1\n"
+       + "    MAXVALUE 9223372036854775807\n"
+       + "    CACHE 1;";
+     // @formatter:on
+
+    DbUtils.executeStatement(sSQL, con);
+  }
+
   public long getValueFromSequence(String sequenceName, Connection con)
      throws Exception
   {

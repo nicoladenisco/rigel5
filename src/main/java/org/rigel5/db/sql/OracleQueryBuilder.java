@@ -228,11 +228,13 @@ public class OracleQueryBuilder extends QueryBuilder
   /**
    * Funzione generica di scansione colonne.
    * La ricerca del nome tabella è case insensitive.
+   *
    * @param <T> il tipo tornato da sfun
    * @param con connessione al db
    * @param nomeTabella nome della tabella (eventualmente con schema)
    * @param nomeColonna nome della colonna
-   * @param sfun funzione lambda per la scansione dei campi della tabella individuata
+   * @param sfun funzione lambda per la scansione dei campi della tabella
+   * individuata
    * @return int {@code =>} SQL type from java.sql.Types 0=non trovato
    * @throws Exception
    */
@@ -281,7 +283,9 @@ public class OracleQueryBuilder extends QueryBuilder
 
   /**
    * Ritorna vero se lo schema è lo schema di default.
-   * Gli schemi che vengono considerati default sono quelli aggiunti con addPublicSchema.
+   * Gli schemi che vengono considerati default sono quelli aggiunti con
+   * addPublicSchema.
+   *
    * @param nomeSchema nome da testare
    * @return vero se è lo schema di default del db
    */
@@ -293,6 +297,7 @@ public class OracleQueryBuilder extends QueryBuilder
 
   /**
    * Lista delle viste di un database.
+   *
    * @param con connessione al db
    * @return lista di tutte le viste presenti (schema di default)
    * @throws Exception
@@ -330,6 +335,7 @@ public class OracleQueryBuilder extends QueryBuilder
 
   /**
    * Lista delle tabelle di un database.
+   *
    * @param con connessione al db
    * @return lista di tutte le tabelle presenti (schema di default)
    * @throws Exception
@@ -367,6 +373,7 @@ public class OracleQueryBuilder extends QueryBuilder
 
   /**
    * Carica in normalizedSchemas gli schema con il case corretto come da database.
+   *
    * @param con connessione al db
    * @throws Exception
    */
@@ -398,8 +405,7 @@ public class OracleQueryBuilder extends QueryBuilder
   public String getTransactionID(Connection con)
      throws Exception
   {
-    String sSQL
-       = "SELECT RAWTOHEX(tx.xid)\n"
+    String sSQL = "SELECT RAWTOHEX(tx.xid)\n"
        + "FROM v$transaction tx\n"
        + "JOIN v$session s ON tx.ses_addr = s.saddr";
 
@@ -475,5 +481,40 @@ public class OracleQueryBuilder extends QueryBuilder
     }
 
     return whre.length() == 0 ? null : whre.substring(5);
+  }
+
+  @Override
+  public void createSequence(String sequenceName, Connection con)
+     throws Exception
+  {
+    String sSQL
+       = "BEGIN\n"
+       + "  EXECUTE IMMEDIATE 'CREATE SEQUENCE " + sequenceName + "\n"
+       + "    INCREMENT BY 1\n"
+       + "    START WITH 1\n"
+       + "    MINVALUE 1\n"
+       + "    MAXVALUE 9223372036854775807\n"
+       + "    CACHE 1';\n"
+       + "EXCEPTION\n"
+       + "  WHEN OTHERS THEN\n"
+       + "    IF SQLCODE != -955 THEN RAISE; END IF;\n"
+       + "END;";
+
+    DbUtils.executeStatement(sSQL, con);
+  }
+
+  @Override
+  public void deleteSequence(String sequenceName, Connection con)
+     throws Exception
+  {
+    String sSQL
+       = "BEGIN\n"
+       + "  EXECUTE IMMEDIATE 'DROP SEQUENCE " + sequenceName + "';\n"
+       + "EXCEPTION\n"
+       + "  WHEN OTHERS THEN\n"
+       + "    IF SQLCODE != -2289 THEN RAISE; END IF;\n"
+       + "END;";
+
+    DbUtils.executeStatement(sSQL, con);
   }
 }

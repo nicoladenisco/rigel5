@@ -17,6 +17,9 @@
  */
 package org.rigel5.db.sql;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import org.apache.commons.logging.*;
 import org.commonlib5.utils.*;
 import org.rigel5.table.RigelColumnDescriptor;
@@ -139,6 +142,52 @@ public class DerbyQueryBuilder extends QueryBuilder
   public String queryForSequence(String sequence)
   {
     return "NEXT VALUE FOR " + sequence;
+  }
+
+  @Override
+  public void createSequence(String sequenceName, Connection con)
+     throws Exception
+  {
+    String sSQL
+       = "CREATE SEQUENCE " + sequenceName + "\n"
+       + "    AS BIGINT\n"
+       + "    INCREMENT BY 1\n"
+       + "    START WITH 1\n"
+       + "    MINVALUE 1\n"
+       + "    MAXVALUE 9223372036854775807\n"
+       + "    NO CYCLE";
+
+    try(Statement st = con.createStatement())
+    {
+      st.execute(sSQL);
+    }
+    catch(SQLException ex)
+    {
+      if("X0Y68".equals(ex.getSQLState()))
+        return;
+
+      throw ex;
+    }
+  }
+
+  @Override
+  public void deleteSequence(String sequenceName, Connection con)
+     throws Exception
+  {
+    String sSQL = "DROP SEQUENCE " + sequenceName + " RESTRICT";
+
+    try(Statement st = con.createStatement())
+    {
+      st.execute(sSQL);
+    }
+    catch(SQLException ex)
+    {
+      String state = ex.getSQLState();
+      if("42Y55".equals(state) || "42X94".equals(state) || "X0X81".equals(state))
+        return;
+
+      throw ex;
+    }
   }
 
   @Override
