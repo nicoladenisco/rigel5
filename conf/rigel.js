@@ -483,7 +483,7 @@ var rigel = {
         callbackDaChiamare(data);
       },
       error: function (jqxhr, textStatus, error) {
-        var err = textStatus + ", " + error;
+        var err = textStatus + ", " + error + "\n" + jqxhr.responseText;
         console.log("Request Failed in syncJSON: " + err);
       }
     });
@@ -524,7 +524,7 @@ var rigel = {
 
       },
       error: function (jqxhr, textStatus, error) {
-        var err = textStatus + ", " + error;
+        var err = textStatus + ", " + error + "\n" + jqxhr.responseText;
         console.log("Request Failed in runActionJson: " + err);
       }
     });
