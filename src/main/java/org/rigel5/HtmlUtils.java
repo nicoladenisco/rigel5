@@ -18,6 +18,7 @@
 package org.rigel5;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.List;
 import java.util.Map;
@@ -395,6 +396,24 @@ public class HtmlUtils
     try
     {
       return URLEncoder.encode(uri, "UTF-8");
+    }
+    catch(UnsupportedEncodingException ex)
+    {
+      return uri;
+    }
+  }
+
+  /**
+   * Effettua il decoding di una stringa.
+   * Tutti i caratteri non consentiti in una URL vengono opportunamente codificati.
+   * @param uri stringa origine
+   * @return stringa uri con encoding
+   */
+  public static String decodeURI(String uri)
+  {
+    try
+    {
+      return URLDecoder.decode(uri, "UTF-8");
     }
     catch(UnsupportedEncodingException ex)
     {
