@@ -405,7 +405,7 @@ public class HtmlUtils
 
   /**
    * Effettua il decoding di una stringa.
-   * Tutti i caratteri non consentiti in una URL vengono opportunamente codificati.
+   * Esegue la funzione inversa di encodeURI().
    * @param uri stringa origine
    * @return stringa uri con encoding
    */
