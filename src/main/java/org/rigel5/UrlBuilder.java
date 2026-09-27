@@ -31,7 +31,7 @@ import static org.rigel5.HtmlUtils.encodeURI;
  * Builder specializzato per la costruzione di URI.
  * <pre>
  * <code>
- * UrlBuilder.build("http://").mergePath("www.fiat.com").mergeUrl("codice", "A001");
+ * UrlBuilder.build("https://").mergePath("www.fiat.com", "dir1/dir2").mergeUrl("codice", "A001").toURL();
  * </code>
  * </pre>
  * @author Nicola De Nisco
@@ -66,7 +66,13 @@ public class UrlBuilder extends StringBuilderPair
 
     StringJoin sbu = StringJoin.build("/");
     for(String s : str)
-      sbu.add(encodeURI(purgePathComponent(s)));
+    {
+      String[] ss = s.split("\\/");
+      for(String s1 : ss)
+      {
+        sbu.add(encodeURI(s1));
+      }
+    }
 
     sb.append(sbu.join());
     return this;
