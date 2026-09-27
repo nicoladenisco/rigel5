@@ -29,7 +29,11 @@ import static org.rigel5.HtmlUtils.encodeURI;
 
 /**
  * Builder specializzato per la costruzione di URI.
- *
+ * <pre>
+ * <code>
+ * UrlBuilder.build("http://").mergePath("www.fiat.com").mergeUrl("codice", "A001");
+ * </code>
+ * </pre>
  * @author Nicola De Nisco
  */
 public class UrlBuilder extends StringBuilderPair
@@ -38,18 +42,51 @@ public class UrlBuilder extends StringBuilderPair
   {
   }
 
+  public UrlBuilder(String pathIniziale)
+  {
+    append(pathIniziale);
+  }
+
   public UrlBuilder(int size)
   {
     super(size);
   }
 
+  /**
+   * Aggiunge componenti alla path.
+   * Attenzione: dai componenti in str vengono rimossi
+   * i caratteri '/' in testa e in coda.
+   * @param str array di componenti
+   * @return
+   */
   public UrlBuilder mergePath(String... str)
   {
     if(!sb.toString().endsWith("/"))
       sb.append("/");
 
-    sb.append(StringJoin.build("/").add(str).join());
+    StringJoin sbu = StringJoin.build("/");
+    for(String s : str)
+      sbu.add(encodeURI(purgePathComponent(s)));
+
+    sb.append(sbu.join());
     return this;
+  }
+
+  /**
+   * Normalizza componente della path.
+   * Elimina '/' in testa e in coda.
+   * @param s stringa da convertire
+   * @return stringa convertita
+   */
+  public static String purgePathComponent(String s)
+  {
+    while(s.startsWith("/"))
+      s = s.substring(1);
+
+    while(s.endsWith("/"))
+      s = s.substring(0, s.length() - 1);
+
+    return s;
   }
 
   /**

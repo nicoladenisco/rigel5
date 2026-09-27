@@ -473,7 +473,10 @@ public class HtmlUtils
 
     for(String sp : arComp)
     {
-      sb.append("/").append(sp);
+      if(sp.startsWith("/"))
+        sb.append(sp);
+      else
+        sb.append("/").append(sp);
     }
 
     return sb.toString();
