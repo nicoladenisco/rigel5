@@ -115,7 +115,7 @@ public class FiltroData
 
   public FiltroData addWhere(int type, String nomecampo, SqlEnum criteria, Object val)
   {
-    if(val == null)
+    if(criteria != SqlEnum.ISNULL && criteria != SqlEnum.ISNOTNULL && val == null)
       throw new RuntimeException("Where component can not be empty.");
 
     whereInfo wi = new whereInfo();

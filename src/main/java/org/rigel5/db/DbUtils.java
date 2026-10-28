@@ -1958,6 +1958,20 @@ public class DbUtils
     }
   }
 
+  public static int executeStatement(String sSQL, final List<Object> replacements, Connection con)
+     throws TorqueException
+  {
+    try(PreparedStatement st = con.prepareStatement(sSQL))
+    {
+      setPreparedStatementReplacements(st, replacements, 0);
+      return st.executeUpdate();
+    }
+    catch(SQLException ex)
+    {
+      throw new TorqueException(ex);
+    }
+  }
+
   /**
    * Esegue uno script SQL.
    * Ogni query viene riconosciuta dal terminatore ';'.
@@ -2069,79 +2083,79 @@ public class DbUtils
      throws Exception
   {
     return scanTabelleColonne(con, nomeTabella, null, (conp, nomeSchemap, nomeTabellap, __ignorami) ->
-    {
-      int nsize = NESSUNO_INDEFINITO.length() - 2;
-      StringBuilder sb1 = new StringBuilder(SB_SIZE);
-      StringBuilder sb2 = new StringBuilder(SB_SIZE);
+       {
+         int nsize = NESSUNO_INDEFINITO.length() - 2;
+         StringBuilder sb1 = new StringBuilder(SB_SIZE);
+         StringBuilder sb2 = new StringBuilder(SB_SIZE);
 
-      try(ResultSet rs = con.getMetaData().getColumns(conp.getCatalog(), nomeSchemap, nomeTabellap, null))
-      {
-        for(int i = 0; rs.next(); i++)
-        {
-          String cn = rs.getString("COLUMN_NAME");
-          int tipo = rs.getInt("DATA_TYPE");
-          int size = rs.getInt("COLUMN_SIZE");
-          int tn = rs.getInt("NULLABLE");
+         try(ResultSet rs = con.getMetaData().getColumns(conp.getCatalog(), nomeSchemap, nomeTabellap, null))
+         {
+           for(int i = 0; rs.next(); i++)
+           {
+             String cn = rs.getString("COLUMN_NAME");
+             int tipo = rs.getInt("DATA_TYPE");
+             int size = rs.getInt("COLUMN_SIZE");
+             int tn = rs.getInt("NULLABLE");
 
-          if(i > 0)
-          {
-            sb1.append(',');
-            sb2.append(',');
-          }
+             if(i > 0)
+             {
+               sb1.append(',');
+               sb2.append(',');
+             }
 
-          sb1.append(cn);
+             sb1.append(cn);
 
-          switch(tipo)
-          {
-            case Types.BIT:
-            case Types.TINYINT:
-            case Types.SMALLINT:
-            case Types.INTEGER:
-            case Types.BIGINT:
-            case Types.FLOAT:
-            case Types.REAL:
-            case Types.DOUBLE:
-            case Types.NUMERIC:
-            case Types.DECIMAL:
-              if("stato_rec".equalsIgnoreCase(cn))
-                sb2.append("10");
-              else
-                sb2.append("0");
-              break;
+             switch(tipo)
+             {
+               case Types.BIT:
+               case Types.TINYINT:
+               case Types.SMALLINT:
+               case Types.INTEGER:
+               case Types.BIGINT:
+               case Types.FLOAT:
+               case Types.REAL:
+               case Types.DOUBLE:
+               case Types.NUMERIC:
+               case Types.DECIMAL:
+                 if("stato_rec".equalsIgnoreCase(cn))
+                   sb2.append("10");
+                 else
+                   sb2.append("0");
+                 break;
 
-            case Types.TIMESTAMP:
-              if(tn == ResultSetMetaData.columnNoNulls)
-                sb2.append("current_timestamp");
-              else
-                sb2.append("NULL");
-              break;
+               case Types.TIMESTAMP:
+                 if(tn == ResultSetMetaData.columnNoNulls)
+                   sb2.append("current_timestamp");
+                 else
+                   sb2.append("NULL");
+                 break;
 
-            case Types.BOOLEAN:
-              sb2.append("false");
-              break;
+               case Types.BOOLEAN:
+                 sb2.append("false");
+                 break;
 
-            default:
-              if(tn == ResultSetMetaData.columnNoNulls)
-              {
-                if(size > nsize)
-                  sb2.append(NESSUNO_INDEFINITO);
-                else
-                  sb2.append("'0'");
-              }
-              else
-                sb2.append("NULL");
-              break;
-          }
-        }
-      }
+               default:
+                 if(tn == ResultSetMetaData.columnNoNulls)
+                 {
+                   if(size > nsize)
+                     sb2.append(NESSUNO_INDEFINITO);
+                   else
+                     sb2.append("'0'");
+                 }
+                 else
+                   sb2.append("NULL");
+                 break;
+             }
+           }
+         }
 
-      if(sb1.length() == 0)
-        return null;
+         if(sb1.length() == 0)
+           return null;
 
-      if(nomeSchemap != null)
-        return "INSERT INTO " + nomeSchemap + "." + nomeTabellap + " (" + sb1.toString() + ") VALUES (" + sb2.toString() + ")";
+         if(nomeSchemap != null)
+           return "INSERT INTO " + nomeSchemap + "." + nomeTabellap + " (" + sb1.toString() + ") VALUES (" + sb2.toString() + ")";
 
-      return "INSERT INTO " + nomeTabellap + " (" + sb1.toString() + ") VALUES (" + sb2.toString() + ")";
+         return "INSERT INTO " + nomeTabellap + " (" + sb1.toString() + ") VALUES (" + sb2.toString() + ")";
     });
   }
 
